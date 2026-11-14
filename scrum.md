@@ -6,7 +6,8 @@
 > **`no existe`**; donde hace falta una decisión del equipo se escribe **`pendiente`** y, cuando
 > corresponde, se incluye una **propuesta** claramente marcada como tal.
 >
-> Fecha de extracción: **2026-11-14**.
+> Fecha de extracción: **2026-11-14** (actualizado tras incorporar el despliegue, el modelo
+> Random Forest y la reducción de alcance que retiró auditoría, alertas y reportes).
 
 ---
 
@@ -21,7 +22,8 @@
 albergados por la Asociación de Zoonosis de Santa Cruz de la Sierra y el proceso completo de adopción,
 reemplazando los registros en papel y planillas sueltas. El sistema mantiene la historia clínica digital
 (HCD) de cada animal con trazabilidad completa, gestiona el ciclo de vida de las solicitudes de adopción
-con reglas de negocio verificadas, y apoya al personal con un motor de compatibilidad adoptante-animal y
+con reglas de negocio verificadas, y apoya al personal con un modelo de aprendizaje automático
+(Random Forest) que estima la compatibilidad adoptante-animal, un motor de reglas como respaldo y
 un panel de indicadores en tiempo real.
 
 ## 1.2 Requerimientos iniciales agrupados por módulo
@@ -73,8 +75,8 @@ un panel de indicadores en tiempo real.
 
 - Panel de indicadores en tiempo real con tarjetas, distribución por estado y comparativa ingresos/adopciones.
 - Centro de alertas sanitarias: vacunas vencidas, cuarentenas que superaron su fecha estimada, tratamientos vencidos.
-- Ocho reportes agrupados en tres categorías con acceso segmentado por rol y exportación a CSV.
-- Registro de auditoría inmutable de todas las acciones del sistema (RN-09).
+- Seis indicadores de gestión comparados contra el periodo anterior de la misma duración.
+- Modelo Random Forest entrenable que calcula la compatibilidad, con el motor de reglas como respaldo.
 - Sitio público con catálogo de adoptables, registro de clientes, formulario de contacto y asistente virtual con IA.
 
 ## 1.3 Duración de los sprints
@@ -208,9 +210,9 @@ Versiones tomadas de `backend/package.json` y `frontend/package.json`.
 | Ítem | Estado |
 |---|---|
 | Herramienta de gestión (Jira, Trello, Azure DevOps u otra) | **No existe.** No hay ninguna integración ni archivo de configuración de herramienta de gestión en el proyecto. |
-| Repositorio de código (Git) | **No existe.** El directorio del proyecto no está inicializado como repositorio Git (no hay carpeta `.git`). Sí existe un archivo `.gitignore` preparado para cuando se inicialice. |
-| CI/CD | **No existe.** No hay `.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile` ni ningún otro archivo de integración continua. |
-| Docker | **Sí, parcialmente.** `docker-compose.yml` levanta únicamente la base de datos: imagen `postgres:16-alpine`, contenedor `zoonosis-db`, puerto `5432`, volumen persistente `zoonosis_pgdata`, `healthcheck` con `pg_isready`, `TZ=UTC` y `restart: unless-stopped`. **No hay Dockerfile** para el backend ni para el frontend: ambos se ejecutan directamente con Node. |
+| Repositorio de código (Git) | **Sí, local.** Rama `main`, 4 commits, `.gitignore` y `.gitattributes` configurados. **No tiene remoto**: no está publicado en GitHub ni en ningún otro servicio. |
+| CI/CD | **Sí, escrito; nunca ejecutado.** `.github/workflows/ci.yml` (lint, tipos, compilación, 124 pruebas y build de imágenes) y `.github/workflows/deploy.yml` (publica en GHCR y despliega por SSH). No han corrido porque el repositorio no tiene remoto. |
+| Docker | **Sí, completo.** `docker-compose.yml` levanta la base de datos para desarrollo. `docker-compose.prod.yml` orquesta cinco servicios para producción: nginx, frontend, backend, PostgreSQL y certbot. Hay `Dockerfile` multi-etapa para backend y frontend, ambos verificados: las imágenes se construyen y el contenedor del API arranca, aplica migraciones solo y responde en `/api/v1/health`. |
 
 ## 2.3 Hardware, servidores y despliegue
 
@@ -221,8 +223,9 @@ Versiones tomadas de `backend/package.json` y `frontend/package.json`.
 | Frontend | `http://localhost:3000`. Next.js actúa de proxy de `/api/v1` y `/uploads` hacia el backend mediante `rewrites`. |
 | Base de datos | PostgreSQL 16 en contenedor Docker local, puerto `5432`. |
 | Almacenamiento de archivos | Sistema de archivos local, carpeta definida por `UPLOAD_DIR`, subcarpeta `animals`, servida en la ruta `/uploads`. |
-| Servidor de producción / hosting | **No existe.** El despliegue fue excluido explícitamente del alcance del proyecto por decisión del equipo. No hay configuración de Vercel, Render, Railway, Supabase, Neon ni ningún otro proveedor. |
-| Dominio | **No existe.** |
+| Almacenamiento en la nube | **Configurado, sin usar.** El backend soporta dos drivers intercambiables (`STORAGE_DRIVER`): `local` (disco) y `s3` (bucket de Amazon S3, prefijo `animals/`). Ambos fueron probados: el contenedor arranca correctamente con los dos. Las credenciales se resuelven por **rol IAM de la instancia**, sin claves en el servidor. |
+| Servidor de producción / hosting | **Configurado, no desplegado.** Toda la infraestructura para AWS EC2 está escrita y validada (`docker-compose.prod.yml`, nginx con HTTPS de Let's Encrypt, scripts `deploy/ec2-setup.sh` e `init-letsencrypt.sh`, políticas IAM y de bucket). **Nunca se ejecutó contra AWS** porque no hay credenciales. Ver [DEPLOY.md](DEPLOY.md). |
+| Dominio | **No existe.** Es el bloqueo más inmediato: Let's Encrypt no emite certificados para direcciones IP, así que sin dominio registrado no hay HTTPS posible. |
 
 ## 2.4 Herramientas de prueba
 
@@ -238,7 +241,7 @@ Versiones tomadas de `backend/package.json` y `frontend/package.json`.
 | Postman | **No existe.** No hay colección Postman ni Insomnia en el proyecto. La API se explora con **Swagger UI** en `/api/docs`, generado por `@nestjs/swagger`. |
 | Playwright / Cypress | **No existe.** Era opcional en la especificación y no se incluyó. La interfaz se verificó compilando (`tsc` + `next build`) y recorriendo el flujo completo vía HTTP a través del proxy de Next. |
 
-**Resultados de la última ejecución:** 57 pruebas unitarias y 23 pruebas e2e en verde; `lint` y
+**Resultados de la última ejecución:** 100 pruebas unitarias y 24 pruebas e2e en verde; `lint` y
 `typecheck` sin errores; compilación del backend correcta.
 
 Archivos de prueba reales en el proyecto:
@@ -284,7 +287,7 @@ backend/test/public.e2e-spec.ts
 
 ### Mantenibilidad — implementado
 
-- Arquitectura modular: 15 módulos independientes en el backend, cada uno con su controlador,
+- Arquitectura modular: 16 módulos independientes en el backend, cada uno con su controlador,
   servicio y DTOs.
 - TypeScript estricto en los dos proyectos, con `typecheck` como script dedicado.
 - ESLint y Prettier configurados en backend y frontend.
@@ -609,12 +612,12 @@ No existe archivo de mockup. Pantallas implementadas:
 
 ---
 
-## HU5 — Recomendación de compatibilidad adoptante-animal
+## HU5 — Recomendación de compatibilidad con aprendizaje automático
 
 | Campo | Valor |
 |---|---|
 | **Id** | HU5 |
-| **Nombre corto** | Recomendación de compatibilidad |
+| **Nombre corto** | Recomendación de compatibilidad (Random Forest) |
 | **Prioridad** | Alta |
 | **PHU** | 13 |
 | **Estado** | Terminada (implementada y verificada) |
@@ -623,8 +626,9 @@ No existe archivo de mockup. Pantallas implementadas:
 **Historia**
 
 > Como **personal de Gestión de Adopciones**, quiero **obtener un puntaje de compatibilidad entre un
-> adoptante y un animal, y un ranking de los animales más compatibles**, para **orientar la decisión
-> de adopción con criterios objetivos y no solo con la impresión de la entrevista**.
+> adoptante y un animal, el ranking de los animales más compatibles para un adoptante y el ranking
+> inverso de los adoptantes más compatibles con un animal**, para **orientar la decisión de adopción
+> con criterios objetivos y no solo con la impresión de la entrevista**.
 
 **Criterios de aceptación**
 
@@ -637,18 +641,35 @@ No existe archivo de mockup. Pantallas implementadas:
    si faltan datos del adoptante, la recomendación completa responde HTTP 422 indicando qué falta.
 5. Toda respuesta incluye el aviso obligatorio: *"Resultado de apoyo. La decisión final es del
    personal responsable."*
-6. Los pesos de los criterios son editables por `ADMIN` y deben sumar exactamente 100; cada guardado
-   crea una versión nueva del algoritmo.
+6. Cuando hay un modelo entrenado y activo, el puntaje lo calcula un **Random Forest** y se expresa
+   como probabilidad estimada de adopción sostenida, con el acuerdo entre árboles y los factores que
+   más pesan en ese caso concreto.
+7. Los **filtros duros se evalúan siempre antes del modelo y el modelo no los puede anular**: son
+   vetos de seguridad, no criterios ponderables.
+8. Si no hay modelo activo, el puntaje lo calcula el motor de reglas (arranque en frío), de modo que
+   el sistema funciona desde el primer día.
+9. Desde la ficha de un animal se puede consultar qué adoptantes registrados le convienen; solo se
+   consideran adoptantes sin solicitud activa y no se expone su CI.
 
 **Descripción**
 
-Es la historia de mayor complejidad algorítmica del proyecto. El motor está implementado como una
-**función pura** en `backend/src/modules/recommendation/engine.ts`, sin acceso a base de datos ni
-efectos secundarios, lo que permite probarlo de forma aislada: tiene 22 pruebas unitarias propias.
-Opera en dos modos: par (un adoptante contra un animal) y ranking (un adoptante contra todos los
-animales disponibles). Cada cálculo se persiste en `compatibility_recommendations` con el puntaje, el
-desglose, la versión del modelo y el usuario que lo generó, de modo que quede el historial de con qué
-versión del algoritmo se tomó cada decisión.
+Es la historia de mayor complejidad algorítmica del proyecto y tiene dos implementaciones que
+conviven.
+
+**Motor de reglas** (`engine.ts`): suma ponderada de cinco criterios, implementada como **función
+pura** sin acceso a base de datos, con 22 pruebas unitarias. Hoy cumple dos papeles: respaldo de
+arranque en frío y línea base de comparación.
+
+**Random Forest** (`ml/`): ensamble de 150 árboles CART **implementado desde cero en TypeScript**,
+sin librería externa. La decisión se tomó porque las tres librerías de ML disponibles para Node
+(`ml-random-forest`, `ml-xgboost`, `ml-logistic-regression`) no se actualizan desde mayo de 2022.
+La elección de un ensamble de árboles frente a una red neuronal se respalda en Grinsztajn et al.
+(2022): para datos tabulares los árboles siguen superando al aprendizaje profundo. Son módulos puros
+y deterministas con semilla fija, cubiertos por **46 pruebas unitarias**.
+
+Opera en tres modos: par, ranking directo (un adoptante contra todos los animales disponibles) y
+**ranking inverso** (un animal contra todos los adoptantes sin solicitud activa). Cada cálculo se
+persiste en `compatibility_recommendations` con el puntaje, el desglose, la versión y el usuario.
 
 **Reglas de negocio (conversación)**
 
@@ -660,25 +681,49 @@ versión del algoritmo se tomó cada decisión.
   para ese adoptante.
 - El ranking guarda una fila por cada animal evaluado con `createMany`. Los empates se ordenan por
   código de animal, para que el orden sea estable y reproducible.
-- Versionado del algoritmo: cada guardado crea una fila con `version = max + 1`, calculada bajo
-  *advisory lock*. El umbral `MEDIA` debe ser menor que el umbral `ALTA`.
-- Valores por defecto en la versión 1: pesos 30/25/20/15/10, `thresholdHigh` 80, `thresholdMedium` 60.
+- Versionado: cada entrenamiento crea una fila en `ml_models` con `version = max + 1` bajo
+  *advisory lock*. Un índice único parcial garantiza que **solo un modelo esté activo**, y se puede
+  volver a una versión anterior.
+- Pesos del motor de reglas en la versión 1: 30/25/20/15/10, `thresholdHigh` 80, `thresholdMedium` 60.
+  Ya **no son editables desde la interfaz**: el modelo entrenado los reemplaza.
+- **Procedencia del conjunto declarada obligatoriamente** (`REAL`, `SINTETICO`, `MIXTO`). Con 12
+  solicitudes resueltas el entrenamiento se completa con casos sintéticos generados a partir de
+  criterios de idoneidad, nunca desde el motor de reglas, para que la comparación no sea circular.
+- Las solicitudes `CANCELADA` se excluyen del entrenamiento: no dicen nada sobre la idoneidad del par.
+- La explicación por caso se conserva con **ablación de variables** contra la mediana de
+  entrenamiento, para seguir cumpliendo RN-08.
 
 **Endpoints implementados**
 
 ```
-GET    /api/v1/recommendations/adopter/:adopterId    (modo ranking)
-POST   /api/v1/recommendations                       (modo par)
+GET    /api/v1/recommendations/adopter/:adopterId    (ranking directo)
+GET    /api/v1/recommendations/animal/:animalId      (ranking inverso)
+POST   /api/v1/recommendations                       (par)
 GET    /api/v1/recommendations/history
-GET    /api/v1/algorithm-settings
-POST   /api/v1/algorithm-settings
+GET    /api/v1/ml/status
+GET    /api/v1/ml/models
+GET    /api/v1/ml/models/:version
+POST   /api/v1/ml/train
+POST   /api/v1/ml/models/:version/activate
+POST   /api/v1/ml/deactivate
 ```
 
 **Prototipo / mockup**
 
 No existe archivo de mockup. Pantallas implementadas:
 sección de recomendación dentro de `/solicitudes/[id]` y de `/adoptantes/[id]`;
-configuración de pesos en `/admin/catalogos`.
+pestaña «Adoptantes compatibles» en `/animales/[id]`;
+entrenamiento y métricas del modelo en `/admin/modelo`.
+
+**Métricas reales del modelo v1** (validación cruzada estratificada, 5 pliegues, 1512 casos):
+exactitud 0.7606, ROC-AUC 0.8298, F1 0.7490, Brier 0.1671, out-of-bag 0.7500.
+Línea base de regresión logística: exactitud 0.7460, ROC-AUC 0.8153, Brier 0.1753.
+
+> **Resultado que debe reportarse tal cual:** en el banco de pruebas de 1200 casos el motor de
+> reglas **ordena marginalmente mejor** que el modelo (ROC-AUC 0.8372 contra 0.8260). El modelo gana
+> en **calibración** (Brier 0.1695 contra 0.3035) y en no saturarse: el motor de reglas asigna 100 a
+> varios animales a la vez y no puede ordenarlos entre sí. No se ajustó el generador de datos para
+> fabricar una victoria del modelo.
 
 ---
 
@@ -696,8 +741,8 @@ configuración de pesos en `/admin/catalogos`.
 **Historia**
 
 > Como **personal directivo de la institución**, quiero **ver en un panel los indicadores clave del
-> albergue y las alertas sanitarias vigentes**, para **conocer el estado general de la operación y
-> priorizar la atención sin tener que revisar cada módulo**.
+> albergue y una página de métricas de gestión comparadas contra el periodo anterior**, para
+> **conocer el estado de la operación y detectar tendencias sin revisar cada módulo**.
 
 **Criterios de aceptación**
 
@@ -705,19 +750,27 @@ configuración de pesos en `/admin/catalogos`.
    observación, animales disponibles para adopción, solicitudes activas y adopciones del mes en curso.
 2. Muestra además la distribución de animales por estado y la comparativa de ingresos contra
    adopciones por mes.
-3. Muestra el centro de alertas: vacunas con próxima dosis vencida o a vencer en siete días o menos,
-   períodos de cuarentena que superaron su fecha estimada de fin y tratamientos activos cuya fecha de
-   fin ya pasó.
-4. Si el cálculo de un indicador falla, los demás se siguen mostrando con normalidad.
-5. El contenido del panel se adapta al rol: las últimas solicitudes solo se muestran a los roles con
+3. Si el cálculo de un indicador falla, los demás se siguen mostrando con normalidad.
+4. El contenido del panel se adapta al rol: las últimas solicitudes solo se muestran a los roles con
    acceso al módulo de adopciones.
+5. La página `/kpis` muestra **seis métricas de gestión**, cada una comparada contra el periodo
+   anterior de la misma duración (3, 6 o 12 meses configurables): adopciones concretadas,
+   permanencia hasta la adopción, animales devueltos, solicitudes recibidas, tiempo de evaluación y
+   cobertura de vacunación.
+6. Cada métrica declara si **subir es bueno o malo**, de modo que el color de la tendencia no se
+   deduce del signo: que suban las devoluciones se marca en rojo y que bajen los días de permanencia,
+   en verde.
 
 **Descripción**
 
 Pantalla de entrada del personal interno. Cada sección se calcula de forma independiente y se
 devuelve envuelta en un resultado del tipo `{ ok: true, data }` o `{ ok: false, error }`, de modo que
-un fallo aislado no rompe el panel completo. Existe además una pantalla dedicada `/alertas` con el
-detalle completo de las alertas sanitarias.
+un fallo aislado no rompe el panel completo. La página `/kpis` complementa al panel: donde el panel
+muestra la foto del momento, los KPIs muestran la tendencia.
+
+> Las alertas sanitarias que originalmente formaban parte de esta historia (campana del topbar,
+> tarjeta del panel y página `/alertas`) **fueron retiradas del alcance**; ver sección 6.4. Las
+> vacunas próximas a vencer siguen consultables en `/vacunas`.
 
 **Reglas de negocio (conversación)**
 
@@ -735,12 +788,12 @@ detalle completo de las alertas sanitarias.
 
 ```
 GET    /api/v1/dashboard
-GET    /api/v1/alerts
+GET    /api/v1/kpis?months=6
 ```
 
 **Prototipo / mockup**
 
-No existe archivo de mockup. Pantallas implementadas: `/dashboard`, `/alertas`.
+No existe archivo de mockup. Pantallas implementadas: `/dashboard`, `/kpis`.
 
 ---
 
@@ -1150,7 +1203,7 @@ veterinario pueda registrar un animal, atenderlo y vacunarlo de punta a punta.
 |---|---|---|---|---|
 | SP1.1 | Configuración del monorepo: `backend/` NestJS 11 y `frontend/` Next 15, ESLint, Prettier, TypeScript estricto | 6 | Julio | Terminada |
 | SP1.2 | `docker-compose.yml` con PostgreSQL 16, volumen persistente y `healthcheck` | 2 | Julio | Terminada |
-| SP1.3 | `schema.prisma` completo (18 modelos, 11 enums) y migración inicial con `CHECK`, índices parciales y trigger de solo lectura en `audit_logs` | 10 | Julio | Terminada |
+| SP1.3 | `schema.prisma` completo y migración inicial con `CHECK`, índices parciales y trigger de solo lectura en `audit_logs` (la auditoría se retiró después; ver 6.2) | 10 | Julio | Terminada |
 | SP1.4 | Seed de la base: usuarios por rol, catálogo de vacunas, pesos del algoritmo v1 y datos de demostración | 4 | Claudia | Terminada |
 | SP1.5 | Módulo `auth`: login, refresh con rotación, logout, `/me`, cambio de contraseña, bloqueo por intentos | 10 | Julio | Terminada |
 | SP1.6 | `JwtAuthGuard` y `RolesGuard` con política *deny by default* + pruebas unitarias | 6 | Julio | Terminada |
@@ -1398,7 +1451,6 @@ sequenceDiagram
   participant GR as RolesGuard
   participant CC as ClinicalController
   participant CS as ClinicalService
-  participant AS as AuditService
   participant DB as PostgreSQL
 
   VET->>FE: completa el formulario de consulta
@@ -1417,8 +1469,6 @@ sequenceDiagram
   CS->>DB: INSERT veterinary_consultations
   CS->>DB: INSERT diagnoses (n)
   CS->>DB: INSERT treatments (n)
-  CS->>AS: log(CREATE, consultation, antes/después)
-  AS->>DB: INSERT audit_logs
   CS->>CS: recalcula estado clínico derivado
   CS->>DB: UPDATE animals.status si corresponde
   CS->>DB: COMMIT
@@ -1721,7 +1771,6 @@ sequenceDiagram
   participant ASV as AdoptionsService
   participant RS as RecommendationService
   participant EN as engine.ts (función pura)
-  participant AU as AuditService
   participant DB as PostgreSQL
 
   GES->>FE: selecciona adoptante y animal disponible
@@ -1739,8 +1788,6 @@ sequenceDiagram
     ASV->>DB: INSERT adoption_requests (PENDIENTE)
     Note over DB: índice uq_one_active_request<br/>garantiza RN-05 ante concurrencia
     ASV->>DB: UPDATE animals SET status='EN_PROCESO_ADOPCION'
-    ASV->>AU: log(CREATE + STATUS_CHANGE)
-    AU->>DB: INSERT audit_logs
     ASV->>DB: COMMIT
     ASV-->>AC: solicitud creada
   end
@@ -2047,7 +2094,7 @@ graph TB
       NEXT["Next.js 15<br/>rutas (public), (portal), (app)<br/>proxy /api/v1 y /uploads"]
     end
     subgraph NODE2["Proceso Node.js :4000"]
-      NEST["NestJS 11 — 15 módulos<br/>API /api/v1 · Swagger /api/docs"]
+      NEST["NestJS 11 — 16 módulos<br/>API /api/v1 · Swagger /api/docs"]
     end
     FS[("UPLOAD_DIR/animals")]
     subgraph DOCKER["Docker Desktop"]
@@ -2145,7 +2192,6 @@ sequenceDiagram
 | HU6 | CU23 Reportes por rol | Token de rol `VETERINARIO` | — | `GET /reports` y ejecutar uno de adopciones | Solo categorías `GENERAL` y `SANITARIO`; el de adopciones se rechaza | Correcto |
 | HU6 | CU23 CSV | Reporte con decimales | — | Descargar CSV | Separador `;`, BOM UTF-8 y coma decimal | Correcto |
 | HU7 | CU19 Auditoría | Acciones previas del sprint | Rol `ADMIN` | `GET /audit` y `GET /audit/facets` | Entradas con usuario, acción, entidad y valores antes/después | Correcto |
-| HU7 | CU19 Inmutabilidad | Intento de `UPDATE` o `DELETE` en `audit_logs` | — | Operación directa en base de datos | El trigger lo impide | Correcto |
 | HU8 | Asistente sin clave | Historial válido | `ANTHROPIC_API_KEY` vacía | `POST /chat` | 503 con mensaje amable | Correcto |
 | HU8 | Validación del historial | Turnos no alternados o de tipo inválido | — | `POST /chat` | 400 rechazando el historial | Correcto |
 | — | Animales públicos | Sin sesión | — | `GET /public/animals` | Solo animales `DISPONIBLE_ADOPCION` y solo campos públicos, sin HCD ni motivo de ingreso | Correcto |
@@ -2237,13 +2283,12 @@ graph TB
 
 ## 5.2 Modelo de datos (entidades principales)
 
-**Descripción.** El modelo tiene **18 entidades** y **11 enumeraciones**, con nombres de tabla en
+**Descripción.** El modelo tiene **17 entidades** y **12 enumeraciones**, con nombres de tabla en
 `snake_case` plural y claves primarias `uuid` generadas con `gen_random_uuid()`. Las entidades
 principales se agrupan en cuatro bloques.
 
 *Bloque de identidad y seguridad:* `users` concentra las cuentas con su rol, estado y hash del token
-de refresco; `audit_logs` registra toda acción con valores anterior y nuevo, protegida por un trigger
-que impide `UPDATE` y `DELETE`.
+de refresco. La tabla de auditoría fue **eliminada** del proyecto (ver sección 6.2).
 
 *Bloque animal:* `animals` es la entidad central, con código único, características, comportamiento y
 estado; de ella cuelgan `veterinary_consultations` (y en cascada `diagnoses`, `treatments` y
@@ -2256,22 +2301,22 @@ estado; de ella cuelgan `veterinary_consultations` (y en cascada `diagnoses`, `t
 `compatibility_recommendations` almacena el historial de puntajes calculados y
 `adoption_followups` el acompañamiento posterior a la entrega.
 
-*Bloque configuración y portal:* `algorithm_settings` versiona los pesos y umbrales del motor
-(la clave primaria es el propio número de versión) y `contact_messages` guarda los mensajes del
-formulario público.
+*Bloque configuración y portal:* `algorithm_settings` versiona los pesos y umbrales del motor de
+reglas, `ml_models` versiona los modelos de Random Forest entrenados (con su procedencia y sus
+métricas) y `contact_messages` guarda los mensajes del formulario público.
 
 Restricciones destacadas que el ORM no expresa y se agregaron con SQL en la migración inicial:
 índices únicos parciales `uq_one_active_request` (una sola solicitud activa por animal, RN-05) y
 `uq_one_active_period` (un solo período activo por animal), restricciones `CHECK` sobre rangos de
-valores, índice sobre `lower(name)` y el trigger de solo lectura en `audit_logs`.
+valores, índice sobre `lower(name)` y `uq_one_active_ml_model`, que garantiza un solo modelo activo.
 
 ```mermaid
 erDiagram
-  users ||--o{ audit_logs : genera
   users ||--o{ veterinary_consultations : registra
   users ||--o{ adoption_requests : "es responsable"
   users ||--o{ adoption_followups : registra
   users ||--o{ algorithm_settings : configura
+  users ||--o{ ml_models : entrena
 
   animals ||--o{ veterinary_consultations : tiene
   animals ||--o{ vaccinations : recibe
@@ -2391,16 +2436,18 @@ erDiagram
     date expected_end_date
     date end_date
   }
-  audit_logs {
-    uuid id PK
-    uuid user_id FK
-    varchar action
-    varchar entity
-    uuid entity_id
-    json old_values
-    json new_values
-    varchar ip
-    timestamptz created_at
+  ml_models {
+    int version PK
+    varchar algorithm
+    ml_model_source source
+    boolean is_active
+    json model
+    json metrics
+    int dataset_size
+    int real_samples
+    int synthetic_samples
+    int seed
+    uuid created_by FK
   }
   contact_messages {
     uuid id PK
@@ -2428,7 +2475,7 @@ refresco queda en el dominio del frontend, el `middleware.ts` puede comprobar si
 evitan los problemas de cookies de terceros. El estado del servidor se maneja con TanStack Query y los
 formularios con React Hook Form más Zod.
 
-*Capa de aplicación.* API NestJS 11 con **15 módulos** de responsabilidad única. Las preocupaciones
+*Capa de aplicación.* API NestJS 11 con **16 módulos** de responsabilidad única. Las preocupaciones
 transversales se resuelven con elementos globales: `JwtAuthGuard` y `RolesGuard` registrados como
 `APP_GUARD`, un interceptor de auditoría que usa `AsyncLocalStorage` para propagar usuario e IP, un
 interceptor de serialización que convierte los `Decimal` de Prisma a número, y un filtro de
@@ -2471,12 +2518,12 @@ graph TB
       F1["AllExceptionsFilter<br/>statusCode · message · errors"]
       SW["Swagger /api/docs"]
     end
-    subgraph MODS["15 módulos de dominio"]
+    subgraph MODS["16 módulos de dominio"]
       M1["auth · users · audit"]
       M2["animals · clinical · catalogs"]
       M3["adopters · adoptions"]
-      M4["recommendation<br/>engine.ts (función pura)"]
-      M5["dashboard · reports"]
+      M4["recommendation<br/>engine.ts + ml/ (Random Forest)"]
+      M5["dashboard · kpis"]
       M6["public · chat · mail · contact"]
     end
   end
@@ -2567,30 +2614,95 @@ continua y no deja huecos.
 | 4 | Contenido real de cada retrospectiva (hay un dato verificable del código por sprint como punto de partida) |
 | 2.5 | Objetivos medibles de rendimiento, usabilidad y disponibilidad |
 
-## 6.4 Artefactos que no existen en el proyecto
+## 6.4 Cambios de alcance posteriores al plan original
+
+Tres cambios modificaron el alcance después de cerrar las siete fases iniciales. Están todos
+registrados en `DECISIONS.md` y hay que reflejarlos en el documento, porque **invalidan parte de
+la especificación original**.
+
+### a) Ampliación — sitio público y asistente con IA (decisiones 55–64)
+
+Landing corporativa, rol `CLIENTE` con autoregistro, términos y condiciones con casilla de
+aceptación, banner de cookies, formulario de contacto por correo y asistente virtual con Claude.
+Obligó a endurecer el `RolesGuard` a *deny by default*.
+
+### b) Ampliación — despliegue y aprendizaje automático (decisiones 65–84)
+
+| Qué se agregó | Estado |
+|---|---|
+| Infraestructura completa para AWS EC2 (Docker, nginx, HTTPS con Let's Encrypt) | Escrita y validada, **no desplegada** |
+| Almacenamiento de fotos en S3 con rol IAM | Configurado, probado con ambos drivers |
+| CI/CD en GitHub Actions con publicación en GHCR | Escrito, **nunca ejecutado** |
+| Random Forest propio en TypeScript, con versionado de modelos | Implementado, 46 pruebas, modelo v1 activo |
+| Tabla `ml_models` y migración `20261114220254_modelos_ml` | Aplicada |
+
+### c) Reducción — fuera auditoría, alertas, reportes y pesos editables (decisiones 85–92)
+
+| Qué se retiró | Consecuencia que el documento debe registrar |
+|---|---|
+| **Auditoría completa** (tabla, trigger, interceptor, 41 llamadas) | **El sistema deja de cumplir RN-09.** La migración destruye el historial y no es reversible sin respaldo |
+| **Alertas sanitarias** (campana, tarjeta del panel, página y endpoint) | **RN-12 pierde su superficie visible.** Las vacunas por vencer siguen consultables en `/vacunas` |
+| **Ocho reportes con exportación CSV** | Reemplazados por **seis indicadores de gestión** en `/kpis` |
+| **Edición de los pesos del algoritmo** | El modelo entrenado la reemplaza; los pesos siguen en la base como respaldo |
+| Fecha y motivo de reingreso (CU22) | Vivían solo en la auditoría y no tenían columnas propias. Se retiraron del flujo en vez de descartarse en silencio |
+
+Qué se agregó en el mismo movimiento:
+
+- **Seis KPIs** comparados contra el periodo anterior de la misma duración: adopciones concretadas,
+  permanencia hasta la adopción, animales devueltos, solicitudes recibidas, tiempo de evaluación y
+  cobertura de vacunación. El color de la tendencia cruza dirección con signo, porque subir no
+  siempre es una buena noticia.
+- **Ranking inverso** de recomendación (`GET /recommendations/animal/:id`): desde la ficha del
+  animal, qué adoptantes le convienen.
+- El **catálogo de vacunas** se movió a `/vacunas` como segunda pestaña, para no dejar al
+  administrador sin forma de dar de alta una vacuna.
+
+### Efecto sobre las 12 historias de usuario
+
+| Historia | Efecto |
+|---|---|
+| HU5 Recomendación | **Reescrita**: ahora Random Forest con el motor de reglas como respaldo, más el ranking inverso |
+| HU6 Panel de KPI | El panel sigue; se le quitó la tarjeta de alertas y se sumó la página `/kpis` |
+| HU7 Gestión de usuario | Sin cambios funcionales; perdió el registro en auditoría |
+| HU1–HU4, HU8–HU12 | Sin cambios de alcance |
+
+Las 12 historias **siguen siendo 12**. No se agregaron ni eliminaron historias; cambió el contenido
+de HU5 y HU6.
+
+---
+
+## 6.5 Artefactos que no existen en el proyecto
 
 Para que el documento no afirme nada que el proyecto no tenga:
 
 | Artefacto | Estado | Observación |
 |---|---|---|
-| Repositorio Git | No existe | Hay `.gitignore` preparado; falta inicializar |
-| Historial de commits y autoría | No existe | Consecuencia de lo anterior |
+| Repositorio Git | **Sí, local** | Rama `main`, 4 commits. **Falta crear el remoto en GitHub**: sin él no hay URL para los anexos |
 | Herramienta de gestión (Jira, Trello, etc.) | No existe | — |
-| Pipeline de CI/CD | No existe | — |
-| Dockerfile del backend y del frontend | No existe | Solo hay contenedor para PostgreSQL |
-| Despliegue y dominio | No existe | Excluido del alcance por decisión del equipo |
+| Pipeline de CI/CD | **Escrito, nunca ejecutado** | Dos workflows listos; no han corrido porque el repositorio no tiene remoto |
+| Dockerfile del backend y del frontend | **Sí** | Multi-etapa, verificados: las imágenes se construyen y arrancan |
+| Despliegue en AWS | **Configurado, no desplegado** | Toda la infraestructura escrita y validada; falta cuenta de AWS |
+| Dominio y URL pública | No existe | Bloquea el HTTPS: Let's Encrypt no emite certificados para direcciones IP |
 | Mockups, wireframes y capturas de pantalla | No existe | Las rutas reales de las pantallas hacen de prototipo funcional |
 | Capturas de la ejecución de pruebas | No existe | Solo salida de consola, no guardada |
 | Colección Postman | No existe | Se usa Swagger UI en `/api/docs` |
 | Pruebas automatizadas de interfaz (Playwright/Cypress) | No existe | Era opcional en la especificación |
 | Pruebas de carga y métricas de rendimiento | No existe | — |
 | Actas de revisión y retrospectiva | No existe | — |
-| Respaldo automatizado de base de datos | No existe | El procedimiento manual está documentado en `README.md` |
+| Respaldo automatizado de base de datos | No existe | El procedimiento manual está documentado en `README.md` y `DEPLOY.md` |
+| Monitoreo y alertas de caída | No existe | Sin CloudWatch, Sentry ni servicio de disponibilidad |
+| Registro de incidencias o bugs | No existe | No hay gestor de issues |
+| Análisis de sistemas comparables (Cap I) | No existe | Requiere clonar repositorios y medirlos con `cloc` |
+| Cálculo de complejidad ciclomática | No existe | Propuesta en `hola2.md`: `computeCompatibility` y `findBestSplit` |
 | Claves de API y credenciales SMTP configuradas | Pendiente | `ANTHROPIC_API_KEY` vacía; SMTP sin credenciales; `INSTITUTION_*` y `SOCIAL_*` con valores de ejemplo |
 
 ---
 
 *Documento generado a partir del código real del proyecto el 2026-11-14. Las fuentes verificables son
 `backend/package.json`, `frontend/package.json`, `backend/prisma/schema.prisma`, los controladores de
-los 15 módulos del backend, los 8 archivos de prueba, las 33 rutas de página del frontend,
-`docker-compose.yml`, `README.md` y `DECISIONS.md`.*
+los 16 módulos del backend, los 8 archivos de prueba, las 31 rutas de página del frontend,
+`docker-compose.yml`, `docker-compose.prod.yml`, `.github/workflows/`, `README.md`, `DEPLOY.md` y
+`DECISIONS.md` (92 decisiones registradas).*
+
+*Las respuestas a las preguntas de `hola.md` —incluidas las métricas completas del modelo, el
+detalle de la infraestructura y los datos para los capítulos PAPS y SQAP— están en [hola2.md](hola2.md).*
