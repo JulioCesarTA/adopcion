@@ -1,0 +1,452 @@
+export type UserRole = "ADMIN" | "VETERINARIO" | "GESTION" | "DIRECTIVO" | "CLIENTE";
+export type Species = "PERRO" | "GATO" | "OTRO";
+export type Sex = "MACHO" | "HEMBRA" | "DESCONOCIDO";
+export type AnimalSize = "PEQUENO" | "MEDIANO" | "GRANDE";
+export type AnimalStatus =
+  | "INGRESADO"
+  | "EN_OBSERVACION"
+  | "EN_CUARENTENA"
+  | "EN_TRATAMIENTO"
+  | "DISPONIBLE_ADOPCION"
+  | "EN_PROCESO_ADOPCION"
+  | "ADOPTADO"
+  | "FALLECIDO"
+  | "DEVUELTO";
+export type HousingType = "DEPARTAMENTO" | "CASA_SIN_PATIO" | "CASA_CON_PATIO";
+export type ExperienceLevel = "NINGUNA" | "BASICA" | "AVANZADA";
+export type RequestStatus = "PENDIENTE" | "EN_EVALUACION" | "APROBADA" | "RECHAZADA" | "CANCELADA";
+export type PeriodType = "OBSERVACION" | "CUARENTENA";
+export type PeriodStatus = "ACTIVO" | "FINALIZADO";
+export type TreatmentStatus = "ACTIVO" | "FINALIZADO" | "SUSPENDIDO";
+export type Level = "ALTA" | "MEDIA" | "BAJA" | "INCOMPATIBLE";
+
+export interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  isActive: boolean;
+  lockedUntil: string | null;
+  phone?: string | null;
+  termsAcceptedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserRef {
+  id: string;
+  fullName: string;
+}
+
+export interface PageMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface Paginated<T> {
+  data: T[];
+  meta: PageMeta;
+}
+
+export interface FieldError {
+  field: string;
+  messages: string[];
+}
+
+// ---------- Animales ----------
+
+export interface AnimalListItem {
+  id: string;
+  code: string;
+  name: string | null;
+  species: Species;
+  breed: string | null;
+  sex: Sex;
+  ageMonths: number | null;
+  size: AnimalSize;
+  energyLevel: number;
+  status: AnimalStatus;
+  photoUrl: string | null;
+  entryDate: string;
+  goodWithChildren: boolean;
+  goodWithAnimals: boolean;
+  needsYard: boolean;
+  specialCare: boolean;
+  requiredDailyHours: number;
+  temperament?: string | null;
+  color?: string | null;
+}
+
+export interface Animal extends AnimalListItem {
+  color: string | null;
+  temperament: string | null;
+  specialCareNotes: string | null;
+  physicalDescription: string | null;
+  entryReason: string;
+  exitDate: string | null;
+  exitReason: string | null;
+  exitNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AnimalDetail extends Animal {
+  createdBy: UserRef;
+  activePeriod: QuarantinePeriod | null;
+  activeTreatments: number;
+  adoptionBlockers: string[] | null;
+  adoptionRequests: (AdoptionRequestBase & {
+    adopterProfile: { id: string; person: { firstName: string; lastName: string } };
+    followups: Followup[];
+  })[];
+  _count: { consultations: number; vaccinations: number };
+}
+
+// ---------- Clínico ----------
+
+export interface Diagnosis {
+  id: string;
+  description: string;
+  observations: string | null;
+  createdAt: string;
+}
+
+export interface Medication {
+  id: string;
+  name: string;
+  dose: string;
+  administrationRoute: string;
+  frequency: string;
+  duration: string;
+  observations: string | null;
+}
+
+export interface Treatment {
+  id: string;
+  consultationId: string;
+  description: string;
+  instructions: string;
+  startDate: string;
+  endDate: string | null;
+  status: TreatmentStatus;
+  observations: string | null;
+  medications: Medication[];
+  createdAt: string;
+}
+
+export interface Consultation {
+  id: string;
+  animalId: string;
+  veterinarianId: string;
+  consultationDate: string;
+  reason: string;
+  weightKg: number | null;
+  temperatureC: number | null;
+  clinicalEvaluation: string;
+  observations: string | null;
+  veterinarian: UserRef;
+  diagnoses?: Diagnosis[];
+  treatments?: Treatment[];
+  animal?: {
+    id: string;
+    code: string;
+    name: string | null;
+    species: Species;
+    status: AnimalStatus;
+  };
+  _count?: { diagnoses: number; treatments: number };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Vaccine {
+  id: string;
+  name: string;
+  species: Species[];
+  isRabies: boolean;
+  isActive: boolean;
+}
+
+export interface Vaccination {
+  id: string;
+  animalId: string;
+  vaccineId: string;
+  applicationDate: string;
+  dose: string;
+  batchNumber: string | null;
+  nextDoseDate: string | null;
+  observations: string | null;
+  appliedById: string;
+  vaccine: Vaccine;
+  appliedBy?: UserRef;
+  warnings?: string[];
+}
+
+export interface QuarantineControl {
+  id: string;
+  controlDate: string;
+  animalCondition: string;
+  observations: string | null;
+  createdBy?: UserRef;
+}
+
+export interface QuarantinePeriod {
+  id: string;
+  animalId: string;
+  type: PeriodType;
+  reason: string;
+  startDate: string;
+  expectedEndDate: string | null;
+  endDate: string | null;
+  status: PeriodStatus;
+  finalObservations: string | null;
+  startedBy?: UserRef;
+  closedBy?: UserRef | null;
+  controls?: QuarantineControl[];
+  animal?: {
+    id: string;
+    code: string;
+    name: string | null;
+    species: Species;
+    status: AnimalStatus;
+    photoUrl: string | null;
+  };
+  _count?: { controls: number };
+}
+
+export type TimelineItem =
+  | { type: "CONSULTA"; date: string; id: string; data: Consultation }
+  | { type: "VACUNA"; date: string; id: string; data: Vaccination }
+  | { type: "PERIODO"; date: string; id: string; data: QuarantinePeriod };
+
+// ---------- Adoptantes y adopciones ----------
+
+export interface Person {
+  id: string;
+  ci: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string | null;
+  address: string | null;
+}
+
+export interface Adopter {
+  id: string;
+  personId: string;
+  person: Person;
+  housingType: HousingType;
+  hasYard: boolean;
+  hasChildren: boolean;
+  hasOtherAnimals: boolean;
+  availableHoursPerDay: number;
+  experience: ExperienceLevel;
+  preferredSpecies: Species | null;
+  preferredSize: AnimalSize | null;
+  observations: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { adoptionRequests: number };
+  adoptionRequests?: (AdoptionRequestBase & {
+    animal: {
+      id: string;
+      code: string;
+      name: string | null;
+      species: Species;
+      photoUrl: string | null;
+    };
+  })[];
+}
+
+export interface AdoptionRequestBase {
+  id: string;
+  adopterProfileId: string;
+  animalId: string;
+  responsibleUserId: string;
+  status: RequestStatus;
+  requestDate: string;
+  decisionDate: string | null;
+  deliveryDate: string | null;
+  evaluationNotes: string | null;
+}
+
+export interface AdoptionRequest extends AdoptionRequestBase {
+  adopterProfile: Adopter;
+  animal: AnimalListItem;
+  responsibleUser: UserRef;
+}
+
+export interface Followup {
+  id: string;
+  followupDate: string;
+  animalCondition: string;
+  observations: string | null;
+  createdBy: UserRef;
+}
+
+export interface CriterionResult {
+  key: string;
+  label: string;
+  weight: number;
+  fit: number;
+  points: number;
+  explanation: string;
+}
+
+export interface Breakdown {
+  hardFilters: { passed: boolean; reasons: string[] };
+  criteria: CriterionResult[];
+  score: number;
+  level: Level;
+  modelVersion: number;
+  disclaimer: string;
+}
+
+export interface Recommendation {
+  id: string;
+  adopterProfileId: string;
+  animalId: string;
+  adoptionRequestId: string | null;
+  score: number;
+  level: Level;
+  breakdown: Breakdown;
+  modelVersion: number;
+  generatedAt: string;
+  generatedBy?: UserRef;
+}
+
+export interface AdoptionRequestDetail extends AdoptionRequest {
+  animal: Animal;
+  followups: Followup[];
+  latestRecommendation: Recommendation | null;
+}
+
+export interface RankingItem {
+  animal: Pick<
+    AnimalListItem,
+    | "id"
+    | "code"
+    | "name"
+    | "species"
+    | "size"
+    | "sex"
+    | "ageMonths"
+    | "energyLevel"
+    | "photoUrl"
+    | "status"
+  >;
+  score: number;
+  level: Level;
+  breakdown: Breakdown;
+}
+
+export interface Ranking {
+  adopter: { id: string; name: string };
+  modelVersion: number;
+  disclaimer: string;
+  generatedAt: string;
+  data: RankingItem[];
+  skipped: { animal: RankingItem["animal"]; missing: string[] }[];
+}
+
+export interface AlgorithmSettings {
+  version: number;
+  weights: Record<"time" | "space" | "experience" | "energy" | "preferences", number>;
+  thresholdHigh: number;
+  thresholdMedium: number;
+  createdAt: string;
+  createdBy?: { fullName: string };
+}
+
+// ---------- Panel, alertas, reportes y auditoría ----------
+
+export interface Alerts {
+  vaccines: {
+    vaccinationId: string;
+    animal: { id: string; code: string; name: string | null; species: Species };
+    vaccine: { id: string; name: string };
+    nextDoseDate: string;
+    daysLeft: number;
+    overdue: boolean;
+  }[];
+  periods: {
+    periodId: string;
+    type: PeriodType;
+    animal: { id: string; code: string; name: string | null; species: Species };
+    startDate: string;
+    expectedEndDate: string | null;
+    daysOverdue: number;
+  }[];
+  treatments: {
+    treatmentId: string;
+    consultationId: string;
+    description: string;
+    animal: { id: string; code: string; name: string | null; species: Species };
+    endDate: string | null;
+    daysOverdue: number;
+  }[];
+  total: number;
+}
+
+export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
+
+export interface Dashboard {
+  cards: Section<{
+    inInstitution: number;
+    inQuarantine: number;
+    available: number;
+    activeRequests: number;
+    adoptionsThisMonth: number;
+  }>;
+  byStatus: Section<{ status: AnimalStatus; count: number }[]>;
+  entriesVsAdoptions: Section<
+    { month: string; label: string; entries: number; adoptions: number }[]
+  >;
+  alerts: Section<Alerts>;
+  latestRequests: Section<
+    (AdoptionRequestBase & {
+      animal: { id: string; code: string; name: string | null };
+      adopterProfile: { person: { firstName: string; lastName: string } };
+    })[]
+  > | null;
+}
+
+export type ReportFilterKey = "dates" | "species" | "status";
+
+export interface ReportInfo {
+  type: string;
+  title: string;
+  description: string;
+  category: "GENERAL" | "SANITARIO" | "ADOPCIONES";
+  filters: ReportFilterKey[];
+}
+
+export interface ReportResult {
+  type: string;
+  title: string;
+  description: string;
+  filters: { from: string; to: string; species?: Species; status?: AnimalStatus };
+  columns: { key: string; label: string; type?: "text" | "number" | "date" }[];
+  rows: Record<string, string | number | null>[];
+  chart?: {
+    kind: "bar" | "line";
+    xKey: string;
+    series: { key: string; label: string }[];
+    stacked?: boolean;
+  };
+  generatedAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: string | null;
+  action: string;
+  entityName: string | null;
+  entityId: string | null;
+  oldValue: unknown;
+  newValue: unknown;
+  ip: string | null;
+  createdAt: string;
+  user: { id: string; fullName: string; email: string; role: UserRole } | null;
+}

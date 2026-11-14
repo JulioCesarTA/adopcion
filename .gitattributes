@@ -1,0 +1,15 @@
+# Normaliza finales de línea para que los scripts funcionen en Linux (EC2)
+# aunque se editen en Windows.
+* text=auto eol=lf
+
+*.sh      text eol=lf
+Dockerfile text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pem binary

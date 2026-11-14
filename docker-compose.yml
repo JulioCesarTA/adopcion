@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: zoonosis-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zoonosis
+      POSTGRES_PASSWORD: zoonosis
+      POSTGRES_DB: zoonosis
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - zoonosis_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zoonosis -d zoonosis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  zoonosis_pgdata:

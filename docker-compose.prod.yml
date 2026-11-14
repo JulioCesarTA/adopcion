@@ -1,0 +1,145 @@
+# Despliegue en una instancia EC2. Lee las variables de `.env` (ver .env.production.example).
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Antes del primer arranque hay que emitir el certificado:  ./deploy/init-letsencrypt.sh
+
+name: zoonosis
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: zoonosis-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+    # Sin `ports`: la BD no se expone a Internet, solo a la red de Docker.
+    # Para usar Amazon RDS: comenta este servicio y apunta DATABASE_URL al endpoint.
+
+  backend:
+    image: ${BACKEND_IMAGE:-zoonosis-backend:local}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: zoonosis-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL}
+      FRONTEND_URL: https://${DOMAIN}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_TTL_SECONDS: ${JWT_ACCESS_TTL_SECONDS:-900}
+      JWT_REFRESH_TTL_DAYS: ${JWT_REFRESH_TTL_DAYS:-7}
+      COOKIE_SECURE: "true"
+      COOKIE_SAMESITE: lax
+      # Almacenamiento de fotos: s3 en producción.
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      S3_BUCKET: ${S3_BUCKET}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL}
+      # Vacías si la EC2 tiene un rol IAM (recomendado): el SDK lo resuelve solo.
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      UPLOAD_DIR: /app/uploads
+      # Correo
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      MAIL_FROM: ${MAIL_FROM}
+      CONTACT_TO: ${CONTACT_TO}
+      # Asistente con IA
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      CHAT_MODEL: ${CHAT_MODEL:-claude-opus-5-5}
+      # Datos de la institución
+      INSTITUTION_NAME: ${INSTITUTION_NAME}
+      INSTITUTION_SHORT_NAME: ${INSTITUTION_SHORT_NAME}
+      INSTITUTION_ADDRESS: ${INSTITUTION_ADDRESS}
+      INSTITUTION_PHONE: ${INSTITUTION_PHONE}
+      INSTITUTION_EMAIL: ${INSTITUTION_EMAIL}
+      INSTITUTION_HOURS: ${INSTITUTION_HOURS}
+      SOCIAL_FACEBOOK: ${SOCIAL_FACEBOOK}
+      SOCIAL_INSTAGRAM: ${SOCIAL_INSTAGRAM}
+      SOCIAL_TIKTOK: ${SOCIAL_TIKTOK}
+      SOCIAL_YOUTUBE: ${SOCIAL_YOUTUBE}
+      SOCIAL_WHATSAPP: ${SOCIAL_WHATSAPP}
+      # Poner en "true" solo en el primer despliegue, para crear los usuarios iniciales.
+      RUN_SEED: ${RUN_SEED:-false}
+    volumes:
+      # Respaldo para STORAGE_DRIVER=local; con s3 queda vacío.
+      - uploads:/app/uploads
+    networks: [internal]
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-zoonosis-frontend:local}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zoonosis-frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # nginx manda /api/ directo al backend, pero los rewrites de Next siguen
+      # funcionando como respaldo (y los usa el renderizado del servidor).
+      BACKEND_URL: http://backend:4000
+    networks: [internal]
+
+  nginx:
+    image: nginx:1.29-alpine
+    container_name: zoonosis-nginx
+    restart: unless-stopped
+    depends_on: [frontend, backend]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      # Sustituye únicamente ${DOMAIN} y deja intactas las variables de nginx.
+      NGINX_ENVSUBST_FILTER: DOMAIN
+    volumes:
+      - ./deploy/nginx/templates:/etc/nginx/templates:ro
+      - ./deploy/nginx/docker-entrypoint.d/99-reload-loop.sh:/docker-entrypoint.d/99-reload-loop.sh:ro
+      - certbot-conf:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot
+    networks: [internal]
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: zoonosis-certbot
+    restart: unless-stopped
+    volumes:
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    # Intenta renovar cada 12 h; Let's Encrypt renueva a los 60 días.
+    entrypoint: >
+      /bin/sh -c 'trap exit TERM;
+      while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'
+
+volumes:
+  pgdata:
+  uploads:
+  certbot-conf:
+  certbot-www:
+
+networks:
+  internal:
+    driver: bridge

@@ -1,0 +1,29 @@
+{
+  "_comentario": [
+    "Política del BUCKET: permite que cualquiera LEA las fotos de los animales.",
+    "Es necesaria porque el navegador carga las fotos directo desde S3.",
+    "Solo expone el prefijo animals/ y solo en lectura: nadie puede subir ni borrar.",
+    "",
+    "Reemplazar NOMBRE-DEL-BUCKET por el valor real de S3_BUCKET.",
+    "",
+    "Cómo aplicarla:",
+    "  1. S3 → el bucket → Permissions → Block public access → Edit →",
+    "     desmarcar 'Block all public access' (hace falta para la lectura pública).",
+    "  2. Permissions → Bucket policy → Edit → pegar este JSON sin _comentario.",
+    "",
+    "Alternativa más segura y recomendada si el proyecto crece: mantener el bucket",
+    "privado y poner CloudFront delante con un Origin Access Control (OAC).",
+    "En ese caso no se usa esta política y se pone S3_PUBLIC_BASE_URL con el",
+    "dominio de CloudFront."
+  ],
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LecturaPublicaDeFotos",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::NOMBRE-DEL-BUCKET/animals/*"
+    }
+  ]
+}

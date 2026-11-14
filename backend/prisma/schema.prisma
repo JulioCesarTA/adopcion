@@ -1,0 +1,473 @@
+// Modelo de datos — sección 6 de la especificación.
+// Los índices parciales y los CHECK que Prisma no soporta se agregan con SQL
+// en la migración inicial (ver DECISIONS.md).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  VETERINARIO
+  GESTION
+  DIRECTIVO
+  CLIENTE
+
+  @@map("user_role")
+}
+
+enum ContactStatus {
+  NUEVO
+  LEIDO
+  RESPONDIDO
+
+  @@map("contact_status")
+}
+
+enum Species {
+  PERRO
+  GATO
+  OTRO
+
+  @@map("species")
+}
+
+enum Sex {
+  MACHO
+  HEMBRA
+  DESCONOCIDO
+
+  @@map("sex")
+}
+
+enum AnimalSize {
+  PEQUENO
+  MEDIANO
+  GRANDE
+
+  @@map("animal_size")
+}
+
+enum AnimalStatus {
+  INGRESADO
+  EN_OBSERVACION
+  EN_CUARENTENA
+  EN_TRATAMIENTO
+  DISPONIBLE_ADOPCION
+  EN_PROCESO_ADOPCION
+  ADOPTADO
+  FALLECIDO
+  DEVUELTO
+
+  @@map("animal_status")
+}
+
+enum HousingType {
+  DEPARTAMENTO
+  CASA_SIN_PATIO
+  CASA_CON_PATIO
+
+  @@map("housing_type")
+}
+
+enum ExperienceLevel {
+  NINGUNA
+  BASICA
+  AVANZADA
+
+  @@map("experience_level")
+}
+
+enum RequestStatus {
+  PENDIENTE
+  EN_EVALUACION
+  APROBADA
+  RECHAZADA
+  CANCELADA
+
+  @@map("request_status")
+}
+
+enum PeriodType {
+  OBSERVACION
+  CUARENTENA
+
+  @@map("period_type")
+}
+
+enum PeriodStatus {
+  ACTIVO
+  FINALIZADO
+
+  @@map("period_status")
+}
+
+enum TreatmentStatus {
+  ACTIVO
+  FINALIZADO
+  SUSPENDIDO
+
+  @@map("treatment_status")
+}
+
+model User {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String    @unique @db.VarChar(255)
+  fullName         String    @map("full_name") @db.VarChar(150)
+  passwordHash     String    @map("password_hash") @db.VarChar(255)
+  role             UserRole
+  isActive         Boolean   @default(true) @map("is_active")
+  failedAttempts   Int       @default(0) @map("failed_attempts")
+  lockedUntil      DateTime? @map("locked_until") @db.Timestamptz(6)
+  refreshTokenHash String?   @map("refresh_token_hash") @db.VarChar(255)
+  phone            String?   @db.VarChar(30)
+  /// Fecha en que el cliente aceptó los Términos y la Política de Privacidad al registrarse
+  termsAcceptedAt  DateTime? @map("terms_accepted_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  animalsCreated       Animal[]                       @relation("AnimalCreatedBy")
+  vaccinationsApplied  Vaccination[]
+  consultations        VeterinaryConsultation[]
+  periodsStarted       QuarantinePeriod[]             @relation("PeriodStartedBy")
+  periodsClosed        QuarantinePeriod[]             @relation("PeriodClosedBy")
+  quarantineControls   QuarantineControl[]
+  adoptionRequests     AdoptionRequest[]
+  recommendations      CompatibilityRecommendation[]
+  followups            AdoptionFollowup[]
+  algorithmSettings    AlgorithmSetting[]
+  auditLogs            AuditLog[]
+
+  @@map("users")
+}
+
+model Person {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ci        String   @unique @db.VarChar(20)
+  firstName String   @map("first_name") @db.VarChar(100)
+  lastName  String   @map("last_name") @db.VarChar(100)
+  phone     String   @db.VarChar(30)
+  email     String?  @db.VarChar(255)
+  address   String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  adopterProfile AdopterProfile?
+
+  @@map("persons")
+}
+
+model Animal {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code               String       @unique @db.VarChar(20)
+  name               String?      @db.VarChar(100)
+  species            Species
+  breed              String?      @db.VarChar(100)
+  sex                Sex          @default(DESCONOCIDO)
+  ageMonths          Int?         @map("age_months")
+  color              String?      @db.VarChar(100)
+  size               AnimalSize
+  energyLevel        Int          @map("energy_level") @db.SmallInt
+  temperament        String?
+  goodWithChildren   Boolean      @default(false) @map("good_with_children")
+  goodWithAnimals    Boolean      @default(false) @map("good_with_animals")
+  needsYard          Boolean      @default(false) @map("needs_yard")
+  specialCare        Boolean      @default(false) @map("special_care")
+  specialCareNotes   String?      @map("special_care_notes")
+  requiredDailyHours Decimal      @default(2) @map("required_daily_hours") @db.Decimal(4, 1)
+  physicalDescription String?     @map("physical_description")
+  photoUrl           String?      @map("photo_url") @db.VarChar(500)
+  entryDate          DateTime     @map("entry_date") @db.Timestamptz(6)
+  entryReason        String       @map("entry_reason") @db.VarChar(255)
+  status             AnimalStatus @default(INGRESADO)
+  exitDate           DateTime?    @map("exit_date") @db.Timestamptz(6)
+  exitReason         String?      @map("exit_reason") @db.VarChar(100)
+  exitNotes          String?      @map("exit_notes")
+  deletedAt          DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  createdById        String       @map("created_by") @db.Uuid
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  createdBy        User                          @relation("AnimalCreatedBy", fields: [createdById], references: [id])
+  vaccinations     Vaccination[]
+  consultations    VeterinaryConsultation[]
+  periods          QuarantinePeriod[]
+  adoptionRequests AdoptionRequest[]
+  recommendations  CompatibilityRecommendation[]
+
+  @@index([status], map: "idx_animals_status")
+  @@index([species], map: "idx_animals_species")
+  @@map("animals")
+}
+
+model Vaccine {
+  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String    @unique @db.VarChar(150)
+  species  Species[]
+  isRabies Boolean   @default(false) @map("is_rabies")
+  isActive Boolean   @default(true) @map("is_active")
+
+  vaccinations Vaccination[]
+
+  @@map("vaccines")
+}
+
+model Vaccination {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  animalId        String    @map("animal_id") @db.Uuid
+  vaccineId       String    @map("vaccine_id") @db.Uuid
+  applicationDate DateTime  @map("application_date") @db.Date
+  dose            String    @db.VarChar(50)
+  batchNumber     String?   @map("batch_number") @db.VarChar(50)
+  nextDoseDate    DateTime? @map("next_dose_date") @db.Date
+  observations    String?
+  appliedById     String    @map("applied_by") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  animal    Animal  @relation(fields: [animalId], references: [id])
+  vaccine   Vaccine @relation(fields: [vaccineId], references: [id])
+  appliedBy User    @relation(fields: [appliedById], references: [id])
+
+  @@index([animalId, applicationDate(sort: Desc)], map: "idx_vacc_animal")
+  @@map("vaccinations")
+}
+
+model VeterinaryConsultation {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  animalId           String   @map("animal_id") @db.Uuid
+  veterinarianId     String   @map("veterinarian_id") @db.Uuid
+  consultationDate   DateTime @map("consultation_date") @db.Timestamptz(6)
+  reason             String   @db.VarChar(255)
+  weightKg           Decimal? @map("weight_kg") @db.Decimal(6, 2)
+  temperatureC       Decimal? @map("temperature_c") @db.Decimal(4, 1)
+  clinicalEvaluation String   @map("clinical_evaluation")
+  observations       String?
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  animal       Animal      @relation(fields: [animalId], references: [id])
+  veterinarian User        @relation(fields: [veterinarianId], references: [id])
+  diagnoses    Diagnosis[]
+  treatments   Treatment[]
+
+  @@index([animalId, consultationDate(sort: Desc)], map: "idx_cons_animal")
+  @@map("veterinary_consultations")
+}
+
+model Diagnosis {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  consultationId String   @map("consultation_id") @db.Uuid
+  description    String
+  observations   String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  consultation VeterinaryConsultation @relation(fields: [consultationId], references: [id])
+
+  @@map("diagnoses")
+}
+
+model Treatment {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  consultationId String          @map("consultation_id") @db.Uuid
+  description    String
+  instructions   String
+  startDate      DateTime        @map("start_date") @db.Date
+  endDate        DateTime?       @map("end_date") @db.Date
+  status         TreatmentStatus @default(ACTIVO)
+  observations   String?
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  consultation VeterinaryConsultation @relation(fields: [consultationId], references: [id])
+  medications  Medication[]
+
+  @@map("treatments")
+}
+
+model Medication {
+  id                  String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  treatmentId         String  @map("treatment_id") @db.Uuid
+  name                String  @db.VarChar(150)
+  dose                String  @db.VarChar(50)
+  administrationRoute String  @map("administration_route") @db.VarChar(100)
+  frequency           String  @db.VarChar(100)
+  duration            String  @db.VarChar(100)
+  observations        String?
+
+  treatment Treatment @relation(fields: [treatmentId], references: [id])
+
+  @@map("medications")
+}
+
+model QuarantinePeriod {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  animalId          String       @map("animal_id") @db.Uuid
+  type              PeriodType
+  reason            String
+  startDate         DateTime     @map("start_date") @db.Timestamptz(6)
+  expectedEndDate   DateTime?    @map("expected_end_date") @db.Timestamptz(6)
+  endDate           DateTime?    @map("end_date") @db.Timestamptz(6)
+  status            PeriodStatus @default(ACTIVO)
+  finalObservations String?      @map("final_observations")
+  startedById       String       @map("started_by") @db.Uuid
+  closedById        String?      @map("closed_by") @db.Uuid
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  animal    Animal              @relation(fields: [animalId], references: [id])
+  startedBy User                @relation("PeriodStartedBy", fields: [startedById], references: [id])
+  closedBy  User?               @relation("PeriodClosedBy", fields: [closedById], references: [id])
+  controls  QuarantineControl[]
+
+  @@map("quarantine_periods")
+}
+
+model QuarantineControl {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quarantinePeriodId String   @map("quarantine_period_id") @db.Uuid
+  controlDate        DateTime @map("control_date") @db.Timestamptz(6)
+  animalCondition    String   @map("animal_condition")
+  observations       String?
+  createdById        String   @map("created_by") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  period    QuarantinePeriod @relation(fields: [quarantinePeriodId], references: [id])
+  createdBy User             @relation(fields: [createdById], references: [id])
+
+  @@map("quarantine_controls")
+}
+
+model AdopterProfile {
+  id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId             String           @unique @map("person_id") @db.Uuid
+  housingType          HousingType      @map("housing_type")
+  hasYard              Boolean          @map("has_yard")
+  hasChildren          Boolean          @map("has_children")
+  hasOtherAnimals      Boolean          @map("has_other_animals")
+  availableHoursPerDay Decimal          @map("available_hours_per_day") @db.Decimal(4, 1)
+  experience           ExperienceLevel
+  preferredSpecies     Species?         @map("preferred_species")
+  preferredSize        AnimalSize?      @map("preferred_size")
+  observations         String?
+  createdAt            DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  person           Person                        @relation(fields: [personId], references: [id])
+  adoptionRequests AdoptionRequest[]
+  recommendations  CompatibilityRecommendation[]
+
+  @@map("adopter_profiles")
+}
+
+model AdoptionRequest {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adopterProfileId  String        @map("adopter_profile_id") @db.Uuid
+  animalId          String        @map("animal_id") @db.Uuid
+  responsibleUserId String        @map("responsible_user_id") @db.Uuid
+  status            RequestStatus @default(PENDIENTE)
+  requestDate       DateTime      @default(now()) @map("request_date") @db.Timestamptz(6)
+  decisionDate      DateTime?     @map("decision_date") @db.Timestamptz(6)
+  deliveryDate      DateTime?     @map("delivery_date") @db.Timestamptz(6)
+  evaluationNotes   String?       @map("evaluation_notes")
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  adopterProfile  AdopterProfile                @relation(fields: [adopterProfileId], references: [id])
+  animal          Animal                        @relation(fields: [animalId], references: [id])
+  responsibleUser User                          @relation(fields: [responsibleUserId], references: [id])
+  recommendations CompatibilityRecommendation[]
+  followups       AdoptionFollowup[]
+
+  @@map("adoption_requests")
+}
+
+model CompatibilityRecommendation {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adopterProfileId  String   @map("adopter_profile_id") @db.Uuid
+  animalId          String   @map("animal_id") @db.Uuid
+  adoptionRequestId String?  @map("adoption_request_id") @db.Uuid
+  score             Decimal  @db.Decimal(5, 2)
+  level             String   @db.VarChar(15)
+  breakdown         Json
+  modelVersion      Int      @map("model_version")
+  generatedById     String   @map("generated_by") @db.Uuid
+  generatedAt       DateTime @default(now()) @map("generated_at") @db.Timestamptz(6)
+
+  adopterProfile  AdopterProfile   @relation(fields: [adopterProfileId], references: [id])
+  animal          Animal           @relation(fields: [animalId], references: [id])
+  adoptionRequest AdoptionRequest? @relation(fields: [adoptionRequestId], references: [id])
+  generatedBy     User             @relation(fields: [generatedById], references: [id])
+
+  @@index([adopterProfileId, animalId, generatedAt(sort: Desc)], map: "idx_reco_pair")
+  @@map("compatibility_recommendations")
+}
+
+model AdoptionFollowup {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adoptionRequestId String   @map("adoption_request_id") @db.Uuid
+  followupDate      DateTime @map("followup_date") @db.Timestamptz(6)
+  animalCondition   String   @map("animal_condition")
+  observations      String?
+  createdById       String   @map("created_by") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  adoptionRequest AdoptionRequest @relation(fields: [adoptionRequestId], references: [id])
+  createdBy       User            @relation(fields: [createdById], references: [id])
+
+  @@map("adoption_followups")
+}
+
+model AlgorithmSetting {
+  version         Int      @id
+  weights         Json
+  thresholdHigh   Int      @default(80) @map("threshold_high")
+  thresholdMedium Int      @default(60) @map("threshold_medium")
+  createdById     String   @map("created_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@map("algorithm_settings")
+}
+
+/// Mensajes del formulario «Contáctame» del sitio público
+model ContactMessage {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String        @db.VarChar(150)
+  email             String        @db.VarChar(255)
+  phone             String?       @db.VarChar(30)
+  subject           String        @db.VarChar(150)
+  message           String
+  privacyAcceptedAt DateTime      @map("privacy_accepted_at") @db.Timestamptz(6)
+  status            ContactStatus @default(NUEVO)
+  emailSent         Boolean       @default(false) @map("email_sent")
+  emailError        String?       @map("email_error") @db.VarChar(500)
+  ip                String?       @db.VarChar(64)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt(sort: Desc)], map: "idx_contact_status")
+  @@map("contact_messages")
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityName String?  @map("entity_name") @db.VarChar(100)
+  entityId   String?  @map("entity_id") @db.VarChar(64)
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  ip         String?  @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([createdAt(sort: Desc)], map: "idx_audit_created")
+  @@index([entityName, entityId], map: "idx_audit_entity")
+  @@map("audit_logs")
+}

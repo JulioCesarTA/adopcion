@@ -1,0 +1,118 @@
+# Plantilla procesada por el entrypoint de la imagen nginx (envsubst).
+# Solo se sustituye ${DOMAIN} — ver NGINX_ENVSUBST_FILTER en docker-compose.prod.yml,
+# que evita que nginx pierda sus propias variables ($host, $remote_addr, ...).
+
+upstream frontend_upstream {
+  server frontend:3000;
+  keepalive 16;
+}
+
+upstream backend_upstream {
+  server backend:4000;
+  keepalive 16;
+}
+
+# ---------------------------------------------------------------- HTTP (:80)
+# Solo sirve el reto ACME de Let's Encrypt y redirige el resto a HTTPS.
+server {
+  listen 80;
+  listen [::]:80;
+  server_name ${DOMAIN} www.${DOMAIN};
+
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}
+
+# -------------------------------------------------------------- HTTPS (:443)
+server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+  http2 on;
+  server_name ${DOMAIN} www.${DOMAIN};
+
+  ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+  ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN}/chain.pem;
+
+  # Parámetros recomendados por Certbot (los escribe init-letsencrypt.sh).
+  include /etc/letsencrypt/options-ssl-nginx.conf;
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:SSL:10m;
+  ssl_stapling on;
+  ssl_stapling_verify on;
+
+  # Cabeceras de seguridad. El resto las pone helmet en el API.
+  add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+  # Las fotos de animales pesan hasta 5 MB (validado en el API).
+  client_max_body_size 6m;
+  client_body_timeout 60s;
+
+  gzip on;
+  gzip_vary on;
+  gzip_min_length 1024;
+  gzip_types text/plain text/css application/json application/javascript
+             application/x-javascript text/xml application/xml image/svg+xml;
+
+  # Sonda de salud: no se registra en el log de acceso.
+  location = /api/v1/health {
+    access_log off;
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  # API REST y documentación directo al backend (misma IP pública, así que la
+  # cookie httpOnly del refresh token sigue siendo del mismo origen).
+  location /api/ {
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "";
+    proxy_read_timeout 120s;   # el asistente con IA puede tardar
+    proxy_buffering off;
+  }
+
+  # Fotos servidas por el API cuando STORAGE_DRIVER=local.
+  # Con STORAGE_DRIVER=s3 las sirve el bucket y este bloque queda sin uso.
+  location /uploads/ {
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_cache_valid 200 7d;
+  }
+
+  # Estáticos de Next con caché larga (llevan hash en el nombre).
+  location /_next/static/ {
+    proxy_pass http://frontend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    add_header Cache-Control "public, max-age=31536000, immutable";
+  }
+
+  # Todo lo demás: la aplicación Next.
+  location / {
+    proxy_pass http://frontend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "upgrade";
+    proxy_read_timeout 60s;
+  }
+}

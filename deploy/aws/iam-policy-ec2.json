@@ -1,0 +1,35 @@
+{
+  "_comentario": [
+    "Política IAM para el rol de la instancia EC2.",
+    "Es el permiso MÍNIMO que necesita el backend para manejar las fotos de animales.",
+    "Reemplazar NOMBRE-DEL-BUCKET por el valor real de S3_BUCKET.",
+    "",
+    "Cómo aplicarla:",
+    "  1. IAM → Policies → Create policy → pestaña JSON → pegar este contenido",
+    "     (quitando este bloque _comentario) → nombre: zoonosis-s3-fotos.",
+    "  2. IAM → Roles → Create role → AWS service → EC2 → adjuntar la política",
+    "     → nombre: zoonosis-ec2-role.",
+    "  3. EC2 → la instancia → Actions → Security → Modify IAM role → elegir el rol.",
+    "",
+    "Con el rol puesto NO hacen falta AWS_ACCESS_KEY_ID ni AWS_SECRET_ACCESS_KEY:",
+    "el SDK toma credenciales temporales del metadata de la instancia."
+  ],
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SubirYBorrarFotosDeAnimales",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:DeleteObject", "s3:GetObject"],
+      "Resource": "arn:aws:s3:::NOMBRE-DEL-BUCKET/animals/*"
+    },
+    {
+      "Sid": "ListarSoloLoNecesario",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::NOMBRE-DEL-BUCKET",
+      "Condition": {
+        "StringLike": { "s3:prefix": ["animals/*"] }
+      }
+    }
+  ]
+}

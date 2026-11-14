@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Secretos: nunca subir valores reales. Los ejemplos sí se versionan.
+.env
+.env.local
+.env.production
+!.env.example
+!.env.production.example
+
+backend/uploads/
+*.log
+.DS_Store
+Thumbs.db
