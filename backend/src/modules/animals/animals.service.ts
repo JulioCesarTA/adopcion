@@ -8,7 +8,6 @@ import { Animal, Prisma } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
-import { AuditService } from '../audit/audit.service';
 import { paginated } from '../../common/dto/pagination.dto';
 import { currentYearLaPaz } from '../../common/dates';
 import type { AuthUser, Paginated } from '../../common/types';
@@ -19,7 +18,6 @@ import {
   CreateAnimalDto,
   ExitAnimalDto,
   ListAnimalsQueryDto,
-  ReadmitAnimalDto,
   TimelineQueryDto,
   UpdateAnimalDto,
 } from './dto/animals.dto';
@@ -70,7 +68,6 @@ const listSelect = {
 export class AnimalsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
     private readonly status: AnimalStatusService,
     private readonly storage: StorageService,
   ) {}
@@ -186,15 +183,6 @@ export class AnimalsService {
           createdById: user.id,
         },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'animals',
-          entityId: animal.id,
-          newValue: animal,
-        },
-        tx,
-      );
       return animal;
     });
   }
@@ -223,16 +211,6 @@ export class AnimalsService {
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.animal.update({ where: { id }, data });
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'animals',
-          entityId: id,
-          oldValue: current,
-          newValue: updated,
-        },
-        tx,
-      );
       return updated;
     });
   }
@@ -252,16 +230,6 @@ export class AnimalsService {
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const a = await tx.animal.update({ where: { id }, data: { photoUrl } });
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'animals',
-          entityId: id,
-          oldValue: { photoUrl: current.photoUrl },
-          newValue: { photoUrl },
-        },
-        tx,
-      );
       return a;
     });
 
@@ -299,7 +267,7 @@ export class AnimalsService {
       if (animal.status !== 'DISPONIBLE_ADOPCION') {
         throw new ConflictException('El animal no está disponible para adopción');
       }
-      return this.status.changeStatus(tx, animal, 'INGRESADO', {}, 'Retirado de adopción');
+      return this.status.changeStatus(tx, animal, 'INGRESADO');
     });
   }
 
@@ -327,7 +295,7 @@ export class AnimalsService {
         where: { animalId: id, status: 'ACTIVO' },
       });
       if (period) {
-        const closed = await tx.quarantinePeriod.update({
+        await tx.quarantinePeriod.update({
           where: { id: period.id },
           data: {
             status: 'FINALIZADO',
@@ -336,16 +304,6 @@ export class AnimalsService {
             finalObservations: 'Cerrado automáticamente por salida del animal',
           },
         });
-        await this.audit.log(
-          {
-            action: 'STATUS_CHANGE',
-            entityName: 'quarantine_periods',
-            entityId: period.id,
-            oldValue: period,
-            newValue: closed,
-          },
-          tx,
-        );
       }
       const treatments = await tx.treatment.findMany({
         where: { status: 'ACTIVO', consultation: { animalId: id } },
@@ -355,44 +313,30 @@ export class AnimalsService {
           where: { id: t.id },
           data: { status: 'SUSPENDIDO' },
         });
-        await this.audit.log(
-          {
-            action: 'STATUS_CHANGE',
-            entityName: 'treatments',
-            entityId: t.id,
-            oldValue: { status: t.status },
-            newValue: { status: 'SUSPENDIDO', reason: 'Salida del animal' },
-          },
-          tx,
-        );
       }
 
       const target = dto.type === 'FALLECIDO' ? 'FALLECIDO' : 'DEVUELTO';
       const reason = dto.type === 'OTRO' ? `OTRO: ${dto.detail}` : dto.type;
-      return this.status.changeStatus(
-        tx,
-        animal,
-        target,
-        { exitDate: date, exitReason: reason, exitNotes: dto.notes ?? null },
-        reason,
-      );
+      return this.status.changeStatus(tx, animal, target, {
+        exitDate: date,
+        exitReason: reason,
+        exitNotes: dto.notes ?? null,
+      });
     });
   }
 
   /** CU22: reingreso de un animal adoptado que vuelve a la institución. */
-  async readmit(id: string, dto: ReadmitAnimalDto): Promise<Animal> {
+  async readmit(id: string): Promise<Animal> {
     return this.prisma.$transaction(async (tx) => {
       const animal = await this.status.getForUpdate(tx, id);
       if (animal.status !== 'ADOPTADO') {
         throw new ConflictException('Solo se puede reingresar un animal adoptado');
       }
-      const updated = await this.status.changeStatus(
-        tx,
-        animal,
-        'INGRESADO',
-        { exitDate: null, exitReason: null, exitNotes: null },
-        `Reingreso ${dto.date}: ${dto.reason}`,
-      );
+      const updated = await this.status.changeStatus(tx, animal, 'INGRESADO', {
+        exitDate: null,
+        exitReason: null,
+        exitNotes: null,
+      });
       return updated;
     });
   }

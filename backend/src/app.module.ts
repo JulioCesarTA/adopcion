@@ -6,8 +6,6 @@ import { AppConfigModule } from './config/app-config.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { HealthModule } from './modules/health/health.module';
-import { AuditModule } from './modules/audit/audit.module';
-import { AuditInterceptor } from './modules/audit/audit.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { AnimalsModule } from './modules/animals/animals.module';
@@ -17,7 +15,7 @@ import { AdoptersModule } from './modules/adopters/adopters.module';
 import { AdoptionsModule } from './modules/adoptions/adoptions.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { ReportsModule } from './modules/reports/reports.module';
+import { KpisModule } from './modules/kpis/kpis.module';
 import { MailModule } from './modules/mail/mail.module';
 import { PublicModule } from './modules/public/public.module';
 import { ChatModule } from './modules/chat/chat.module';
@@ -38,7 +36,6 @@ import { SerializeInterceptor } from './common/interceptors/serialize.intercepto
       throttlers: [{ ttl: 60_000, limit: 10 }],
       errorMessage: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
     }),
-    AuditModule,
     AuthModule,
     UsersModule,
     AnimalsModule,
@@ -48,7 +45,7 @@ import { SerializeInterceptor } from './common/interceptors/serialize.intercepto
     AdoptionsModule,
     RecommendationModule,
     DashboardModule,
-    ReportsModule,
+    KpisModule,
     MailModule,
     PublicModule,
     ChatModule,
@@ -57,7 +54,6 @@ import { SerializeInterceptor } from './common/interceptors/serialize.intercepto
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
-    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: SerializeInterceptor },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],

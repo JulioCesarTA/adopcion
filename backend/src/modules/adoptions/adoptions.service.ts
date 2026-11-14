@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { AdoptionRequest, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 import { AnimalStatusService } from '../animals/animal-status.service';
 import { STATUS_LABELS } from '../animals/animal-status';
 import { canSeeFullCi, maskCi } from '../adopters/adopters.service';
@@ -66,7 +65,6 @@ const listInclude = {
 export class AdoptionsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
     private readonly status: AnimalStatusService,
   ) {}
 
@@ -189,22 +187,7 @@ export class AdoptionsService {
             evaluationNotes: appendNote(null, dto.notes, user, 'Pendiente'),
           },
         });
-        await this.audit.log(
-          {
-            action: 'CREATE',
-            entityName: 'adoption_requests',
-            entityId: request.id,
-            newValue: request,
-          },
-          tx,
-        );
-        await this.status.changeStatus(
-          tx,
-          animal,
-          'EN_PROCESO_ADOPCION',
-          {},
-          'Solicitud de adopción creada',
-        );
+        await this.status.changeStatus(tx, animal, 'EN_PROCESO_ADOPCION');
         return request;
       });
     } catch (err) {
@@ -236,18 +219,7 @@ export class AdoptionsService {
           ...(dto.status === 'CANCELADA' ? { decisionDate: new Date() } : {}),
         },
       });
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'adoption_requests',
-          entityId: id,
-          oldValue: { status: req.status },
-          newValue: { status: dto.status, notes: dto.notes },
-        },
-        tx,
-      );
-      if (dto.status === 'CANCELADA')
-        await this.releaseAnimal(tx, req.animalId, 'Solicitud cancelada');
+      if (dto.status === 'CANCELADA') await this.releaseAnimal(tx, req.animalId);
       return updated;
     });
   }
@@ -270,15 +242,6 @@ export class AdoptionsService {
           ),
         },
       });
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'adoption_requests',
-          entityId: id,
-          newValue: { note: notes },
-        },
-        tx,
-      );
       return updated;
     });
   }
@@ -319,42 +282,21 @@ export class AdoptionsService {
           ),
         },
       });
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'adoption_requests',
-          entityId: id,
-          oldValue: { status: req.status },
-          newValue: {
-            status: dto.result,
-            decisionDate,
-            deliveryDate,
-            notes: dto.notes,
-          },
-        },
-        tx,
-      );
       if (dto.result === 'APROBADA') {
         const animal = await this.status.getForUpdate(tx, req.animalId);
-        await this.status.changeStatus(
-          tx,
-          animal,
-          animalStatusAfter('APROBADA'),
-          {},
-          'Adopción aprobada',
-        );
+        await this.status.changeStatus(tx, animal, animalStatusAfter('APROBADA'));
       } else {
-        await this.releaseAnimal(tx, req.animalId, 'Solicitud rechazada');
+        await this.releaseAnimal(tx, req.animalId);
       }
       return updated;
     });
   }
 
   /** RN-06: al rechazar o cancelar, el animal vuelve a estar disponible. */
-  private async releaseAnimal(tx: Tx, animalId: string, reason: string) {
+  private async releaseAnimal(tx: Tx, animalId: string) {
     const animal = await this.status.getForUpdate(tx, animalId);
     if (animal.status === 'EN_PROCESO_ADOPCION') {
-      await this.status.changeStatus(tx, animal, 'DISPONIBLE_ADOPCION', {}, reason);
+      await this.status.changeStatus(tx, animal, 'DISPONIBLE_ADOPCION');
     }
   }
 
@@ -398,15 +340,6 @@ export class AdoptionsService {
         },
         include: { createdBy: userSelect },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'adoption_followups',
-          entityId: f.id,
-          newValue: f,
-        },
-        tx,
-      );
       return f;
     });
   }

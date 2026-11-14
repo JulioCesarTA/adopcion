@@ -1,15 +1,12 @@
 import {
   BarChart3,
-  Bell,
   Brain,
   ClipboardList,
   Heart,
   LayoutDashboard,
   Mail,
   PawPrint,
-  ScrollText,
   ShieldAlert,
-  SlidersHorizontal,
   Syringe,
   UserCog,
   Users,
@@ -51,18 +48,15 @@ const D: UserRole = "DIRECTIVO";
 export const NAV_ITEMS: NavItem[] = [
   { label: "Panel", href: "/dashboard", icon: LayoutDashboard, roles: [A, V, G, D] },
   { label: "Animales", href: "/animales", icon: PawPrint, roles: [A, V, G, D] },
-  { label: "Alertas", href: "/alertas", icon: Bell, roles: [A, V, G, D] },
   { label: "Cuarentena", href: "/cuarentena", icon: ShieldAlert, roles: [A, V, G] },
   { label: "Vacunas", href: "/vacunas", icon: Syringe, roles: [A, V] },
   { label: "Adoptables", href: "/adoptables", icon: Heart, roles: [A, V, G, D] },
   { label: "Adoptantes", href: "/adoptantes", icon: Users, roles: [G] },
   { label: "Solicitudes", href: "/solicitudes", icon: ClipboardList, roles: [A, G, D] },
-  { label: "Reportes", href: "/reportes", icon: BarChart3, roles: [A, V, G, D] },
+  { label: "KPIs", href: "/kpis", icon: BarChart3, roles: [A, V, G, D] },
   { label: "Mensajes web", href: "/mensajes", icon: Mail, roles: [A, G] },
   { label: "Usuarios", href: "/admin/usuarios", icon: UserCog, roles: [A] },
-  { label: "Catálogos y algoritmo", href: "/admin/catalogos", icon: SlidersHorizontal, roles: [A] },
   { label: "Modelo de recomendación", href: "/admin/modelo", icon: Brain, roles: [A, G, D] },
-  { label: "Auditoría", href: "/admin/auditoria", icon: ScrollText, roles: [A] },
 ];
 
 /** Subrutas con permisos más restrictivos que su ítem del menú (sección 3). */

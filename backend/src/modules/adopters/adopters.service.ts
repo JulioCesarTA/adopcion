@@ -1,7 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 import { paginated } from '../../common/dto/pagination.dto';
 import type { AuthUser } from '../../common/types';
 import { CreateAdopterDto, ListAdoptersQueryDto, UpdateAdopterDto } from './dto/adopters.dto';
@@ -39,10 +38,7 @@ function split(dto: Partial<CreateAdopterDto>) {
 
 @Injectable()
 export class AdoptersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(q: ListAdoptersQueryDto, user: AuthUser) {
     const term = q.q?.trim();
@@ -113,15 +109,6 @@ export class AdoptersService {
           },
           include,
         });
-        await this.audit.log(
-          {
-            action: 'CREATE',
-            entityName: 'adopter_profiles',
-            entityId: row.id,
-            newValue: row,
-          },
-          tx,
-        );
         return row;
       });
     } catch (err) {
@@ -149,16 +136,6 @@ export class AdoptersService {
         },
         include,
       });
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'adopter_profiles',
-          entityId: id,
-          oldValue: current,
-          newValue: row,
-        },
-        tx,
-      );
       return row;
     });
   }

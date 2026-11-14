@@ -4,7 +4,6 @@ import { User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import type { AppConfigService } from '../../config/app-config.service';
 import type { PrismaService } from '../../prisma/prisma.service';
-import type { AuditService } from '../audit/audit.service';
 import {
   ACCOUNT_DISABLED,
   AuthService,
@@ -15,7 +14,6 @@ import {
 describe('AuthService', () => {
   let user: User;
   let prisma: { user: { findUnique: jest.Mock; update: jest.Mock } };
-  let audit: { log: jest.Mock };
   let service: AuthService;
 
   beforeAll(async () => {
@@ -46,22 +44,16 @@ describe('AuthService', () => {
         })),
       },
     };
-    audit = { log: jest.fn().mockResolvedValue(undefined) };
     const config = {
       jwtAccessSecret: 'a',
       jwtRefreshSecret: 'r',
       jwtAccessTtlSeconds: 900,
       jwtRefreshTtlDays: 7,
     } as unknown as AppConfigService;
-    service = new AuthService(
-      prisma as unknown as PrismaService,
-      new JwtService(),
-      config,
-      audit as unknown as AuditService,
-    );
+    service = new AuthService(prisma as unknown as PrismaService, new JwtService(), config);
   });
 
-  it('emite tokens, reinicia intentos y registra LOGIN', async () => {
+  it('emite tokens, reinicia intentos', async () => {
     const res = await service.login('VET@zoonosis.test', 'Zoo12345');
     expect(res.accessToken).toBeTruthy();
     expect(res.refreshToken).toBeTruthy();
@@ -71,7 +63,6 @@ describe('AuthService', () => {
         data: expect.objectContaining({ failedAttempts: 0, lockedUntil: null }),
       }),
     );
-    expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'LOGIN' }));
   });
 
   it('usuario inexistente → mensaje genérico', async () => {

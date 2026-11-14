@@ -7,7 +7,6 @@ import {
 import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 import { BCRYPT_COST } from '../../common/password-policy';
 import { paginated } from '../../common/dto/pagination.dto';
 import type { AuthUser, Paginated } from '../../common/types';
@@ -32,10 +31,7 @@ export function toPublicUser(u: User): PublicUser {
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(q: ListUsersQueryDto): Promise<Paginated<PublicUser>> {
     const where: Prisma.UserWhereInput = {
@@ -79,15 +75,6 @@ export class UsersService {
         },
       });
       const pub = toPublicUser(user);
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'users',
-          entityId: user.id,
-          newValue: pub,
-        },
-        tx,
-      );
       return pub;
     });
   }
@@ -102,16 +89,6 @@ export class UsersService {
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.user.update({ where: { id }, data: dto });
       const pub = toPublicUser(updated);
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'users',
-          entityId: id,
-          oldValue: toPublicUser(current),
-          newValue: pub,
-        },
-        tx,
-      );
       return pub;
     });
   }
@@ -120,7 +97,7 @@ export class UsersService {
     if (id === actor.id && !isActive) {
       throw new BadRequestException('No puedes desactivar tu propia cuenta');
     }
-    const current = await this.getOrThrow(id);
+    await this.getOrThrow(id);
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.user.update({
         where: { id },
@@ -129,16 +106,6 @@ export class UsersService {
           ? { isActive: true, failedAttempts: 0, lockedUntil: null }
           : { isActive: false, refreshTokenHash: null },
       });
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'users',
-          entityId: id,
-          oldValue: { isActive: current.isActive },
-          newValue: { isActive: updated.isActive },
-        },
-        tx,
-      );
       return toPublicUser(updated);
     });
   }
@@ -156,7 +123,6 @@ export class UsersService {
           lockedUntil: null,
         },
       });
-      await this.audit.log({ action: 'PASSWORD_RESET', entityName: 'users', entityId: id }, tx);
       return toPublicUser(updated);
     });
   }

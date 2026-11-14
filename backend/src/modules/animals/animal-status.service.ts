@@ -1,14 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Animal, AnimalStatus, Prisma } from '@prisma/client';
-import { AuditService } from '../audit/audit.service';
 import { assertTransition, CLINICAL_STATES, clinicalStatusFor } from './animal-status';
 
 type Tx = Prisma.TransactionClient;
 
 @Injectable()
 export class AnimalStatusService {
-  constructor(private readonly audit: AuditService) {}
-
   async getForUpdate(tx: Tx, animalId: string): Promise<Animal> {
     // Bloquea la fila para serializar cambios de estado concurrentes sobre el mismo animal
     await tx.$executeRaw`SELECT id FROM animals WHERE id = ${animalId}::uuid FOR UPDATE`;
@@ -25,25 +22,12 @@ export class AnimalStatusService {
     animal: Pick<Animal, 'id' | 'status'>,
     to: AnimalStatus,
     extra: Prisma.AnimalUpdateInput = {},
-    reason?: string,
   ): Promise<Animal> {
     assertTransition(animal.status, to);
     const updated = await tx.animal.update({
       where: { id: animal.id },
       data: { ...extra, status: to },
     });
-    if (animal.status !== to) {
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'animals',
-          entityId: animal.id,
-          oldValue: { status: animal.status },
-          newValue: { status: to, ...(reason ? { reason } : {}) },
-        },
-        tx,
-      );
-    }
     return updated;
   }
 
@@ -52,12 +36,12 @@ export class AnimalStatusService {
    * Solo actúa si el animal está en un estado clínico; los demás estados
    * (adopción, salida) no se tocan.
    */
-  async syncClinicalStatus(tx: Tx, animalId: string, reason?: string): Promise<Animal> {
+  async syncClinicalStatus(tx: Tx, animalId: string): Promise<Animal> {
     const animal = await this.getForUpdate(tx, animalId);
     if (!CLINICAL_STATES.includes(animal.status)) return animal;
     const target = clinicalStatusFor(await this.clinicalFacts(tx, animalId));
     if (target === animal.status) return animal;
-    return this.changeStatus(tx, animal, target, {}, reason);
+    return this.changeStatus(tx, animal, target);
   }
 
   async clinicalFacts(tx: Tx, animalId: string) {

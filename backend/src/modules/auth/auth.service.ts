@@ -13,7 +13,6 @@ import * as bcrypt from 'bcryptjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppConfigService } from '../../config/app-config.service';
-import { AuditService } from '../audit/audit.service';
 import { BCRYPT_COST } from '../../common/password-policy';
 import type { JwtAccessPayload, JwtRefreshPayload } from '../../common/types';
 import { PublicUser, toPublicUser } from '../users/users.service';
@@ -37,7 +36,6 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: AppConfigService,
-    private readonly audit: AuditService,
   ) {}
 
   /** CU01: valida credenciales, aplica bloqueo tras 5 intentos fallidos y emite tokens. */
@@ -61,12 +59,6 @@ export class AuthService {
           where: { id: user.id },
           data: { failedAttempts: 0, lockedUntil },
         });
-        await this.audit.log({
-          action: 'ACCOUNT_LOCKED',
-          entityName: 'users',
-          entityId: user.id,
-          userId: user.id,
-        });
         throw this.lockedError(lockedUntil, now);
       }
       await this.prisma.user.update({
@@ -81,12 +73,6 @@ export class AuthService {
     const session = await this.issueSession(user, {
       failedAttempts: 0,
       lockedUntil: null,
-    });
-    await this.audit.log({
-      action: 'LOGIN',
-      entityName: 'users',
-      entityId: user.id,
-      userId: user.id,
     });
     return session;
   }
@@ -107,12 +93,6 @@ export class AuthService {
       where: { id: user.id },
       data: { refreshTokenHash: null },
     });
-    await this.audit.log({
-      action: 'LOGOUT',
-      entityName: 'users',
-      entityId: user.id,
-      userId: user.id,
-    });
   }
 
   async me(userId: string): Promise<PublicUser> {
@@ -122,20 +102,11 @@ export class AuthService {
   }
 
   async updateMe(userId: string, fullName: string): Promise<PublicUser> {
-    const before = await this.me(userId);
     const updated = await this.prisma.user.update({
       where: { id: userId },
       data: { fullName },
     });
-    const after = toPublicUser(updated);
-    await this.audit.log({
-      action: 'UPDATE',
-      entityName: 'users',
-      entityId: userId,
-      oldValue: before,
-      newValue: after,
-    });
-    return after;
+    return toPublicUser(updated);
   }
 
   /** CU25: cambio de contraseña pidiendo la actual. */
@@ -156,11 +127,6 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { passwordHash },
-    });
-    await this.audit.log({
-      action: 'PASSWORD_CHANGE',
-      entityName: 'users',
-      entityId: userId,
     });
   }
 

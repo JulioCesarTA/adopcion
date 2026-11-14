@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { AlgorithmSetting, Vaccine } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 import type { AuthUser } from '../../common/types';
 import type { AlgorithmSettings, Weights } from '../recommendation/engine';
 import { CreateAlgorithmSettingsDto, CreateVaccineDto, UpdateVaccineDto } from './dto/catalogs.dto';
@@ -22,10 +21,7 @@ export function toSettings(row: AlgorithmSetting): AlgorithmSettings {
 
 @Injectable()
 export class CatalogsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // ---------- Vacunas ----------
 
@@ -42,15 +38,6 @@ export class CatalogsService {
       const v = await tx.vaccine.create({
         data: { ...dto, species: [...new Set(dto.species)] },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'vaccines',
-          entityId: v.id,
-          newValue: v,
-        },
-        tx,
-      );
       return v;
     });
   }
@@ -70,16 +57,6 @@ export class CatalogsService {
           ...(dto.species ? { species: [...new Set(dto.species)] } : {}),
         },
       });
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'vaccines',
-          entityId: id,
-          oldValue: current,
-          newValue: v,
-        },
-        tx,
-      );
       return v;
     });
   }
@@ -146,16 +123,6 @@ export class CatalogsService {
           createdById: user.id,
         },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'algorithm_settings',
-          entityId: String(row.version),
-          oldValue: last,
-          newValue: row,
-        },
-        tx,
-      );
       return row;
     });
   }

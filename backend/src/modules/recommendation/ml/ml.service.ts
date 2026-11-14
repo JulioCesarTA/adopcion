@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { MlModel, MlModelSource, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { AuditService } from '../../audit/audit.service';
 import type { AuthUser } from '../../../common/types';
 import { toAdopterInput, toAnimalInput } from '../inputs';
 import { FEATURE_LABELS, FEATURE_NAMES, toFeatures, type Sample } from './dataset';
@@ -40,10 +39,7 @@ export class MlService {
   /** Modelo activo en memoria, para no deserializarlo en cada predicción. */
   private cached: { version: number; forest: RandomForest } | null = null;
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // ------------------------------------------------------------------ lectura
 
@@ -251,26 +247,6 @@ export class MlService {
         },
       });
 
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'ml_models',
-          entityId: String(version),
-          newValue: {
-            version,
-            algorithm: 'random-forest',
-            source,
-            datasetSize: samples.length,
-            realSamples: real.length,
-            syntheticSamples: synthetic.length,
-            rocAuc: forestCv.pooled.rocAuc,
-            accuracy: forestCv.pooled.accuracy,
-            activated: activate,
-          },
-        },
-        tx,
-      );
-
       return row;
     });
 
@@ -295,16 +271,6 @@ export class MlService {
         omit: { model: true },
         data: { isActive: true },
       });
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'ml_models',
-          entityId: String(version),
-          oldValue: { isActive: row.isActive },
-          newValue: { isActive: true },
-        },
-        tx,
-      );
       return next;
     });
 
@@ -319,16 +285,6 @@ export class MlService {
 
     await this.prisma.$transaction(async (tx) => {
       await tx.mlModel.update({ where: { version: current.version }, data: { isActive: false } });
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'ml_models',
-          entityId: String(current.version),
-          oldValue: { isActive: true },
-          newValue: { isActive: false },
-        },
-        tx,
-      );
     });
 
     this.invalidate();

@@ -105,11 +105,6 @@ describe('Auth y usuarios (e2e)', () => {
     expect((res.body as { message: string }).message).toBe(
       'Cuenta desactivada, contacta al administrador',
     );
-
-    const logs = await prisma.auditLog.findMany({ where: { entityId: id } });
-    expect(logs.map((l) => l.action)).toEqual(
-      expect.arrayContaining(['CREATE', 'STATUS_CHANGE', 'LOGIN']),
-    );
   });
 
   it('el admin no puede desactivarse a sí mismo', async () => {

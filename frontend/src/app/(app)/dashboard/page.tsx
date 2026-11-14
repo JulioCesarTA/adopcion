@@ -14,7 +14,6 @@ import {
   YAxis,
 } from "recharts";
 import { ClipboardList, Heart, HeartHandshake, PawPrint, ShieldAlert } from "lucide-react";
-import { AlertsList } from "@/components/alerts-list";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/info";
 import { PageHeader } from "@/components/layout/page-header";
@@ -93,7 +92,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6">
         <Card>
           <CardHeader title="Animales por estado" />
           <CardBody>
@@ -182,26 +181,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader
-            title="Alertas"
-            actions={
-              <Link href="/alertas" className="text-sm font-medium text-teal-700 hover:underline">
-                Ver todas
-              </Link>
-            }
-          />
-          {isLoading ? (
-            <div className="p-5">
-              <Skeleton className="h-40 w-full" />
-            </div>
-          ) : data?.alerts.ok ? (
-            <AlertsList alerts={data.alerts.data} limit={6} />
-          ) : (
-            <ErrorState message={sectionError(data?.alerts) ?? "Error"} />
-          )}
-        </Card>
-
         {data?.latestRequests !== null && (
           <Card>
             <CardHeader

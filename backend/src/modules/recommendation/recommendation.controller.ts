@@ -19,6 +19,14 @@ export class RecommendationController {
     return this.recommendations.ranking(adopterId, user);
   }
 
+  @Get('animal/:animalId')
+  rankingForAnimal(
+    @Param('animalId', ParseUUIDPipe) animalId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.recommendations.rankingForAnimal(animalId, user);
+  }
+
   @Post()
   pair(@Body() dto: CreateRecommendationDto, @CurrentUser() user: AuthUser) {
     return this.recommendations.pair(dto, user);

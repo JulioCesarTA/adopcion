@@ -16,7 +16,6 @@ import type { CookieOptions, Request, Response } from 'express';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ALL_ROLES } from '../../common/guards/roles.guard';
 import { Public } from '../../common/decorators/public.decorator';
-import { SkipAudit } from '../../common/decorators/skip-audit.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthUser } from '../../common/types';
 import { AppConfigService } from '../../config/app-config.service';
@@ -57,7 +56,6 @@ export class AuthController {
   }
 
   @Public()
-  @SkipAudit()
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('login')
@@ -67,7 +65,6 @@ export class AuthController {
   }
 
   @Public()
-  @SkipAudit()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -80,7 +77,6 @@ export class AuthController {
   }
 
   @Public()
-  @SkipAudit()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {

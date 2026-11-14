@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { DataTable, type Column } from "@/components/data-table";
 import { PageHeader } from "@/components/layout/page-header";
+import { TabPanel, Tabs } from "@/components/ui/tabs";
+import { VaccineCatalog } from "@/components/clinical/vaccine-catalog";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/input";
 import { useUpcomingVaccinations, type UpcomingVaccination } from "@/hooks/use-clinical";
@@ -20,7 +22,8 @@ function daysUntil(dateOnly: string): number {
 }
 
 /** Vacunas próximas a vencer (última dosis de cada vacuna por animal). */
-export default function UpcomingVaccinesPage() {
+export default function VaccinesPage() {
+  const [tab, setTab] = useState("proximas");
   const [days, setDays] = useState(30);
   const { data, isLoading, error } = useUpcomingVaccinations(days);
 
@@ -82,28 +85,48 @@ export default function UpcomingVaccinesPage() {
   return (
     <>
       <PageHeader
-        title="Vacunas próximas a vencer"
-        description="Se considera la última dosis aplicada de cada vacuna en animales que siguen en la institución."
+        title="Vacunas"
+        description="Control de próximas dosis y catálogo de vacunas de la institución."
         actions={
-          <Select
-            aria-label="Horizonte"
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-          >
-            <option value={7}>Próximos 7 días</option>
-            <option value={30}>Próximos 30 días</option>
-            <option value={90}>Próximos 90 días</option>
-          </Select>
+          tab === "proximas" ? (
+            <Select
+              aria-label="Horizonte"
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+            >
+              <option value={7}>Próximos 7 días</option>
+              <option value={30}>Próximos 30 días</option>
+              <option value={90}>Próximos 90 días</option>
+            </Select>
+          ) : undefined
         }
       />
-      <DataTable
-        columns={columns}
-        data={data}
-        rowKey={(v) => v.id}
-        loading={isLoading}
-        error={error ? errorMessage(error) : null}
-        emptyTitle="No hay vacunas por vencer en este periodo"
+      <Tabs
+        tabs={[
+          { id: "proximas", label: "Próximas a vencer" },
+          { id: "catalogo", label: "Catálogo" },
+        ]}
+        value={tab}
+        onChange={setTab}
+        idPrefix="vac"
       />
+      <TabPanel id="proximas" active={tab === "proximas"} idPrefix="vac">
+        <p className="mb-3 text-sm text-slate-500">
+          Se considera la última dosis aplicada de cada vacuna en animales que siguen en la
+          institución.
+        </p>
+        <DataTable
+          columns={columns}
+          data={data}
+          rowKey={(v) => v.id}
+          loading={isLoading}
+          error={error ? errorMessage(error) : null}
+          emptyTitle="No hay vacunas por vencer en este periodo"
+        />
+      </TabPanel>
+      <TabPanel id="catalogo" active={tab === "catalogo"} idPrefix="vac">
+        <VaccineCatalog />
+      </TabPanel>
     </>
   );
 }

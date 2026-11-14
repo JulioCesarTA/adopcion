@@ -222,19 +222,6 @@ export class ExitAnimalDto {
   notes?: string;
 }
 
-export class ReadmitAnimalDto {
-  @ApiProperty()
-  @IsDateString({}, { message: 'Fecha inválida' })
-  date: string;
-
-  @ApiProperty()
-  @Transform(trim)
-  @IsString()
-  @IsNotEmpty({ message: 'El motivo del reingreso es obligatorio' })
-  @MaxLength(255)
-  reason: string;
-}
-
 export const TIMELINE_TYPES = ['CONSULTA', 'VACUNA', 'PERIODO'] as const;
 export type TimelineType = (typeof TIMELINE_TYPES)[number];
 

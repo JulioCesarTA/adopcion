@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { Animal, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 import { AnimalStatusService } from '../animals/animal-status.service';
 import {
   CLINICAL_STATES,
@@ -49,7 +48,6 @@ export interface UpcomingVaccinationRow {
 export class ClinicalService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
     private readonly status: AnimalStatusService,
   ) {}
 
@@ -95,10 +93,10 @@ export class ClinicalService {
    * Si el animal estaba disponible para adopción y aparece un tratamiento o un
    * periodo, se retira automáticamente de adopción (RN-03 deja de cumplirse).
    */
-  private async withdrawIfAvailable(tx: Tx, animalId: string, reason: string) {
+  private async withdrawIfAvailable(tx: Tx, animalId: string) {
     const animal = await this.status.getForUpdate(tx, animalId);
     if (animal.status === 'DISPONIBLE_ADOPCION') {
-      await this.status.changeStatus(tx, animal, 'INGRESADO', {}, reason);
+      await this.status.changeStatus(tx, animal, 'INGRESADO');
     }
   }
 
@@ -130,15 +128,6 @@ export class ClinicalService {
           veterinarianId: user.id,
         },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'veterinary_consultations',
-          entityId: c.id,
-          newValue: c,
-        },
-        tx,
-      );
       return c;
     });
   }
@@ -182,16 +171,6 @@ export class ClinicalService {
           ...(dto.consultationDate ? { consultationDate: new Date(dto.consultationDate) } : {}),
         },
       });
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'veterinary_consultations',
-          entityId: id,
-          oldValue: current,
-          newValue: updated,
-        },
-        tx,
-      );
       return updated;
     });
   }
@@ -214,15 +193,6 @@ export class ClinicalService {
     await this.consultationForNewRecord(consultationId);
     return this.prisma.$transaction(async (tx) => {
       const d = await tx.diagnosis.create({ data: { ...dto, consultationId } });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'diagnoses',
-          entityId: d.id,
-          newValue: d,
-        },
-        tx,
-      );
       return d;
     });
   }
@@ -248,21 +218,8 @@ export class ClinicalService {
         },
         include: { medications: true },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'treatments',
-          entityId: t.id,
-          newValue: t,
-        },
-        tx,
-      );
-      await this.withdrawIfAvailable(
-        tx,
-        consultation.animalId,
-        'Retirado de adopción por nuevo tratamiento',
-      );
-      await this.status.syncClinicalStatus(tx, consultation.animalId, 'Tratamiento iniciado');
+      await this.withdrawIfAvailable(tx, consultation.animalId);
+      await this.status.syncClinicalStatus(tx, consultation.animalId);
       return t;
     });
   }
@@ -296,29 +253,11 @@ export class ClinicalService {
         },
         include: { medications: true },
       });
-      await this.audit.log(
-        {
-          action: dto.status && dto.status !== before.status ? 'STATUS_CHANGE' : 'UPDATE',
-          entityName: 'treatments',
-          entityId: id,
-          oldValue: before,
-          newValue: updated,
-        },
-        tx,
-      );
       if (dto.status && dto.status !== before.status) {
         if (dto.status === 'ACTIVO') {
-          await this.withdrawIfAvailable(
-            tx,
-            consultation.animalId,
-            'Retirado de adopción por tratamiento reactivado',
-          );
+          await this.withdrawIfAvailable(tx, consultation.animalId);
         }
-        await this.status.syncClinicalStatus(
-          tx,
-          consultation.animalId,
-          `Tratamiento ${dto.status.toLowerCase()}`,
-        );
+        await this.status.syncClinicalStatus(tx, consultation.animalId);
       }
       return updated;
     });
@@ -333,15 +272,6 @@ export class ClinicalService {
     this.assertAcceptsRecords(t.consultation.animal);
     return this.prisma.$transaction(async (tx) => {
       const m = await tx.medication.create({ data: { ...dto, treatmentId } });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'medications',
-          entityId: m.id,
-          newValue: m,
-        },
-        tx,
-      );
       return m;
     });
   }
@@ -390,15 +320,6 @@ export class ClinicalService {
         },
         include: { vaccine: true },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'vaccinations',
-          entityId: v.id,
-          newValue: v,
-        },
-        tx,
-      );
       return v;
     });
     return { ...vaccination, warnings };
@@ -431,16 +352,6 @@ export class ClinicalService {
         },
         include: { vaccine: true },
       });
-      await this.audit.log(
-        {
-          action: 'UPDATE',
-          entityName: 'vaccinations',
-          entityId: id,
-          oldValue: current,
-          newValue: updated,
-        },
-        tx,
-      );
       return updated;
     });
   }
@@ -550,21 +461,8 @@ export class ClinicalService {
             startedById: user.id,
           },
         });
-        await this.audit.log(
-          {
-            action: 'CREATE',
-            entityName: 'quarantine_periods',
-            entityId: p.id,
-            newValue: p,
-          },
-          tx,
-        );
-        await this.withdrawIfAvailable(tx, animalId, 'Retirado de adopción por inicio de periodo');
-        await this.status.syncClinicalStatus(
-          tx,
-          animalId,
-          dto.type === 'CUARENTENA' ? 'Inicio de cuarentena' : 'Inicio de observación',
-        );
+        await this.withdrawIfAvailable(tx, animalId);
+        await this.status.syncClinicalStatus(tx, animalId);
         return p;
       });
     } catch (err) {
@@ -604,15 +502,6 @@ export class ClinicalService {
         },
         include: { createdBy: userSelect },
       });
-      await this.audit.log(
-        {
-          action: 'CREATE',
-          entityName: 'quarantine_controls',
-          entityId: c.id,
-          newValue: c,
-        },
-        tx,
-      );
       return c;
     });
   }
@@ -633,7 +522,7 @@ export class ClinicalService {
         ],
       });
     }
-    const { _count, ...before } = period;
+    const { _count } = period;
     return this.prisma.$transaction(async (tx) => {
       const closed = await tx.quarantinePeriod.update({
         where: { id: periodId },
@@ -644,17 +533,7 @@ export class ClinicalService {
           closedById: user.id,
         },
       });
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'quarantine_periods',
-          entityId: periodId,
-          oldValue: before,
-          newValue: closed,
-        },
-        tx,
-      );
-      await this.status.syncClinicalStatus(tx, period.animalId, 'Cierre de periodo');
+      await this.status.syncClinicalStatus(tx, period.animalId);
       return { ...closed, controlsCount: _count.controls };
     });
   }

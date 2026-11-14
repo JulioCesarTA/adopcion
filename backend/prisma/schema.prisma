@@ -142,7 +142,6 @@ model User {
   followups            AdoptionFollowup[]
   algorithmSettings    AlgorithmSetting[]
   mlModels             MlModel[]
-  auditLogs            AuditLog[]
 
   @@map("users")
 }
@@ -495,20 +494,3 @@ model ContactMessage {
   @@map("contact_messages")
 }
 
-model AuditLog {
-  id         BigInt   @id @default(autoincrement())
-  userId     String?  @map("user_id") @db.Uuid
-  action     String   @db.VarChar(100)
-  entityName String?  @map("entity_name") @db.VarChar(100)
-  entityId   String?  @map("entity_id") @db.VarChar(64)
-  oldValue   Json?    @map("old_value")
-  newValue   Json?    @map("new_value")
-  ip         String?  @db.VarChar(64)
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  user User? @relation(fields: [userId], references: [id])
-
-  @@index([createdAt(sort: Desc)], map: "idx_audit_created")
-  @@index([entityName, entityId], map: "idx_audit_entity")
-  @@map("audit_logs")
-}

@@ -21,7 +21,7 @@ La especificación completa está en `../PROYECTO_ZOONOSIS_CLAUDE_CODE.md`; las 
 | 3 | Clínico (CU05–09, 21): consultas, diagnósticos, tratamientos, medicamentos, vacunas, cuarentena, HCD, RN-03 | ✅ |
 | 4 | Adopciones (CU10, 11, 12, 14, 24): adoptantes, solicitudes, máquina de estados, catálogo de adoptables | ✅ |
 | 5 | Recomendación y cierre (CU13, 15, 16, 26): motor + tests, ranking, pesos editables, seguimientos, acta | ✅ |
-| 6 | Panel, alertas, reportes y auditoría (CU17, 18, 19, 23) | ✅ |
+| 6 | Panel e indicadores de gestión (CU17, CU18) | ✅ |
 | 7 | Pulido (permisos, estados vacíos/errores, responsive, tests e2e, README) | ✅ |
 | + | Sitio público (landing, redes, términos, privacidad, cookies), registro de clientes, contacto por correo y asistente con IA | ✅ |
 | + | Despliegue: Docker, nginx + HTTPS (Let's Encrypt), fotos en S3, CI/CD en GitHub Actions para EC2 | ✅ (falta configurar las claves) |
@@ -104,6 +104,7 @@ npm run test:e2e    # e2e contra la BD local: login, usuarios, crear animal, RN-
 | `/terminos`, `/privacidad` | Términos y Condiciones; Política de Privacidad y Cookies (texto modelo: revisarlo con un asesor legal) |
 | `/portal` | Portal del cliente: adoptables, «Me interesa», asistente y perfil |
 | `/mensajes` | Buzón del formulario de contacto (ADMIN y GESTION) |
+| `/kpis` | Seis indicadores de gestión con comparación contra el periodo anterior |
 
 ### Configurar el correo (formulario «Contáctame»)
 
@@ -124,6 +125,11 @@ Datos de la institución y redes sociales: variables `INSTITUTION_*` y `SOCIAL_*
 ## Modelo de recomendación
 
 El puntaje de compatibilidad adoptante-animal se puede calcular de dos formas:
+
+Dos caminos de uso:
+
+- **Desde el adoptante** (`/adoptantes/[id]`): qué animales le convienen.
+- **Desde el animal** (pestaña «Adoptantes compatibles» en su ficha): qué adoptantes merecen ese animal.
 
 | Método | Cuándo se usa | Qué devuelve |
 |---|---|---|

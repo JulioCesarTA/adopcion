@@ -2,7 +2,6 @@ import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
-import { SkipAudit } from '../../common/decorators/skip-audit.decorator';
 import { ChatService } from './chat.service';
 import { ChatDto } from './dto/chat.dto';
 
@@ -15,7 +14,6 @@ export class ChatController {
 
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 15, ttl: 60_000 } })
-  @SkipAudit()
   @Post()
   @HttpCode(HttpStatus.OK)
   reply(@Body() dto: ChatDto) {

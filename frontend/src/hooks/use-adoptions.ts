@@ -8,6 +8,7 @@ import type {
   Animal,
   Followup,
   Paginated,
+  AdopterRanking,
   Ranking,
   Recommendation,
   RequestStatus,
@@ -153,6 +154,16 @@ export function useRanking(adopterId: string, enabled: boolean) {
   return useQuery({
     queryKey: ["ranking", adopterId],
     queryFn: () => api<Ranking>(`/recommendations/adopter/${adopterId}`),
+    enabled,
+    staleTime: 0,
+  });
+}
+
+/** Ranking inverso: adoptantes más compatibles con un animal dado. */
+export function useAdopterRanking(animalId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["adopter-ranking", animalId],
+    queryFn: () => api<AdopterRanking>(`/recommendations/animal/${animalId}`),
     enabled,
     staleTime: 0,
   });

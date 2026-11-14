@@ -215,6 +215,99 @@ export class RecommendationService {
     };
   }
 
+  /**
+   * CU13 modo inverso: dado un animal, qué adoptantes registrados son los más
+   * compatibles. Es el camino que usa el personal cuando el punto de partida es
+   * el animal y no el adoptante ("¿a quién le ofrezco a Rocky?").
+   *
+   * Solo considera adoptantes sin una solicitud activa: quien ya está en un
+   * proceso de adopción no es candidato para otro animal.
+   */
+  async rankingForAnimal(animalId: string, user: AuthUser) {
+    const animal = await this.prisma.animal.findFirst({
+      where: { id: animalId, deletedAt: null },
+    });
+    if (!animal) throw new NotFoundException('Animal no encontrado');
+
+    const settings = await this.catalogs.currentSettings();
+
+    const adopters = await this.prisma.adopterProfile.findMany({
+      where: {
+        adoptionRequests: {
+          none: { status: { in: ['PENDIENTE', 'EN_EVALUACION'] } },
+        },
+      },
+      include: { person: { select: { firstName: true, lastName: true, phone: true } } },
+    });
+
+    // Si se evalúa un animal ya reservado, se mide como disponible: lo que
+    // interesa es la compatibilidad, no el estado administrativo del momento.
+    const animalInput = toAnimalInput(animal);
+    if (animalInput.status === 'EN_PROCESO_ADOPCION') {
+      animalInput.status = 'DISPONIBLE_ADOPCION';
+    }
+
+    const computed: { adopter: (typeof adopters)[number]; code: string; result: ScoredResult }[] =
+      [];
+    const skipped: { adopter: { id: string; name: string }; missing: string[] }[] = [];
+
+    for (const adopter of adopters) {
+      const name = `${adopter.person.firstName} ${adopter.person.lastName}`;
+      try {
+        computed.push({
+          adopter,
+          // Desempate estable por nombre, equivalente al código en el otro modo.
+          code: name.toLocaleLowerCase('es'),
+          result: await this.score(toAdopterInput(adopter), animalInput, settings),
+        });
+      } catch (err) {
+        if (!(err instanceof IncompleteProfileError)) throw err;
+        // Falta un dato del ANIMAL: ninguna comparación es confiable → 422.
+        if (err.missing.some((m) => m.startsWith('animal'))) throw this.incomplete(err);
+        skipped.push({ adopter: { id: adopter.id, name }, missing: err.missing });
+      }
+    }
+
+    const ranked = sortRanking(computed);
+    if (ranked.length) {
+      await this.prisma.compatibilityRecommendation.createMany({
+        data: ranked.map((r) => ({
+          adopterProfileId: r.adopter.id,
+          animalId: animal.id,
+          score: r.result.score,
+          level: r.result.level,
+          breakdown: toJson(r.result),
+          modelVersion: settings.version,
+          generatedById: user.id,
+        })),
+      });
+    }
+
+    return {
+      animal: animalSummary(animal),
+      modelVersion: settings.version,
+      disclaimer: DISCLAIMER,
+      generatedAt: new Date(),
+      data: ranked.map((r) => ({
+        adopter: {
+          id: r.adopter.id,
+          name: `${r.adopter.person.firstName} ${r.adopter.person.lastName}`,
+          phone: r.adopter.person.phone,
+          housingType: r.adopter.housingType,
+          hasYard: r.adopter.hasYard,
+          hasChildren: r.adopter.hasChildren,
+          hasOtherAnimals: r.adopter.hasOtherAnimals,
+          experience: r.adopter.experience,
+          availableHoursPerDay: r.adopter.availableHoursPerDay,
+        },
+        score: r.result.score,
+        level: r.result.level,
+        breakdown: r.result,
+      })),
+      skipped,
+    };
+  }
+
   /** CU13 modo 2: puntaje de un par adoptante–animal (p. ej. desde una solicitud). */
   async pair(dto: CreateRecommendationDto, user: AuthUser) {
     const adopter = await this.adopterOrThrow(dto.adopterId);

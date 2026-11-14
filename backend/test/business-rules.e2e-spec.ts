@@ -44,6 +44,7 @@ describe('Reglas de negocio (e2e)', () => {
       ['vet', 'vet@zoonosis.test'],
       ['gestion', 'gestion@zoonosis.test'],
       ['admin', 'admin@zoonosis.test'],
+      ['directivo', 'directivo@zoonosis.test'],
     ]) {
       const res = await request(server)
         .post('/api/v1/auth/login')
@@ -382,31 +383,43 @@ describe('Reglas de negocio (e2e)', () => {
     await api('gestion').patch(`/animals/${animalId}`, { exitNotes: 'Nota final' }).expect(200);
   });
 
-  it('CU16: los pesos deben sumar 100', async () => {
-    await api('admin')
-      .post('/algorithm-settings', {
-        weights: { time: 30, space: 25, experience: 20, energy: 15, preferences: 5 },
-        thresholdHigh: 80,
-        thresholdMedium: 60,
-      })
-      .expect(400);
-  });
-
-  it('CU17/CU18/CU23/CU19: panel, alertas, reportes por rol y auditoría', async () => {
+  it('CU17: el panel calcula cada indicador por separado', async () => {
     const dash = (await api('gestion').get('/dashboard').expect(200)).body as Body;
     expect((dash.cards as Body).ok).toBe(true);
-    const alerts = (await api('vet').get('/alerts').expect(200)).body as Body;
-    expect(typeof alerts.total).toBe('number');
+    expect((dash.byStatus as Body).ok).toBe(true);
+    // Las alertas y la auditoría salieron del alcance del proyecto.
+    expect(dash).not.toHaveProperty('alerts');
+    await api('vet').get('/alerts').expect(404);
+    await api('admin').get('/audit').expect(404);
+    await api('admin').get('/reports').expect(404);
+  });
 
-    await api('vet').get('/reports/adopciones-por-mes').expect(403);
-    await api('vet').get('/reports/vacunaciones-por-periodo').expect(200);
-    await api('gestion').get('/reports/ingresos-por-mes?from=2026-05-01&to=2026-01-01').expect(400);
-    const csv = await api('admin').get('/reports/ingresos-por-mes/csv').expect(200);
-    expect(csv.headers['content-type']).toContain('text/csv');
+  it('KPIs: seis indicadores con comparación contra el periodo anterior', async () => {
+    const res = (await api('directivo').get('/kpis?months=6').expect(200)).body as Body;
+    const kpis = res.kpis as Body[];
+    expect(kpis).toHaveLength(6);
+    expect(res.periodMonths).toBe(6);
+    for (const k of kpis) {
+      expect(typeof k.key).toBe('string');
+      expect(['%', 'días', 'animales', 'solicitudes']).toContain(k.unit);
+      expect(['sube', 'baja', 'estable']).toContain(k.trend);
+      expect(['mas-es-mejor', 'menos-es-mejor']).toContain(k.direction);
+    }
+    // Rango fuera de lo permitido.
+    await api('directivo').get('/kpis?months=99').expect(400);
+  });
 
-    await api('gestion').get('/audit').expect(403);
-    const audit = (await api('admin').get(`/audit?entityId=${animalId}`).expect(200)).body as Body;
-    const actions = (audit.data as Body[]).map((a) => a.action as string);
-    expect(actions).toEqual(expect.arrayContaining(['CREATE', 'STATUS_CHANGE']));
+  it('CU13 inverso: ranking de adoptantes compatibles con un animal', async () => {
+    const res = (await api('gestion').get(`/recommendations/animal/${animalId}`).expect(200))
+      .body as Body;
+    expect((res.animal as Body).id).toBe(animalId);
+    expect(Array.isArray(res.data)).toBe(true);
+    expect(res.disclaimer).toContain('decisión final');
+    for (const item of res.data as Body[]) {
+      expect(typeof (item.adopter as Body).name).toBe('string');
+      // No se expone la CI del adoptante en el ranking.
+      expect(item.adopter).not.toHaveProperty('ci');
+      expect(typeof item.score).toBe('number');
+    }
   });
 });

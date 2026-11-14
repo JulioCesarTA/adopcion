@@ -374,6 +374,33 @@ export interface Ranking {
   skipped: { animal: RankingItem["animal"]; missing: string[] }[];
 }
 
+/** Ranking inverso: dado un animal, qué adoptantes le convienen. */
+export interface AdopterRankingItem {
+  adopter: {
+    id: string;
+    name: string;
+    phone: string;
+    housingType: HousingType;
+    hasYard: boolean;
+    hasChildren: boolean;
+    hasOtherAnimals: boolean;
+    experience: ExperienceLevel;
+    availableHoursPerDay: number;
+  };
+  score: number;
+  level: Level;
+  breakdown: Breakdown;
+}
+
+export interface AdopterRanking {
+  animal: RankingItem["animal"];
+  modelVersion: number;
+  disclaimer: string;
+  generatedAt: string;
+  data: AdopterRankingItem[];
+  skipped: { adopter: { id: string; name: string }; missing: string[] }[];
+}
+
 export interface AlgorithmSettings {
   version: number;
   weights: Record<"time" | "space" | "experience" | "energy" | "preferences", number>;
@@ -383,35 +410,7 @@ export interface AlgorithmSettings {
   createdBy?: { fullName: string };
 }
 
-// ---------- Panel, alertas, reportes y auditoría ----------
-
-export interface Alerts {
-  vaccines: {
-    vaccinationId: string;
-    animal: { id: string; code: string; name: string | null; species: Species };
-    vaccine: { id: string; name: string };
-    nextDoseDate: string;
-    daysLeft: number;
-    overdue: boolean;
-  }[];
-  periods: {
-    periodId: string;
-    type: PeriodType;
-    animal: { id: string; code: string; name: string | null; species: Species };
-    startDate: string;
-    expectedEndDate: string | null;
-    daysOverdue: number;
-  }[];
-  treatments: {
-    treatmentId: string;
-    consultationId: string;
-    description: string;
-    animal: { id: string; code: string; name: string | null; species: Species };
-    endDate: string | null;
-    daysOverdue: number;
-  }[];
-  total: number;
-}
+// ---------- Panel e indicadores ----------
 
 export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -427,7 +426,6 @@ export interface Dashboard {
   entriesVsAdoptions: Section<
     { month: string; label: string; entries: number; adoptions: number }[]
   >;
-  alerts: Section<Alerts>;
   latestRequests: Section<
     (AdoptionRequestBase & {
       animal: { id: string; code: string; name: string | null };
@@ -436,41 +434,27 @@ export interface Dashboard {
   > | null;
 }
 
-export type ReportFilterKey = "dates" | "species" | "status";
 
-export interface ReportInfo {
-  type: string;
-  title: string;
-  description: string;
-  category: "GENERAL" | "SANITARIO" | "ADOPCIONES";
-  filters: ReportFilterKey[];
+export type KpiTrend = "sube" | "baja" | "estable";
+export type KpiDirection = "mas-es-mejor" | "menos-es-mejor";
+
+export interface Kpi {
+  key: string;
+  label: string;
+  value: number | null;
+  unit: "%" | "días" | "animales" | "solicitudes";
+  previous: number | null;
+  delta: number | null;
+  trend: KpiTrend;
+  direction: KpiDirection;
+  detail: string;
+  help: string;
 }
 
-export interface ReportResult {
-  type: string;
-  title: string;
-  description: string;
-  filters: { from: string; to: string; species?: Species; status?: AnimalStatus };
-  columns: { key: string; label: string; type?: "text" | "number" | "date" }[];
-  rows: Record<string, string | number | null>[];
-  chart?: {
-    kind: "bar" | "line";
-    xKey: string;
-    series: { key: string; label: string }[];
-    stacked?: boolean;
-  };
+export interface KpisResult {
+  periodMonths: number;
+  from: string;
+  to: string;
+  kpis: Kpi[];
   generatedAt: string;
-}
-
-export interface AuditLog {
-  id: string;
-  userId: string | null;
-  action: string;
-  entityName: string | null;
-  entityId: string | null;
-  oldValue: unknown;
-  newValue: unknown;
-  ip: string | null;
-  createdAt: string;
-  user: { id: string; fullName: string; email: string; role: UserRole } | null;
 }

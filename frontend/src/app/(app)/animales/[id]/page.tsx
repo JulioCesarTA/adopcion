@@ -27,6 +27,7 @@ import { VaccinationsPanel } from "@/components/clinical/vaccinations-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { TabPanel, Tabs } from "@/components/ui/tabs";
+import { AdopterRanking } from "@/components/adoptions/adopter-ranking";
 import { useAnimal, useAnimalMutations } from "@/hooks/use-animals";
 import { errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -55,6 +56,7 @@ export default function AnimalDetailPage({ params }: { params: Promise<{ id: str
     { id: "vacunas", label: "Vacunas", count: animal._count.vaccinations },
     { id: "cuarentena", label: "Cuarentena" },
     { id: "adopcion", label: "Adopción", count: animal.adoptionRequests.length },
+    { id: "compatibles", label: "Adoptantes compatibles" },
   ];
 
   return (
@@ -79,6 +81,9 @@ export default function AnimalDetailPage({ params }: { params: Promise<{ id: str
       </TabPanel>
       <TabPanel id="adopcion" active={tab === "adopcion"} idPrefix="animal">
         <AdoptionTab animal={animal} />
+      </TabPanel>
+      <TabPanel id="compatibles" active={tab === "compatibles"} idPrefix="animal">
+        <AdopterRanking animalId={animal.id} />
       </TabPanel>
     </>
   );

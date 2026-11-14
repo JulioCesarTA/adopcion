@@ -1,18 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Menu, Search } from "lucide-react";
-import { useAlerts } from "@/hooks/use-admin";
+import { Menu, Search } from "lucide-react";
 import { titleForPath } from "@/lib/roles";
 
-/** Topbar: título, buscador global de animales y campana de alertas (sección 10.1). */
+/** Topbar: título y buscador global de animales (sección 10.1). */
 export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [q, setQ] = useState("");
-  const total = useAlerts().data?.total ?? 0;
 
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,18 +49,6 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
         </div>
       </form>
 
-      <Link
-        href="/alertas"
-        className="relative ml-auto rounded-md p-2 text-slate-600 hover:bg-slate-100 md:ml-0"
-        aria-label={total ? `Alertas: ${total} pendientes` : "Alertas"}
-      >
-        <Bell className="h-5 w-5" />
-        {total > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[11px] font-semibold text-white">
-            {total > 99 ? "99+" : total}
-          </span>
-        )}
-      </Link>
     </header>
   );
 }

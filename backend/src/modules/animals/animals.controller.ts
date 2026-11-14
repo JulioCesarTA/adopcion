@@ -25,7 +25,6 @@ import {
   CreateAnimalDto,
   ExitAnimalDto,
   ListAnimalsQueryDto,
-  ReadmitAnimalDto,
   TimelineQueryDto,
   UpdateAnimalDto,
 } from './dto/animals.dto';
@@ -115,8 +114,8 @@ export class AnimalsController {
   @Roles(GESTION)
   @Post(':id/readmit')
   @HttpCode(HttpStatus.OK)
-  readmit(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ReadmitAnimalDto) {
-    return this.animals.readmit(id, dto);
+  readmit(@Param('id', ParseUUIDPipe) id: string) {
+    return this.animals.readmit(id);
   }
 
   @Get(':id/timeline')

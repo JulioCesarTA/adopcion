@@ -5,7 +5,6 @@ import { ContactStatus, Prisma, UserRole } from '@prisma/client';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { PaginationQueryDto, paginated } from '../../common/dto/pagination.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 
 class ListContactQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: ContactStatus })
@@ -31,10 +30,7 @@ class UpdateContactDto {
 @Roles(UserRole.ADMIN, UserRole.GESTION)
 @Controller('contact-messages')
 export class ContactController {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   @Get()
   async list(@Query() q: ListContactQueryDto) {
@@ -66,22 +62,13 @@ export class ContactController {
 
   @Patch(':id')
   async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateContactDto) {
-    const current = await this.prisma.contactMessage.findUniqueOrThrow({ where: { id } });
+    // Conserva el 404 cuando el mensaje no existe.
+    await this.prisma.contactMessage.findUniqueOrThrow({ where: { id } });
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.contactMessage.update({
         where: { id },
         data: { status: dto.status },
       });
-      await this.audit.log(
-        {
-          action: 'STATUS_CHANGE',
-          entityName: 'contact_messages',
-          entityId: id,
-          oldValue: { status: current.status },
-          newValue: { status: dto.status },
-        },
-        tx,
-      );
       return updated;
     });
   }

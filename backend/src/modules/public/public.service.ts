@@ -3,7 +3,6 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppConfigService } from '../../config/app-config.service';
-import { AuditService } from '../audit/audit.service';
 import { MailService } from '../mail/mail.service';
 import { BCRYPT_COST } from '../../common/password-policy';
 import { paginated } from '../../common/dto/pagination.dto';
@@ -37,7 +36,6 @@ export class PublicService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: AppConfigService,
-    private readonly audit: AuditService,
     private readonly mail: MailService,
   ) {}
 
@@ -94,16 +92,6 @@ export class PublicService {
         },
       });
       const pub = toPublicUser(user);
-      await this.audit.log(
-        {
-          action: 'REGISTER',
-          entityName: 'users',
-          entityId: user.id,
-          userId: user.id,
-          newValue: { ...pub, termsAcceptedAt: user.termsAcceptedAt },
-        },
-        tx,
-      );
       return pub;
     });
   }

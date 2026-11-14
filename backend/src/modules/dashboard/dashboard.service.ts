@@ -3,7 +3,6 @@ import { AnimalStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { startOfMonthLaPaz, startOfMonthLaPazMinus, todayLaPaz } from '../../common/dates';
 import { OUTSIDE_STATES } from '../animals/animal-status';
-import { AlertsService } from './alerts.service';
 
 export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -40,10 +39,7 @@ export function monthLabel(ym: string): string {
 export class DashboardService {
   private readonly logger = new Logger(DashboardService.name);
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly alertsService: AlertsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /** CU18: si un indicador falla, se devuelve su error sin romper el resto. */
   private async section<T>(name: string, fn: () => Promise<T>): Promise<Section<T>> {
@@ -57,16 +53,15 @@ export class DashboardService {
 
   async dashboard(role: UserRole) {
     const seesRequests = role !== 'VETERINARIO';
-    const [cards, byStatus, entriesVsAdoptions, alerts, latestRequests] = await Promise.all([
+    const [cards, byStatus, entriesVsAdoptions, latestRequests] = await Promise.all([
       this.section('cards', () => this.cards()),
       this.section('byStatus', () => this.byStatus()),
       this.section('entriesVsAdoptions', () => this.entriesVsAdoptions()),
-      this.section('alerts', () => this.alertsService.alerts()),
       seesRequests
         ? this.section('latestRequests', () => this.latestRequests())
         : Promise.resolve(null),
     ]);
-    return { cards, byStatus, entriesVsAdoptions, alerts, latestRequests };
+    return { cards, byStatus, entriesVsAdoptions, latestRequests };
   }
 
   private async cards() {
