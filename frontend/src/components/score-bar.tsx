@@ -74,8 +74,63 @@ export function BreakdownDetail({ breakdown }: { breakdown: Breakdown }) {
       </div>
     );
   }
+  const ml = breakdown.ml;
+
   return (
     <div className="space-y-3">
+      {ml && (
+        <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <span className="text-sm font-medium text-indigo-900">
+              Probabilidad estimada de adopción sostenida
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-indigo-900">
+              {formatNumber(ml.probability * 100, 1)} %
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-indigo-700">
+            Random Forest v{ml.modelVersion} · acuerdo entre árboles{" "}
+            {formatNumber(ml.agreement * 100, 0)} %
+            {breakdown.ruleScore !== undefined && (
+              <> · motor de reglas: {formatNumber(breakdown.ruleScore, 2)}</>
+            )}
+          </p>
+
+          <p className="mt-3 text-xs font-medium text-indigo-900">
+            Qué pesa más en este caso concreto
+          </p>
+          <ul className="mt-1 space-y-1">
+            {ml.factors.map((f) => (
+              <li key={f.feature} className="flex items-baseline justify-between gap-2 text-xs">
+                <span className="text-slate-700">{f.label}</span>
+                <span
+                  className={cn(
+                    "shrink-0 tabular-nums",
+                    f.direction === "favorece"
+                      ? "text-green-700"
+                      : f.direction === "perjudica"
+                        ? "text-red-700"
+                        : "text-slate-400",
+                  )}
+                >
+                  {f.contribution > 0 ? "+" : ""}
+                  {formatNumber(f.contribution * 100, 1)} pts
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-indigo-600">
+            El aporte compara este caso contra uno típico, reemplazando la variable por su mediana.
+          </p>
+        </div>
+      )}
+
+      {ml && (
+        <p className="text-xs font-medium text-slate-500">
+          Análisis por criterio del motor de reglas (referencia)
+        </p>
+      )}
+
       {breakdown.criteria.map((c) => (
         <div key={c.key}>
           <div className="flex items-baseline justify-between gap-2 text-sm">

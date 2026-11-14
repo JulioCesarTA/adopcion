@@ -141,6 +141,7 @@ model User {
   recommendations      CompatibilityRecommendation[]
   followups            AdoptionFollowup[]
   algorithmSettings    AlgorithmSetting[]
+  mlModels             MlModel[]
   auditLogs            AuditLog[]
 
   @@map("users")
@@ -433,6 +434,46 @@ model AlgorithmSetting {
   createdBy User @relation(fields: [createdById], references: [id])
 
   @@map("algorithm_settings")
+}
+
+/// Procedencia del conjunto con el que se entrenó un modelo.
+/// Es obligatorio declararla: un modelo entrenado con datos sintéticos no
+/// permite afirmar capacidad predictiva sobre adopciones reales.
+enum MlModelSource {
+  REAL
+  SINTETICO
+  MIXTO
+
+  @@map("ml_model_source")
+}
+
+/// Modelos de aprendizaje automático entrenados para la recomendación (CU13).
+/// Se versionan igual que `algorithm_settings`: cada entrenamiento crea una
+/// fila nueva y queda el historial completo con sus métricas, de modo que
+/// siempre se puede saber con qué modelo se calculó una recomendación pasada.
+model MlModel {
+  version          Int           @id
+  /// Identificador del algoritmo, p. ej. "random-forest".
+  algorithm        String        @db.VarChar(40)
+  source           MlModelSource
+  /// Solo un modelo puede estar activo (índice único parcial en la migración).
+  isActive         Boolean       @default(false) @map("is_active")
+  /// Modelo serializado (árboles, umbrales, importancias).
+  model            Json
+  /// Métricas de validación cruzada y comparación contra las líneas base.
+  metrics          Json
+  datasetSize      Int           @map("dataset_size")
+  realSamples      Int           @map("real_samples")
+  syntheticSamples Int           @map("synthetic_samples")
+  seed             Int
+  notes            String?
+  createdById      String        @map("created_by") @db.Uuid
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([isActive])
+  @@map("ml_models")
 }
 
 /// Mensajes del formulario «Contáctame» del sitio público

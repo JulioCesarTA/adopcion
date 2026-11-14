@@ -25,6 +25,7 @@ La especificación completa está en `../PROYECTO_ZOONOSIS_CLAUDE_CODE.md`; las 
 | 7 | Pulido (permisos, estados vacíos/errores, responsive, tests e2e, README) | ✅ |
 | + | Sitio público (landing, redes, términos, privacidad, cookies), registro de clientes, contacto por correo y asistente con IA | ✅ |
 | + | Despliegue: Docker, nginx + HTTPS (Let's Encrypt), fotos en S3, CI/CD en GitHub Actions para EC2 | ✅ (falta configurar las claves) |
+| + | Modelo de recomendación con Random Forest (implementación propia en TypeScript) + comparación con líneas base | ✅ (con datos sintéticos) |
 
 ## Estructura
 
@@ -119,6 +120,35 @@ En producción usa **Resend** (`smtp.resend.com`, puerto 465, `SMTP_SECURE=true`
 3. Modelo por defecto: `claude-opus-5-5`. Para abaratar, `CHAT_MODEL=claude-haiku-5-5`.
 
 Datos de la institución y redes sociales: variables `INSTITUTION_*` y `SOCIAL_*` de `backend/.env` (**reemplaza los valores de ejemplo por los reales**).
+
+## Modelo de recomendación
+
+El puntaje de compatibilidad adoptante-animal se puede calcular de dos formas:
+
+| Método | Cuándo se usa | Qué devuelve |
+|---|---|---|
+| **Random Forest** | Cuando hay un modelo entrenado y activo | Probabilidad estimada de adopción sostenida, acuerdo entre árboles y los factores que pesan en ese caso concreto |
+| **Motor de reglas** (suma ponderada) | Arranque en frío: sin modelo activo, o si el par no pasa los filtros duros | Puntaje 0-100 con el desglose por criterio |
+
+Los **filtros duros van siempre primero y el modelo no los puede anular**: un animal que no
+tolera niños nunca se recomienda a un hogar con niños, sin importar la probabilidad.
+
+Administración en **/admin/modelo**: entrenar, ver las métricas, comparar contra las líneas base,
+revisar la importancia de variables y reactivar una versión anterior.
+
+```bash
+cd backend
+npm run ml:benchmark                            # tabla comparativa de los tres modelos
+npm run ml:benchmark -- --size 3000 --folds 10  # con más casos y más pliegues
+```
+
+> **Advertencia metodológica.** Hoy el sistema tiene ~12 solicitudes resueltas, muy pocas para
+> entrenar. El entrenamiento se completa con casos **sintéticos** generados a partir de criterios
+> de idoneidad de adopción responsable, y cada modelo guarda su procedencia (`REAL`,
+> `SINTETICO`, `MIXTO`). Las métricas validan que el canal de aprendizaje funciona; **no son
+> evidencia de capacidad predictiva sobre adopciones reales**. Hay que reentrenar cuando la
+> institución acumule decisiones propias. Ver los puntos 75 a 84 de [DECISIONS.md](DECISIONS.md),
+> incluido el resultado comparativo completo, que no favorece al modelo en todas las métricas.
 
 ## Despliegue en producción
 

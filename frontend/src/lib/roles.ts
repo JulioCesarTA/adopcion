@@ -1,6 +1,7 @@
 import {
   BarChart3,
   Bell,
+  Brain,
   ClipboardList,
   Heart,
   LayoutDashboard,
@@ -60,6 +61,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Mensajes web", href: "/mensajes", icon: Mail, roles: [A, G] },
   { label: "Usuarios", href: "/admin/usuarios", icon: UserCog, roles: [A] },
   { label: "Catálogos y algoritmo", href: "/admin/catalogos", icon: SlidersHorizontal, roles: [A] },
+  { label: "Modelo de recomendación", href: "/admin/modelo", icon: Brain, roles: [A, G, D] },
   { label: "Auditoría", href: "/admin/auditoria", icon: ScrollText, roles: [A] },
 ];
 

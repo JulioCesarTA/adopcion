@@ -294,6 +294,26 @@ export interface CriterionResult {
   explanation: string;
 }
 
+/** Qué produjo el puntaje: el modelo entrenado o el motor de reglas. */
+export type ScoringMethod = "MODELO" | "REGLAS";
+
+/** Aporte de una variable a una predicción concreta (explicación local). */
+export interface MlFactor {
+  feature: string;
+  label: string;
+  value: number;
+  contribution: number;
+  direction: string;
+}
+
+export interface MlDetail {
+  modelVersion: number;
+  algorithm: "random-forest";
+  probability: number;
+  agreement: number;
+  factors: MlFactor[];
+}
+
 export interface Breakdown {
   hardFilters: { passed: boolean; reasons: string[] };
   criteria: CriterionResult[];
@@ -301,6 +321,10 @@ export interface Breakdown {
   level: Level;
   modelVersion: number;
   disclaimer: string;
+  /** Presente desde la incorporación del modelo; falta en recomendaciones antiguas. */
+  method?: ScoringMethod;
+  ml?: MlDetail | null;
+  ruleScore?: number;
 }
 
 export interface Recommendation {
