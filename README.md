@@ -9,6 +9,7 @@ La especificación completa está en `../PROYECTO_ZOONOSIS_CLAUDE_CODE.md`; las 
 | Backend | NestJS 11 (TypeScript), API REST en `/api/v1`, Swagger en `/api/docs` |
 | Base de datos | PostgreSQL 16 + Prisma 6 |
 | Auth | JWT propio (access 15 min en memoria + refresh 7 días en cookie httpOnly), bcrypt |
+| Despliegue | Docker en AWS EC2, nginx + Let's Encrypt, fotos en S3, CI/CD con GitHub Actions — ver [DEPLOY.md](DEPLOY.md) |
 
 ## Estado
 
@@ -21,8 +22,9 @@ La especificación completa está en `../PROYECTO_ZOONOSIS_CLAUDE_CODE.md`; las 
 | 4 | Adopciones (CU10, 11, 12, 14, 24): adoptantes, solicitudes, máquina de estados, catálogo de adoptables | ✅ |
 | 5 | Recomendación y cierre (CU13, 15, 16, 26): motor + tests, ranking, pesos editables, seguimientos, acta | ✅ |
 | 6 | Panel, alertas, reportes y auditoría (CU17, 18, 19, 23) | ✅ |
-| 7 | Pulido (permisos, estados vacíos/errores, responsive, tests e2e, README) | ✅ (sin despliegue) |
+| 7 | Pulido (permisos, estados vacíos/errores, responsive, tests e2e, README) | ✅ |
 | + | Sitio público (landing, redes, términos, privacidad, cookies), registro de clientes, contacto por correo y asistente con IA | ✅ |
+| + | Despliegue: Docker, nginx + HTTPS (Let's Encrypt), fotos en S3, CI/CD en GitHub Actions para EC2 | ✅ (falta configurar las claves) |
 
 ## Estructura
 
@@ -117,6 +119,31 @@ En producción usa **Resend** (`smtp.resend.com`, puerto 465, `SMTP_SECURE=true`
 3. Modelo por defecto: `claude-opus-5-5`. Para abaratar, `CHAT_MODEL=claude-haiku-5-5`.
 
 Datos de la institución y redes sociales: variables `INSTITUTION_*` y `SOCIAL_*` de `backend/.env` (**reemplaza los valores de ejemplo por los reales**).
+
+## Despliegue en producción
+
+La guía completa está en **[DEPLOY.md](DEPLOY.md)**. En resumen:
+
+```bash
+# En la instancia EC2 (Ubuntu 24.04)
+./deploy/ec2-setup.sh                       # Docker, cortafuegos, swap
+cp .env.production.example .env && nano .env
+./deploy/init-letsencrypt.sh                # certificado TLS + levanta todo
+```
+
+| Pieza | Archivo |
+|---|---|
+| Imágenes Docker (multi-etapa) | `backend/Dockerfile`, `frontend/Dockerfile` |
+| Orquestación de producción | `docker-compose.prod.yml` |
+| nginx + HTTPS | `deploy/nginx/templates/app.conf.template` |
+| Certificado y renovación | `deploy/init-letsencrypt.sh` + contenedor `certbot` |
+| Políticas de AWS | `deploy/aws/iam-policy-ec2.json`, `deploy/aws/s3-bucket-policy.json` |
+| CI (lint, tipos, 80 pruebas, build de imágenes) | `.github/workflows/ci.yml` |
+| CD (publica en GHCR y despliega por SSH) | `.github/workflows/deploy.yml` |
+
+Las fotos de los animales se guardan en S3 con `STORAGE_DRIVER=s3` (en EC2, usando
+el rol IAM de la instancia: sin claves en el servidor) o en disco con
+`STORAGE_DRIVER=local`, que es el valor por omisión para desarrollo.
 
 ## Usuarios de prueba (solo desarrollo)
 
