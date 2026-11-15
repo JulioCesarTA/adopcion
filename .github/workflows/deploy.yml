@@ -41,11 +41,14 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
+      # El ARN va literal, no por ${{ env.* }}: el contexto `env` tiene reglas
+      # de disponibilidad distintas según dónde se use, y acá no vale arriesgar
+      # que llegue vacío y el fallo parezca un problema de permisos.
       - name: Asumir el rol de AWS por OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.AWS_ROLE }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::006419716393:role/zoonosis-github-actions
+          aws-region: sa-east-1
 
       - name: Autenticarse en ECR
         uses: aws-actions/amazon-ecr-login@v2
@@ -89,8 +92,8 @@ jobs:
       - name: Asumir el rol de AWS por OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.AWS_ROLE }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::006419716393:role/zoonosis-github-actions
+          aws-region: sa-east-1
 
       # El despliegue va por AWS Systems Manager, no por SSH. Así no hay que
       # guardar la clave privada de la instancia en los secretos del
