@@ -1,0 +1,47 @@
+# Override para HTTPS sobre IP con certificado de Let's Encrypt (perfil shortlived).
+#
+#   docker compose -f docker-compose.prod.yml -f docker-compose.ip-tls.yml up -d
+#
+# Requisitos previos:
+#   - PUBLIC_HOST en .env = la IP elástica de la instancia.
+#   - El certificado ya emitido con ./deploy/init-letsencrypt-ip.sh
+#     (nginx no arranca si no encuentra los archivos del certificado).
+#
+# Diferencias con el override de dominio: la ruta del certificado es
+# /etc/letsencrypt/live/<IP>/ en lugar de /live/<dominio>/, y certbot renueva
+# cada 6 h en vez de 12 h, porque un certificado de IP vive 160 h y no 90 días.
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE}
+    pull_policy: always
+    environment:
+      # Ya hay TLS: la cookie de refresco vuelve a ser Secure.
+      COOKIE_SECURE: "true"
+      FRONTEND_URL: https://${PUBLIC_HOST}
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    pull_policy: always
+
+  nginx:
+    volumes:
+      - ./deploy/nginx/templates-ip-tls:/etc/nginx/templates:ro
+      - ./deploy/nginx/docker-entrypoint.d/99-reload-loop.sh:/docker-entrypoint.d/99-reload-loop.sh:ro
+      - certbot-conf:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+      NGINX_ENVSUBST_FILTER: PUBLIC_HOST
+
+  certbot:
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+    # Un certificado de 160 h se renueva cuando le queda un tercio de vida
+    # (~53 h). Revisar cada 6 h deja margen de sobra ante un fallo puntual.
+    entrypoint: >
+      /bin/sh -c 'trap exit TERM;
+      while :; do
+        certbot renew --webroot -w /var/www/certbot --quiet;
+        sleep 6h & wait $${!};
+      done'

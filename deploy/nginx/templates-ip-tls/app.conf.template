@@ -1,0 +1,118 @@
+# Plantilla para HTTPS sobre DIRECCIÓN IP, con certificado de Let's Encrypt.
+#
+# Let's Encrypt emite certificados para IP desde enero de 2026, pero solo con el
+# perfil `shortlived`: 160 horas de validez (~6,6 días). No es opcional.
+# De ahí tres diferencias deliberadas con la plantilla de dominio:
+#
+#   1. Sin Strict-Transport-Security. Con un certificado que vence cada 6 días,
+#      HSTS convierte una renovación fallida en un sitio inaccesible, porque el
+#      navegador se niega a bajar a HTTP. El riesgo supera el beneficio.
+#   2. Sin ssl_stapling. Let's Encrypt discontinuó su respondedor OCSP, así que
+#      activarlo solo llenaría el log de errores.
+#   3. Parámetros TLS escritos aquí en lugar de incluir options-ssl-nginx.conf:
+#      ese archivo lo crea el plugin de nginx de certbot, y acá se usa
+#      `certonly --webroot`, que no lo genera. Incluirlo rompería el arranque.
+#
+# Solo se sustituye ${PUBLIC_HOST} (ver NGINX_ENVSUBST_FILTER).
+
+upstream frontend_upstream {
+  server frontend:3000;
+  keepalive 16;
+}
+
+upstream backend_upstream {
+  server backend:4000;
+  keepalive 16;
+}
+
+# ---------------------------------------------------------------- HTTP (:80)
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  server_name _;
+
+  # Debe seguir accesible por HTTP: es como certbot valida cada renovación.
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}
+
+# -------------------------------------------------------------- HTTPS (:443)
+server {
+  listen 443 ssl default_server;
+  listen [::]:443 ssl default_server;
+  http2 on;
+  server_name _;
+
+  ssl_certificate     /etc/letsencrypt/live/${PUBLIC_HOST}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/${PUBLIC_HOST}/privkey.pem;
+
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+  ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:SSL:10m;
+  ssl_session_tickets off;
+
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+  client_max_body_size 6m;
+  client_body_timeout 60s;
+
+  gzip on;
+  gzip_vary on;
+  gzip_min_length 1024;
+  gzip_types text/plain text/css application/json application/javascript
+             application/x-javascript text/xml application/xml image/svg+xml;
+
+  location = /api/v1/health {
+    access_log off;
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location /api/ {
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "";
+    proxy_read_timeout 120s;   # el asistente con IA puede tardar
+    proxy_buffering off;
+  }
+
+  location /uploads/ {
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_cache_valid 200 7d;
+  }
+
+  location /_next/static/ {
+    proxy_pass http://frontend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    add_header Cache-Control "public, max-age=31536000, immutable";
+  }
+
+  location / {
+    proxy_pass http://frontend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "upgrade";
+    proxy_read_timeout 60s;
+  }
+}

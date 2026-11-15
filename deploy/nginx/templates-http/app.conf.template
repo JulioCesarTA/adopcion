@@ -1,0 +1,91 @@
+# Variante SOLO HTTP, para la fase en la que el sistema se accede por IP y
+# todavía no hay dominio (Let's Encrypt no emite certificados para una IP).
+#
+# Se usa con el override docker-compose.ec2.yml, que monta este directorio en
+# lugar de deploy/nginx/templates. Cuando el dominio exista se vuelve a la
+# plantilla con TLS y se ejecuta deploy/init-letsencrypt.sh.
+#
+# server_name _ : responde a cualquier Host, que es lo que hace falta para
+# entrar por la IP pública sin conocerla al generar la configuración.
+
+upstream frontend_upstream {
+  server frontend:3000;
+  keepalive 16;
+}
+
+upstream backend_upstream {
+  server backend:4000;
+  keepalive 16;
+}
+
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  server_name _;
+
+  # Se deja activo desde ahora: es la ruta que usará certbot --webroot el día
+  # que se emita el certificado, sin tener que tocar nginx.
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  # Sin Strict-Transport-Security: sobre HTTP no corresponde, y fijarlo ahora
+  # dejaría el navegador forzando HTTPS antes de que exista el certificado.
+
+  client_max_body_size 6m;
+  client_body_timeout 60s;
+
+  gzip on;
+  gzip_vary on;
+  gzip_min_length 1024;
+  gzip_types text/plain text/css application/json application/javascript
+             application/x-javascript text/xml application/xml image/svg+xml;
+
+  location = /api/v1/health {
+    access_log off;
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location /api/ {
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "";
+    proxy_read_timeout 120s;   # el asistente con IA puede tardar
+    proxy_buffering off;
+  }
+
+  location /uploads/ {
+    proxy_pass http://backend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_cache_valid 200 7d;
+  }
+
+  location /_next/static/ {
+    proxy_pass http://frontend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    add_header Cache-Control "public, max-age=31536000, immutable";
+  }
+
+  location / {
+    proxy_pass http://frontend_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "upgrade";
+    proxy_read_timeout 60s;
+  }
+}

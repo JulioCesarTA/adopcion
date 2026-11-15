@@ -34,6 +34,44 @@ nginx como proxy inverso con HTTPS de Let's Encrypt, PostgreSQL en contenedor
 
 ---
 
+## 0. Estado actual del despliegue
+
+El sistema **ya está desplegado y funcionando**. Esta sección registra los
+identificadores reales; las secciones siguientes explican cómo se llegó ahí y
+cómo reproducirlo.
+
+| Recurso | Valor real |
+|---|---|
+| Región | `sa-east-1` (São Paulo, la más cercana a Bolivia) |
+| Instancia EC2 | `i-007af94c5b72ff8b0` — `t3.small`, Ubuntu 24.04, 20 GB gp3 cifrado |
+| IP elástica | `54.21.32.224` |
+| Directorio | `/opt/zoonosis` |
+| Bucket S3 | `zoonosis-scz-fotos-006419716393` — cifrado AES256, lectura pública solo en `animals/*` |
+| Repositorios ECR | `zoonosis-backend`, `zoonosis-frontend` (conservan las últimas 5 imágenes) |
+| Rol de instancia | `zoonosis-ec2-role` → política `zoonosis-s3-fotos` + `AmazonEC2ContainerRegistryReadOnly` + `AmazonSSMManagedInstanceCore` |
+| Security group | `zoonosis-sg` — 80 y 443 abiertos; 22 solo a una IP concreta |
+| Clave SSH | `zoonosis-key` (ED25519) |
+| URL pública | **https://54.21.32.224** |
+
+### Por qué no hay claves de AWS en el servidor
+
+`AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY` están **vacías** en el `.env` de
+producción, a propósito. La instancia lleva el rol `zoonosis-ec2-role` y el SDK
+obtiene credenciales temporales del metadata. Comprobado en la instancia:
+
+```bash
+aws sts get-caller-identity
+# arn:aws:sts::006419716393:assumed-role/zoonosis-ec2-role/i-007af94c5b72ff8b0
+
+aws s3 cp foto.jpg s3://zoonosis-scz-fotos-006419716393/animals/foto.jpg   # OK
+aws s3 cp foto.jpg s3://zoonosis-scz-fotos-006419716393/otro/foto.jpg      # AccessDenied
+```
+
+El segundo comando falla por diseño: la política solo concede `PutObject` sobre
+el prefijo `animals/*`. El mínimo privilegio está demostrado, no solo declarado.
+
+---
+
 ## 1. Recursos de AWS que hay que crear
 
 | Recurso | Configuración |
@@ -115,6 +153,11 @@ Lo que hay que completar como mínimo:
 
 ## 4. Emitir el certificado HTTPS y arrancar
 
+Hay dos caminos según si existe un dominio. **El despliegue actual usa el
+segundo**, sobre la IP elástica.
+
+### 4.a Con dominio (certificado de 90 días)
+
 Comprobar primero que el DNS ya resuelve:
 
 ```bash
@@ -144,6 +187,58 @@ El script hace lo siguiente, en este orden:
 La renovación es automática: el contenedor `zoonosis-certbot` intenta renovar
 cada 12 horas y nginx recarga su configuración cada 6 horas para tomar el
 certificado nuevo.
+
+### 4.b Sobre la IP, sin dominio (certificado de 160 horas)
+
+Let's Encrypt emite certificados para direcciones IP desde **enero de 2026**.
+Permite tener HTTPS de confianza sin registrar un dominio, con tres condiciones
+que no son negociables:
+
+| Condición | Consecuencia |
+|---|---|
+| Obliga al perfil `shortlived` | **160 horas de validez** (~6,6 días), no 90 días |
+| Certbot 5.4 o posterior | Para usar `--ip-address` junto con `--webroot` |
+| Certbot no instala el certificado | Hay que apuntar nginx a `/etc/letsencrypt/live/<IP>/` a mano |
+
+La IP tiene que ser **elástica**: el certificado queda atado a ella, así que si
+cambia al reiniciar la instancia, el certificado deja de servir.
+
+```bash
+cd /opt/zoonosis
+STAGING=true ./deploy/init-letsencrypt-ip.sh    # primero probar el circuito
+./deploy/init-letsencrypt-ip.sh                 # después, emisión real
+```
+
+El script verifica la versión de certbot, comprueba que el puerto 80 llegue a
+nginx desde fuera, pide el certificado y cambia nginx al override con TLS.
+
+Tres decisiones deliberadas en [`deploy/nginx/templates-ip-tls`](deploy/nginx/templates-ip-tls/app.conf.template),
+distintas de la plantilla con dominio:
+
+1. **Sin `Strict-Transport-Security`.** Con un certificado que vence cada 6 días,
+   HSTS convierte una renovación fallida en un sitio inaccesible: el navegador
+   se niega a bajar a HTTP y no hay forma de entrar. El riesgo supera el beneficio.
+2. **Sin `ssl_stapling`.** Let's Encrypt discontinuó su respondedor OCSP;
+   activarlo solo llenaría el log de errores.
+3. **Parámetros TLS escritos en la plantilla** en lugar de incluir
+   `options-ssl-nginx.conf`, que lo genera el plugin de nginx de certbot y aquí
+   se usa `certonly --webroot`, que no lo crea. Incluirlo rompería el arranque.
+
+Renovación: el contenedor `zoonosis-certbot` revisa cada **6 horas** (no 12,
+como en el camino con dominio). Certbot renueva cuando queda un tercio de vida,
+unas 53 horas, así que hay margen de sobra ante un fallo puntual.
+
+> **Si la instancia queda apagada más de 6 días**, el certificado vence y hay
+> que forzar la renovación al volver:
+>
+> ```bash
+> docker compose -f docker-compose.prod.yml -f docker-compose.ip-tls.yml \
+>   run --rm --entrypoint certbot certbot renew --force-renewal
+> ```
+
+Cuando aparezca el dominio, se completa `DOMAIN` en `.env`, se deja de usar el
+override `docker-compose.ip-tls.yml` y se ejecuta el camino 4.a. El certificado
+pasa a durar 90 días y se puede volver a activar HSTS.
 
 ---
 
@@ -181,7 +276,7 @@ Hay dos flujos de trabajo:
 | Archivo | Cuándo corre | Qué hace |
 |---|---|---|
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | push y pull request a `main` o `develop` | Lint, tipos, compilación, 57 pruebas unitarias y 23 e2e contra un PostgreSQL de servicio, y construye las dos imágenes Docker sin publicarlas |
-| [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) | cuando el CI termina bien en `main`, o a mano | Publica las imágenes en GHCR, entra por SSH a la EC2, fija las imágenes de esa versión en `.env`, hace `docker compose up -d` y verifica el endpoint de salud |
+| [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) | cuando el CI termina bien en `main`, o a mano | Publica las imágenes en **ECR**, entra por SSH a la EC2, fija las imágenes de esa versión en `.env`, ejecuta `deploy/redeploy.sh` y verifica el endpoint de salud |
 
 ### Secretos que hay que crear en GitHub
 
@@ -189,15 +284,27 @@ Hay dos flujos de trabajo:
 
 | Secreto | Contenido |
 |---|---|
-| `EC2_HOST` | IP elástica o dominio de la instancia |
+| `AWS_DEPLOY_ROLE_ARN` | ARN del rol que GitHub asume por OIDC, p. ej. `arn:aws:iam::006419716393:role/zoonosis-github-actions` |
+| `EC2_HOST` | `54.21.32.224` |
 | `EC2_USER` | `ubuntu` |
 | `EC2_SSH_KEY` | Contenido completo de la clave privada `.pem` (incluyendo las líneas `BEGIN`/`END`) |
 | `EC2_PORT` | `22` (opcional) |
-| `EC2_APP_DIR` | `/home/ubuntu/zoonosis` |
-| `DOMAIN` | El dominio, para la verificación final |
+| `PUBLIC_HOST` | `54.21.32.224`, para la verificación final |
 
-`GITHUB_TOKEN` lo provee GitHub automáticamente y sirve para publicar y
-descargar las imágenes de GHCR; no hay que crearlo.
+**No hay claves de AWS entre los secretos**, y es deliberado. El workflow pide
+un token OIDC a GitHub (`permissions: id-token: write`) y con él asume el rol
+`zoonosis-github-actions`. Las credenciales duran lo que dura el job, así que no
+hay nada de larga duración guardado en el repositorio que pueda filtrarse.
+
+El proveedor OIDC ya está creado en la cuenta:
+
+```
+arn:aws:iam::006419716393:oidc-provider/token.actions.githubusercontent.com
+```
+
+El rol debe confiar únicamente en este repositorio, con una condición sobre
+`token.actions.githubusercontent.com:sub` del tipo `repo:USUARIO/REPO:*`. Sin esa
+condición, cualquier repositorio de GitHub podría asumir el rol.
 
 ### Flujo de trabajo del equipo
 

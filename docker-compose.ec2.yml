@@ -1,0 +1,46 @@
+# Override para el despliegue en EC2 por IP, SIN dominio y SIN TLS todavía.
+#
+#   docker compose -f docker-compose.prod.yml -f docker-compose.ec2.yml pull
+#   docker compose -f docker-compose.prod.yml -f docker-compose.ec2.yml up -d
+#
+# Hace tres cosas que la configuración con dominio no puede hacer:
+#
+#   1. Monta la plantilla de nginx sin TLS (deploy/nginx/templates-http).
+#   2. Pone COOKIE_SECURE=false. Es imprescindible: una cookie marcada como
+#      Secure no se envía sobre HTTP, así que con el valor de producción el
+#      refresh token nunca llegaría y la sesión se cerraría al primer refresco.
+#   3. Deja certbot apagado con un perfil, para que no intente renovar un
+#      certificado que no existe.
+#
+# Cuando el dominio esté listo: se completa DOMAIN en .env, se deja de usar
+# este override y se ejecuta ./deploy/init-letsencrypt.sh.
+
+services:
+  backend:
+    # El `pull` previo deja la imagen de ECR en local, así que compose no
+    # intenta construir (en el servidor no está el código fuente).
+    image: ${BACKEND_IMAGE}
+    pull_policy: always
+    environment:
+      # Sin TLS la cookie no puede ser Secure.
+      COOKIE_SECURE: "false"
+      # Origen real con el que el navegador ve la aplicación.
+      FRONTEND_URL: http://${PUBLIC_HOST}
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    pull_policy: always
+
+  nginx:
+    volumes:
+      - ./deploy/nginx/templates-http:/etc/nginx/templates:ro
+      - ./deploy/nginx/docker-entrypoint.d/99-reload-loop.sh:/docker-entrypoint.d/99-reload-loop.sh:ro
+      - certbot-conf:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot
+    # La plantilla HTTP no usa ${DOMAIN}; envsubst no tiene nada que sustituir.
+    environment:
+      NGINX_ENVSUBST_FILTER: DOMAIN
+
+  certbot:
+    # Perfil no activado por defecto: el servicio queda definido pero no arranca.
+    profiles: ["tls"]
