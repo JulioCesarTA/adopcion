@@ -110,7 +110,7 @@ jobs:
             --comment "Despliegue $SHA desde GitHub Actions" \
             --timeout-seconds 900 \
             --parameters commands="[
-              \"set -euo pipefail\",
+              \"set -eu\",
               \"cd /opt/zoonosis\",
               \"git fetch --all --quiet\",
               \"git reset --hard origin/main --quiet\",
