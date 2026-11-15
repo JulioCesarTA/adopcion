@@ -278,33 +278,64 @@ Hay dos flujos de trabajo:
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | push y pull request a `main` o `develop` | Lint, tipos, compilación, 57 pruebas unitarias y 23 e2e contra un PostgreSQL de servicio, y construye las dos imágenes Docker sin publicarlas |
 | [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) | cuando el CI termina bien en `main`, o a mano | Publica las imágenes en **ECR**, entra por SSH a la EC2, fija las imágenes de esa versión en `.env`, ejecuta `deploy/redeploy.sh` y verifica el endpoint de salud |
 
-### Secretos que hay que crear en GitHub
+### Secretos que hay que crear en GitHub: ninguno
 
-**Settings → Secrets and variables → Actions → New repository secret:**
+El pipeline **no usa ni un solo secreto**, y es el resultado de dos decisiones.
 
-| Secreto | Contenido |
-|---|---|
-| `AWS_DEPLOY_ROLE_ARN` | ARN del rol que GitHub asume por OIDC, p. ej. `arn:aws:iam::006419716393:role/zoonosis-github-actions` |
-| `EC2_HOST` | `54.21.32.224` |
-| `EC2_USER` | `ubuntu` |
-| `EC2_SSH_KEY` | Contenido completo de la clave privada `.pem` (incluyendo las líneas `BEGIN`/`END`) |
-| `EC2_PORT` | `22` (opcional) |
-| `PUBLIC_HOST` | `54.21.32.224`, para la verificación final |
+**1. Las credenciales de AWS se piden en el momento, por OIDC.** El workflow
+declara `permissions: id-token: write`, GitHub le entrega un token firmado y con
+él asume `zoonosis-github-actions`. Las credenciales duran lo que dura el job.
+No hay claves de larga duración que puedan filtrarse.
 
-**No hay claves de AWS entre los secretos**, y es deliberado. El workflow pide
-un token OIDC a GitHub (`permissions: id-token: write`) y con él asume el rol
-`zoonosis-github-actions`. Las credenciales duran lo que dura el job, así que no
-hay nada de larga duración guardado en el repositorio que pueda filtrarse.
+**2. El despliegue va por AWS Systems Manager, no por SSH.** Esta es la parte
+que elimina el secreto más incómodo. Con `appleboy/ssh-action` haría falta
+guardar la **clave privada** de la instancia en los secretos del repositorio:
+un archivo que da acceso total al servidor, en un sitio del que puede salir
+copiado en un log, o quedar accesible a cualquiera con permiso de administración
+sobre el repositorio. Con SSM el permiso vive en la política del rol y está
+limitado a una instancia concreta:
 
-El proveedor OIDC ya está creado en la cuenta:
+```json
+"Action": "ssm:SendCommand",
+"Resource": [
+  "arn:aws:ec2:sa-east-1:006419716393:instance/i-007af94c5b72ff8b0",
+  "arn:aws:ssm:sa-east-1::document/AWS-RunShellScript"
+]
+```
+
+Requiere que la instancia lleve `AmazonSSMManagedInstanceCore` en su rol y que
+el agente esté activo. Comprobación:
+
+```bash
+aws ssm describe-instance-information \
+  --query 'InstanceInformationList[].{Id:InstanceId,Estado:PingStatus}'
+# [{"Id": "i-007af94c5b72ff8b0", "Estado": "Online"}]
+```
+
+El ARN del rol, el ID de la instancia y la IP están escritos directamente en el
+workflow. No son secretos: el rol solo acepta tokens de este repositorio, así
+que a cualquier otro no le sirve de nada conocerlo.
+
+El proveedor OIDC y el rol ya están creados en la cuenta:
 
 ```
 arn:aws:iam::006419716393:oidc-provider/token.actions.githubusercontent.com
+arn:aws:iam::006419716393:role/zoonosis-github-actions
 ```
 
-El rol debe confiar únicamente en este repositorio, con una condición sobre
-`token.actions.githubusercontent.com:sub` del tipo `repo:USUARIO/REPO:*`. Sin esa
-condición, cualquier repositorio de GitHub podría asumir el rol.
+El rol confía **únicamente** en este repositorio, por una condición sobre
+`token.actions.githubusercontent.com:sub`:
+
+```json
+"StringLike": {
+  "token.actions.githubusercontent.com:sub": "repo:JulioCesarTA/zoonosis-adopcion:*"
+}
+```
+
+Sin esa condición, cualquier repositorio de GitHub podría asumir el rol. Y sus
+permisos son solo `ecr:PutImage` y las acciones de subida de capas, limitadas a
+los dos repositorios `zoonosis-backend` y `zoonosis-frontend`: el workflow puede
+publicar imágenes y nada más. No puede leer el bucket ni tocar la instancia.
 
 ### Flujo de trabajo del equipo
 
