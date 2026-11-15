@@ -35,18 +35,19 @@ zoonosis/
 ├─ DECISIONS.md              decisiones de implementación
 ├─ backend/                  NestJS
 │  ├─ prisma/                schema.prisma, migraciones, seed.ts
-│  ├─ test/                  e2e (auth, reglas de negocio)
+│  ├─ test/                  e2e (auth, reglas de negocio, sitio público)
 │  └─ src/
 │     ├─ common/             guards (JWT, roles), decoradores, filtro de errores, DTOs base
 │     └─ modules/
-│        ├─ auth/ users/ audit/
+│        ├─ auth/ users/
 │        ├─ animals/         CRUD, estados (animal-status.ts), foto, HCD
 │        ├─ clinical/        consultas, tratamientos, vacunas, cuarentena
 │        ├─ adopters/ adoptions/
-│        ├─ recommendation/  engine.ts (función pura) + servicio
-│        ├─ catalogs/        vacunas y pesos del algoritmo
-│        ├─ dashboard/       panel y alertas
-│        └─ reports/         reportes + CSV
+│        ├─ recommendation/  engine.ts (motor de reglas) + ml/ (Random Forest) + servicio
+│        ├─ catalogs/        vacunas; pesos del motor de reglas en solo lectura
+│        ├─ dashboard/ kpis/ panel e indicadores de gestión
+│        ├─ public/ contact/ mail/ chat/   sitio público, mensajes, correo, asistente
+│        └─ storage/ health/ fotos (local o S3) y sonda de salud
 └─ frontend/                 Next.js (App Router)
    └─ src/
       ├─ app/(app)/          páginas autenticadas (sidebar + topbar)
@@ -175,7 +176,7 @@ cp .env.production.example .env && nano .env
 | Certificado y renovación | `deploy/init-letsencrypt.sh` + contenedor `certbot` |
 | Políticas de AWS | `deploy/aws/iam-policy-ec2.json`, `deploy/aws/s3-bucket-policy.json` |
 | CI (lint, tipos, 80 pruebas, build de imágenes) | `.github/workflows/ci.yml` |
-| CD (publica en GHCR y despliega por SSH) | `.github/workflows/deploy.yml` |
+| CD (publica en ECR y despliega por SSM con OIDC) | `.github/workflows/deploy.yml` |
 
 Las fotos de los animales se guardan en S3 con `STORAGE_DRIVER=s3` (en EC2, usando
 el rol IAM de la instancia: sin claves en el servidor) o en disco con

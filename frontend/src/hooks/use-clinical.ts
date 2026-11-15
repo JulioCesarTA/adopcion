@@ -15,13 +15,6 @@ import type {
 } from "@/lib/types";
 import { invalidateAnimal } from "./use-animals";
 
-export function useConsultations(animalId: string) {
-  return useQuery({
-    queryKey: ["consultations", animalId],
-    queryFn: () => api<Consultation[]>(`/animals/${animalId}/consultations`),
-  });
-}
-
 export function useConsultation(id: string) {
   return useQuery({
     queryKey: ["consultation", id],

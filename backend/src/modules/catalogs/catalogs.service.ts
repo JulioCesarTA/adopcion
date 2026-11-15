@@ -1,14 +1,8 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { AlgorithmSetting, Vaccine } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import type { AuthUser } from '../../common/types';
 import type { AlgorithmSettings, Weights } from '../recommendation/engine';
-import { CreateAlgorithmSettingsDto, CreateVaccineDto, UpdateVaccineDto } from './dto/catalogs.dto';
+import { CreateVaccineDto, UpdateVaccineDto } from './dto/catalogs.dto';
 
 export function toSettings(row: AlgorithmSetting): AlgorithmSettings {
   return {
@@ -69,9 +63,9 @@ export class CatalogsService {
     if (exists) throw new ConflictException('Ya existe una vacuna con ese nombre');
   }
 
-  // ---------- Pesos del algoritmo ----------
+  // ---------- Pesos del motor de reglas (solo lectura; los carga el seed) ----------
 
-  async currentSettingsRow(): Promise<AlgorithmSetting> {
+  private async currentSettingsRow(): Promise<AlgorithmSetting> {
     const row = await this.prisma.algorithmSetting.findFirst({
       orderBy: { version: 'desc' },
     });
@@ -81,49 +75,5 @@ export class CatalogsService {
 
   async currentSettings(): Promise<AlgorithmSettings> {
     return toSettings(await this.currentSettingsRow());
-  }
-
-  async settingsHistory() {
-    const [current, history] = await Promise.all([
-      this.currentSettingsRow(),
-      this.prisma.algorithmSetting.findMany({
-        orderBy: { version: 'desc' },
-        take: 20,
-        include: { createdBy: { select: { fullName: true } } },
-      }),
-    ]);
-    return { current, history };
-  }
-
-  /** Crea una nueva versión; los cálculos anteriores no se recalculan. */
-  async createSettings(dto: CreateAlgorithmSettingsDto, user: AuthUser): Promise<AlgorithmSetting> {
-    const w = dto.weights;
-    const sum = w.time + w.space + w.experience + w.energy + w.preferences;
-    if (sum !== 100) throw new BadRequestException(`Los pesos deben sumar 100 (suman ${sum})`);
-    if (dto.thresholdMedium >= dto.thresholdHigh) {
-      throw new BadRequestException('El umbral MEDIA debe ser menor que el umbral ALTA');
-    }
-    return this.prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('algorithm_settings'))`;
-      const last = await tx.algorithmSetting.findFirst({
-        orderBy: { version: 'desc' },
-      });
-      const row = await tx.algorithmSetting.create({
-        data: {
-          version: (last?.version ?? 0) + 1,
-          weights: {
-            time: w.time,
-            space: w.space,
-            experience: w.experience,
-            energy: w.energy,
-            preferences: w.preferences,
-          },
-          thresholdHigh: dto.thresholdHigh,
-          thresholdMedium: dto.thresholdMedium,
-          createdById: user.id,
-        },
-      });
-      return row;
-    });
   }
 }

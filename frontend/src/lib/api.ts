@@ -144,24 +144,6 @@ export const authApi = {
     }),
 };
 
-/** Descarga un archivo autenticado (p. ej. CSV) y lo guarda con su nombre. */
-export async function downloadFile(path: string, query?: Query, fallbackName = "archivo") {
-  let res = await rawRequest(path, { query });
-  if (res.status === 401 && (await refreshSession())) res = await rawRequest(path, { query });
-  if (!res.ok) throw await parseError(res);
-  const blob = await res.blob();
-  const disposition = res.headers.get("Content-Disposition") ?? "";
-  const name = /filename="?([^"]+)"?/.exec(disposition)?.[1] ?? fallbackName;
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 /** Mensaje legible para toasts. */
 export function errorMessage(err: unknown): string {
   if (err instanceof ApiError) return err.message;

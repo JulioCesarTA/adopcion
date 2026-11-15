@@ -112,26 +112,6 @@ export interface Sample {
   label: 0 | 1;
 }
 
-export interface Dataset {
-  samples: Sample[];
-  featureNames: readonly string[];
-}
-
-/** Reparte el conjunto en entrenamiento y prueba conservando la proporción de clases. */
-export function stratifiedSplit(
-  samples: Sample[],
-  testFraction: number,
-  rng: { shuffle<T>(a: readonly T[]): T[] },
-): { train: Sample[]; test: Sample[] } {
-  const positives = rng.shuffle(samples.filter((s) => s.label === 1));
-  const negatives = rng.shuffle(samples.filter((s) => s.label === 0));
-  const cut = (arr: Sample[]) => Math.round(arr.length * testFraction);
-
-  const test = [...positives.slice(0, cut(positives)), ...negatives.slice(0, cut(negatives))];
-  const train = [...positives.slice(cut(positives)), ...negatives.slice(cut(negatives))];
-  return { train: rng.shuffle(train), test: rng.shuffle(test) };
-}
-
 /** Divide en `k` pliegues conservando la proporción de clases en cada uno. */
 export function stratifiedFolds(
   samples: Sample[],

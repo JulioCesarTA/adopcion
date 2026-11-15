@@ -1,17 +1,13 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   ArrayMinSize,
   IsBoolean,
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
-  Max,
   MaxLength,
-  Min,
-  ValidateNested,
 } from 'class-validator';
 import { Species } from '@prisma/client';
 
@@ -49,43 +45,4 @@ export class VaccineQueryDto {
   )
   @IsBoolean()
   active?: boolean;
-}
-
-export class WeightsDto {
-  @ApiProperty() @Type(() => Number) @IsInt() @Min(0) @Max(100) time: number;
-  @ApiProperty() @Type(() => Number) @IsInt() @Min(0) @Max(100) space: number;
-  @ApiProperty()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  experience: number;
-  @ApiProperty() @Type(() => Number) @IsInt() @Min(0) @Max(100) energy: number;
-  @ApiProperty()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  preferences: number;
-}
-
-export class CreateAlgorithmSettingsDto {
-  @ApiProperty({ type: WeightsDto })
-  @ValidateNested()
-  @Type(() => WeightsDto)
-  weights: WeightsDto;
-
-  @ApiProperty({ default: 80 })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  thresholdHigh: number;
-
-  @ApiProperty({ default: 60 })
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  @Max(99)
-  thresholdMedium: number;
 }

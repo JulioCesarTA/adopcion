@@ -328,11 +328,15 @@ El rol confía **únicamente** en este repositorio, por una condición sobre
 
 ```json
 "StringLike": {
-  "token.actions.githubusercontent.com:sub": "repo:JulioCesarTA/zoonosis-adopcion:*"
+  "token.actions.githubusercontent.com:sub": "repo:JulioCesarTA@100734876/zoonosis-adopcion@1458488870:*"
 }
 ```
 
-Sin esa condición, cualquier repositorio de GitHub podría asumir el rol. Y sus
+Los números tras cada `@` son los identificadores inmutables del propietario y del repositorio:
+GitHub los incluye en el token, así que la condición tiene que llevarlos. Con el formato
+antiguo (`repo:USUARIO/REPO:*`) AWS responde `AccessDenied`; el valor exacto que llega se ve
+en CloudTrail, evento `AssumeRoleWithWebIdentity`. Sin esa condición, cualquier repositorio de
+GitHub podría asumir el rol. Y sus
 permisos son solo `ecr:PutImage` y las acciones de subida de capas, limitadas a
 los dos repositorios `zoonosis-backend` y `zoonosis-frontend`: el workflow puede
 publicar imágenes y nada más. No puede leer el bucket ni tocar la instancia.

@@ -72,11 +72,6 @@ export interface LocalContribution {
   direction: 'favorece' | 'perjudica' | 'neutro';
 }
 
-export interface TrainedForest {
-  model: RandomForest;
-  oobScore: number | null;
-}
-
 export class RandomForest {
   private constructor(
     private readonly trees: DecisionTree[] | null,

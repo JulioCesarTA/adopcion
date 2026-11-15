@@ -42,10 +42,3 @@ export function startOfMonthLaPazMinus(monthsBack: number, now = new Date()): Da
   const d = new Date(Date.UTC(y, m - 1 - monthsBack, 1));
   return new Date(d.getTime() - OFFSET_MS);
 }
-
-/** Diferencia en días entre dos fechas calendario. */
-export function diffDays(fromDateOnly: string, toDateOnlyStr: string): number {
-  return Math.round(
-    (toDateOnly(toDateOnlyStr).getTime() - toDateOnly(fromDateOnly).getTime()) / 86_400_000,
-  );
-}

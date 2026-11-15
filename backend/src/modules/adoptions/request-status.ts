@@ -9,9 +9,6 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
   CANCELADA: 'Cancelada',
 };
 
-/** RN-05: estados que cuentan como solicitud activa. */
-export const ACTIVE_REQUEST_STATES: RequestStatus[] = ['PENDIENTE', 'EN_EVALUACION'];
-
 /** Máquina de estados de la solicitud (sección 4). APROBADA, RECHAZADA y CANCELADA son finales. */
 export const REQUEST_TRANSITIONS: Record<RequestStatus, RequestStatus[]> = {
   PENDIENTE: ['EN_EVALUACION', 'CANCELADA'],

@@ -27,8 +27,6 @@ export const STAFF_ROLES: UserRole[] = ["ADMIN", "VETERINARIO", "GESTION", "DIRE
 /** Roles que el ADMIN puede asignar (incluye CLIENTE para cuentas del portal). */
 export const ALL_ROLES: UserRole[] = [...STAFF_ROLES, "CLIENTE"];
 
-export const isStaff = (role: UserRole | undefined) => !!role && STAFF_ROLES.includes(role);
-
 /** Ruta de inicio según el rol. */
 export const homeForRole = (role: UserRole) => (role === "CLIENTE" ? "/portal" : "/dashboard");
 

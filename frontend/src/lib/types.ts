@@ -401,15 +401,6 @@ export interface AdopterRanking {
   skipped: { adopter: { id: string; name: string }; missing: string[] }[];
 }
 
-export interface AlgorithmSettings {
-  version: number;
-  weights: Record<"time" | "space" | "experience" | "energy" | "preferences", number>;
-  thresholdHigh: number;
-  thresholdMedium: number;
-  createdAt: string;
-  createdBy?: { fullName: string };
-}
-
 // ---------- Panel e indicadores ----------
 
 export type Section<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -433,7 +424,6 @@ export interface Dashboard {
     })[]
   > | null;
 }
-
 
 export type KpiTrend = "sube" | "baja" | "estable";
 export type KpiDirection = "mas-es-mejor" | "menos-es-mejor";

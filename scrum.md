@@ -210,8 +210,8 @@ Versiones tomadas de `backend/package.json` y `frontend/package.json`.
 | Ítem | Estado |
 |---|---|
 | Herramienta de gestión (Jira, Trello, Azure DevOps u otra) | **No existe.** No hay ninguna integración ni archivo de configuración de herramienta de gestión en el proyecto. |
-| Repositorio de código (Git) | **Sí, local.** Rama `main`, 4 commits, `.gitignore` y `.gitattributes` configurados. **No tiene remoto**: no está publicado en GitHub ni en ningún otro servicio. |
-| CI/CD | **Sí, escrito; nunca ejecutado.** `.github/workflows/ci.yml` (lint, tipos, compilación, 124 pruebas y build de imágenes) y `.github/workflows/deploy.yml` (publica en GHCR y despliega por SSH). No han corrido porque el repositorio no tiene remoto. |
+| Repositorio de código (Git) | **Sí, publicado.** Rama `main` en `https://github.com/JulioCesarTA/zoonosis-adopcion` (público), con `.gitignore` y `.gitattributes` configurados. |
+| CI/CD | **Sí, en ejecución.** `.github/workflows/ci.yml` (lint, tipos, compilación, 124 pruebas y build de imágenes) corre en cada push y termina en verde. `.github/workflows/deploy.yml` publica las imágenes en Amazon ECR y redespliega la instancia por AWS Systems Manager, con credenciales OIDC y sin secretos en el repositorio. **Pendiente:** la primera ejecución del despliegue falló en el paso de autenticación OIDC y aún no se ha visto una ejecución completa en verde. |
 | Docker | **Sí, completo.** `docker-compose.yml` levanta la base de datos para desarrollo. `docker-compose.prod.yml` orquesta cinco servicios para producción: nginx, frontend, backend, PostgreSQL y certbot. Hay `Dockerfile` multi-etapa para backend y frontend, ambos verificados: las imágenes se construyen y el contenedor del API arranca, aplica migraciones solo y responde en `/api/v1/health`. |
 
 ## 2.3 Hardware, servidores y despliegue
@@ -249,9 +249,9 @@ Archivos de prueba reales en el proyecto:
 ```
 backend/src/common/guards/roles.guard.spec.ts
 backend/src/modules/animals/animal-status.spec.ts
-backend/src/modules/audit/sanitize.spec.ts
 backend/src/modules/auth/auth.service.spec.ts
 backend/src/modules/recommendation/engine.spec.ts
+backend/src/modules/recommendation/ml/ml.spec.ts
 backend/test/auth.e2e-spec.ts
 backend/test/business-rules.e2e-spec.ts
 backend/test/public.e2e-spec.ts
@@ -538,7 +538,10 @@ PATCH  /api/v1/vaccines/:id
 **Prototipo / mockup**
 
 No existe archivo de mockup. Pantallas implementadas:
-`/vacunas`, `/admin/catalogos`, y la pestaña de vacunas dentro de `/animales/[id]`.
+`/vacunas` —que incluye el catálogo de vacunas como pestaña— y la pestaña de vacunas dentro de
+`/animales/[id]`. La pantalla `/admin/catalogos` existió hasta el cambio de alcance descrito en
+6.4: al retirarse los pesos del algoritmo de la interfaz, el catálogo de vacunas se trasladó a
+`/vacunas` para no perder su ABM.
 
 ---
 
@@ -1203,12 +1206,12 @@ veterinario pueda registrar un animal, atenderlo y vacunarlo de punta a punta.
 |---|---|---|---|---|
 | SP1.1 | Configuración del monorepo: `backend/` NestJS 11 y `frontend/` Next 15, ESLint, Prettier, TypeScript estricto | 6 | Julio | Terminada |
 | SP1.2 | `docker-compose.yml` con PostgreSQL 16, volumen persistente y `healthcheck` | 2 | Julio | Terminada |
-| SP1.3 | `schema.prisma` completo y migración inicial con `CHECK`, índices parciales y trigger de solo lectura en `audit_logs` (la auditoría se retiró después; ver 6.2) | 10 | Julio | Terminada |
+| SP1.3 | `schema.prisma` completo y migración inicial con `CHECK`, índices parciales y trigger de solo lectura en `audit_logs` (la tabla y el trigger se crearon en esta migración y se eliminaron después en `20261114230000_quitar_auditoria`; ver 6.4) | 10 | Julio | Terminada |
 | SP1.4 | Seed de la base: usuarios por rol, catálogo de vacunas, pesos del algoritmo v1 y datos de demostración | 4 | Claudia | Terminada |
 | SP1.5 | Módulo `auth`: login, refresh con rotación, logout, `/me`, cambio de contraseña, bloqueo por intentos | 10 | Julio | Terminada |
 | SP1.6 | `JwtAuthGuard` y `RolesGuard` con política *deny by default* + pruebas unitarias | 6 | Julio | Terminada |
 | SP1.7 | Módulo `users`: CRUD de cuentas, activación/desactivación, restablecer contraseña | 6 | Claudia | Terminada |
-| SP1.8 | Módulo `audit`: servicio, interceptor global con `AsyncLocalStorage`, saneado de claves sensibles | 8 | Julio | Terminada |
+| SP1.8 | Módulo `audit`: servicio, interceptor global con `AsyncLocalStorage`, saneado de claves sensibles | 8 | Julio | **Terminada y luego revertida** |
 | SP1.9 | Módulo `animals`: CRUD, generación de código `ZOO-AAAA-NNNN` con *advisory lock*, máquina de estados | 12 | Claudia | Terminada |
 | SP1.10 | Carga de fotografía con validación por *magic bytes* y servicio de archivos estáticos en `/uploads` | 5 | Claudia | Terminada |
 | SP1.11 | Salida de la institución y reingreso, con cierre automático de períodos y suspensión de tratamientos | 6 | Claudia | Terminada |
@@ -1219,7 +1222,7 @@ veterinario pueda registrar un animal, atenderlo y vacunarlo de punta a punta.
 | SP1.16 | Frontend: cliente de API con refresco automático, `AuthProvider`, `middleware.ts`, layout con barra lateral filtrada por rol | 10 | Julio | Terminada |
 | SP1.17 | Frontend: pantallas `/login`, `/perfil`, `/admin/usuarios` | 8 | Claudia | Terminada |
 | SP1.18 | Frontend: pantallas de animales (listado con filtros, alta, ficha con pestañas, edición) | 14 | Claudia | Terminada |
-| SP1.19 | Frontend: pantallas clínicas (nueva consulta, detalle de consulta, `/vacunas`, `/admin/catalogos`) | 12 | Julio | Terminada |
+| SP1.19 | Frontend: pantallas clínicas (nueva consulta, detalle de consulta, `/vacunas` con pestaña de catálogo de vacunas) | 12 | Julio | Terminada |
 | SP1.20 | Pruebas e2e `auth.e2e-spec.ts` (5 casos) y filtro global de excepciones | 6 | Julio | Terminada |
 | | **Total** | **155** | | |
 
@@ -1487,7 +1490,7 @@ en este sprint (rutas reales de `frontend/src/app/`):
 | Inicio de sesión | `/login` |
 | Mi perfil | `/(app)/perfil` |
 | Administración de usuarios | `/(app)/admin/usuarios` |
-| Catálogos (vacunas y pesos) | `/(app)/admin/catalogos` |
+| Catálogo de vacunas | `/(app)/vacunas` (pestaña «Catálogo») |
 | Listado de animales | `/(app)/animales` |
 | Alta de animal | `/(app)/animales/nuevo` |
 | Ficha de animal con pestañas | `/(app)/animales/[id]` |
@@ -1512,7 +1515,6 @@ en este sprint (rutas reales de `frontend/src/app/`):
 | HU1 | CU22 Animal fuera | Animal en estado `ADOPTADO` | — | Intentar registrar una consulta; luego reingresar | La consulta se rechaza; el reingreso lo devuelve a `INGRESADO` | Correcto |
 | HU7 | Guard de roles | Endpoint sin `@Roles()` | Rol `CLIENTE` | Prueba unitaria `roles.guard.spec.ts` | Acceso denegado por *deny by default* | Correcto |
 | HU1 | Máquina de estados | Todas las transiciones del grafo | — | Prueba unitaria `animal-status.spec.ts` | Solo las transiciones válidas se permiten | Correcto |
-| HU7 | Saneado de auditoría | Objeto con claves `password`, `token` | — | Prueba unitaria `sanitize.spec.ts` | Las claves sensibles se eliminan antes de guardar | Correcto |
 | HU7 | Lógica de autenticación | Varios escenarios de login y bloqueo | — | Prueba unitaria `auth.service.spec.ts` | Bloqueo al 5.º fallo, rotación de refresco correcta | Correcto |
 
 **Capturas de las pruebas: no existen.** La evidencia disponible es la salida de consola de
@@ -1578,12 +1580,12 @@ RN-03 a RN-06 verificadas, motor de compatibilidad y decisión final de aprobaci
 | SP2.10 | Motor de compatibilidad `engine.ts` como función pura: 5 criterios, filtros duros, niveles | 14 | Julio | Terminada |
 | SP2.11 | 22 pruebas unitarias del motor, incluido el ejemplo 90.625 → 90.63 ALTA | 8 | Julio | Terminada |
 | SP2.12 | Servicio de recomendación: modo par y modo ranking, persistencia en `compatibility_recommendations` | 8 | Julio | Terminada |
-| SP2.13 | Versionado de pesos del algoritmo con *advisory lock* y validación de suma 100 | 5 | Julio | Terminada |
+| SP2.13 | Versionado de pesos del algoritmo con *advisory lock* y validación de suma 100 | 5 | Julio | **Terminada y luego revertida** (el endpoint y su código se eliminaron; los pesos quedan de solo lectura, cargados por el seed; ver 6.4) |
 | SP2.14 | Frontend: pantallas de adoptantes (listado, alta, ficha, edición) | 12 | Claudia | Terminada |
 | SP2.15 | Frontend: pantallas de solicitudes (listado, alta, ficha con decisión y notas) | 14 | Claudia | Terminada |
 | SP2.16 | Frontend: pantalla `/cuarentena` y pestaña de períodos en la ficha del animal | 8 | Julio | Terminada |
 | SP2.17 | Frontend: catálogo `/adoptables` y componentes de ranking con barra de puntaje | 8 | Julio | Terminada |
-| SP2.18 | Pruebas e2e de reglas de negocio: RN-03 a RN-07 y máquina de estados | 10 | Julio | Terminada |
+| SP2.18 | Pruebas e2e de reglas de negocio: RN-03 a RN-08 y máquina de estados | 10 | Julio | Terminada |
 | | **Total** | **145** | | |
 
 ### Diagramas del Sprint 2
@@ -1895,12 +1897,12 @@ al ciudadano con el sitio público, el registro de clientes y el asistente virtu
 | SP3.4 | Frontend: sección de seguimientos en la ficha de solicitud y en la ficha del animal | 5 | Claudia | Terminada |
 | SP3.5 | Módulo `dashboard`: cinco tarjetas de indicadores con aislamiento de fallos por sección | 8 | Julio | Terminada |
 | SP3.6 | Distribución por estado y comparativa ingresos contra adopciones por mes | 5 | Julio | Terminada |
-| SP3.7 | `AlertsService`: vacunas vencidas (RN-12), cuarentenas y tratamientos vencidos | 6 | Julio | Terminada |
-| SP3.8 | Frontend: `/dashboard` y `/alertas` con gráficos Recharts y paleta categórica fija | 10 | Julio | Terminada |
-| SP3.9 | Módulo `reports`: 8 reportes en 3 categorías con matriz de acceso por rol | 12 | Julio | Terminada |
-| SP3.10 | Exportación CSV con separador `;`, BOM UTF-8 y coma decimal | 4 | Julio | Terminada |
-| SP3.11 | Consulta de auditoría: filtros, facetas y endpoint de solo lectura | 6 | Julio | Terminada |
-| SP3.12 | Frontend: `/reportes` y `/admin/auditoria` | 10 | Claudia | Terminada |
+| SP3.7 | `AlertsService`: vacunas vencidas (RN-12), cuarentenas y tratamientos vencidos | 6 | Julio | **Terminada y luego revertida** (ver 6.4) |
+| SP3.8 | Frontend: `/dashboard` con gráficos Recharts y paleta categórica fija (la pantalla `/alertas` se construyó y luego se retiró; ver 6.4) | 10 | Julio | Terminada |
+| SP3.9 | Módulo `reports`: 8 reportes en 3 categorías con matriz de acceso por rol | 12 | Julio | **Terminada y luego revertida** (ver 6.4) |
+| SP3.10 | Exportación CSV con separador `;`, BOM UTF-8 y coma decimal | 4 | Julio | **Terminada y luego revertida** (ver 6.4) |
+| SP3.11 | Consulta de auditoría: filtros, facetas y endpoint de solo lectura | 6 | Julio | **Terminada y luego revertida** (ver 6.4) |
+| SP3.12 | Frontend: `/reportes` y `/admin/auditoria` | 10 | Claudia | **Terminada y luego revertida** (ver 6.4) |
 | SP3.13 | Rol `CLIENTE` en el enum y endurecimiento del `RolesGuard` a *deny by default* | 5 | Julio | Terminada |
 | SP3.14 | Migración `portal_publico`: `users.phone`, `users.terms_accepted_at`, tabla `contact_messages` | 4 | Julio | Terminada |
 | SP3.15 | Módulo `public`: info institucional, animales públicos con campos filtrados, registro de cliente | 8 | Claudia | Terminada |
@@ -1910,9 +1912,19 @@ al ciudadano con el sitio público, el registro de clientes y el asistente virtu
 | SP3.19 | Frontend: `/registro`, `/terminos`, `/privacidad`, banner de cookies y portal del cliente | 12 | Claudia | Terminada |
 | SP3.20 | Frontend: widget de chat flotante y pantalla `/portal/asistente` | 8 | Julio | Terminada |
 | SP3.21 | Frontend: buzón `/mensajes` con contador de no leídos y cambio de estado | 6 | Claudia | Terminada |
-| SP3.22 | Pruebas e2e del panel, reportes por rol, auditoría y sitio público | 10 | Julio | Terminada |
-| SP3.23 | Documentación final: `README.md` y `DECISIONS.md` con 64 decisiones registradas | 6 | Julio | Terminada |
+| SP3.22 | Pruebas e2e del panel, KPIs, ranking inverso y sitio público | 10 | Julio | Terminada |
+| SP3.23 | Documentación final: `README.md` y `DECISIONS.md` con 95 decisiones registradas | 6 | Julio | Terminada |
+| SP3.24 | Random Forest propio en TypeScript: árbol CART con Gini, *bagging*, *soft voting* y error *out-of-bag* | Pendiente | Julio | Terminada |
+| SP3.25 | Entrenamiento con validación cruzada estratificada, versionado en `ml_models` y explicación por ablación de variables | Pendiente | Julio | Terminada |
+| SP3.26 | 46 pruebas unitarias del Random Forest (`ml.spec.ts`) | Pendiente | Julio | Terminada |
+| SP3.27 | Página `/kpis`: seis indicadores de gestión comparados contra el periodo anterior | Pendiente | Julio | Terminada |
+| SP3.28 | Ranking inverso de recomendación: adoptantes compatibles desde la ficha del animal | Pendiente | Julio | Terminada |
+| SP3.29 | Infraestructura de despliegue: Dockerfiles multi-etapa, `docker-compose.prod.yml` (nginx, certbot), fotos en S3 con rol IAM, HTTPS de Let's Encrypt sobre la IP | Pendiente | Julio | Terminada |
+| SP3.30 | CI/CD con GitHub Actions: `ci.yml` y `deploy.yml`, imágenes en ECR, despliegue por SSM con OIDC | Pendiente | Julio | CI terminado; despliegue automático pendiente de primera ejecución correcta |
 | | **Total** | **183** | | |
+
+> SP3.24 a SP3.30 se incorporaron después del plan original (ver 6.4). Sus horas no se estimaron
+> ni se registraron, por eso figuran como **Pendiente** y el total de 183 no las incluye.
 
 ### Diagramas del Sprint 3
 
@@ -2632,7 +2644,7 @@ Obligó a endurecer el `RolesGuard` a *deny by default*.
 |---|---|
 | Infraestructura completa para AWS EC2 (Docker, nginx, HTTPS con Let's Encrypt) | Escrita y validada, **no desplegada** |
 | Almacenamiento de fotos en S3 con rol IAM | Configurado, probado con ambos drivers |
-| CI/CD en GitHub Actions con publicación en GHCR | Escrito, **nunca ejecutado** |
+| CI/CD en GitHub Actions con publicación en ECR y despliegue por SSM | CI en verde; despliegue automático **pendiente de una primera ejecución correcta** |
 | Random Forest propio en TypeScript, con versionado de modelos | Implementado, 46 pruebas, modelo v1 activo |
 | Tabla `ml_models` y migración `20261114220254_modelos_ml` | Aplicada |
 
