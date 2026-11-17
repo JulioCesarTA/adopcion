@@ -1,0 +1,44 @@
+{
+  "datos_entrada": [
+    {
+      "campo": "Animal",
+      "valor": "Simba (ZOO-2026-0004), situación Ingresado"
+    },
+    {
+      "campo": "Tipo",
+      "valor": "Cuarentena"
+    },
+    {
+      "campo": "Inicio",
+      "valor": "Fecha y hora actuales (valor propuesto por el sistema)"
+    },
+    {
+      "campo": "Fin estimado",
+      "valor": "2026-12-01 09:00"
+    },
+    {
+      "campo": "Motivo",
+      "valor": "Contacto con un animal con sospecha de moquillo en el canil de ingreso."
+    },
+    {
+      "campo": "Control: Fecha y hora",
+      "valor": "Fecha y hora actuales (valor propuesto por el sistema)"
+    },
+    {
+      "campo": "Control: Condición del animal",
+      "valor": "Estable, sin fiebre ni secreciones"
+    },
+    {
+      "campo": "Control: Observaciones",
+      "valor": "Come con normalidad. Se mantiene aislado en el canil 3."
+    }
+  ],
+  "observado": {
+    "animal_en_cuarentena": true,
+    "periodo_activo": true,
+    "motivo_registrado": true,
+    "control_registrado": true,
+    "responsable_del_control": true,
+    "controles": true
+  }
+}

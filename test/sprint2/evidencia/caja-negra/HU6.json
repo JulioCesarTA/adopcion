@@ -1,0 +1,37 @@
+{
+  "datos_entrada": [
+    {
+      "campo": "Adoptante",
+      "valor": "Carla Mendoza Rojas (CI 9000001 SC, ficticia)"
+    },
+    {
+      "campo": "Vivienda",
+      "valor": "Departamento, sin patio"
+    },
+    {
+      "campo": "Horas diarias disponibles",
+      "valor": "3"
+    },
+    {
+      "campo": "Experiencia",
+      "valor": "Básica"
+    },
+    {
+      "campo": "Preferencias",
+      "valor": "Gato, tamaño pequeño"
+    }
+  ],
+  "observado": {
+    "ranking": [
+      "Mishi: 87.34",
+      "Bruno: 1.67"
+    ],
+    "puntajes_entre_0_y_100": true,
+    "ordenado_de_mayor_a_menor": true,
+    "nivel_mostrado": true,
+    "factores_mostrados": true,
+    "primer_factor": "Razón horas disponibles / requeridas +14,4 pts",
+    "aviso_recomendacion": true,
+    "metodo_modelo": true
+  }
+}

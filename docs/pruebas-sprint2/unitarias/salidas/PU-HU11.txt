@@ -1,0 +1,14 @@
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/modules/adoptions/[22m[1mhu11.sprint2.unit.spec.ts[22m
+  HU11 Gestionar Proceso de Adopción — pruebas unitarias
+    [32m√[39m [2mPU-HU11-01 solo se aprueba o rechaza desde En evaluación (4 ms)[22m
+    [32m√[39m [2mPU-HU11-02 la situación final del animal según el resultado de la solicitud[22m
+    [32m√[39m [2mPU-HU11-03 rechaza registrar un rechazo sin el motivo (4 ms)[22m
+    [32m√[39m [2mPU-HU11-04 cada observación queda con su fecha y su autor sin borrar las anteriores (1 ms)[22m
+    [32m√[39m [2mPU-HU11-05 no se agregan observaciones a una solicitud ya aprobada (8 ms)[22m
+    [32m√[39m [2mPU-HU11-06 al cancelar la solicitud el animal vuelve a estar disponible para adopción (1 ms)[22m
+
+[1mTest Suites: [22m[1m[33m3 skipped[39m[22m, [1m[32m1 passed[39m[22m, 1 of 4 total
+[1mTests:       [22m[1m[33m18 skipped[39m[22m, [1m[32m6 passed[39m[22m, 24 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        1.828 s, estimated 2 s
+[2mRan all test suites[22m[2m matching [22m/sprint2.unit.spec/i[2m with tests matching [22m"PU-HU11-"[2m.[22m

@@ -1,0 +1,609 @@
+{
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 5,
+  "numPassedTests": 35,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 0,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 5,
+  "numTotalTests": 35,
+  "openHandles": [],
+  "snapshot": {
+    "added": 0,
+    "didUpdate": false,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0
+  },
+  "startTime": 1794903975031,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU10-A ClinicalService.closePeriod (cerrar período)"
+          ],
+          "duration": 14,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-A ClinicalService.closePeriod (cerrar período) CB-HU10-A-C1: el período no existe → NotFoundException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-A-C1: el período no existe → NotFoundException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU10-A ClinicalService.closePeriod (cerrar período)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-A ClinicalService.closePeriod (cerrar período) CB-HU10-A-C2: el período ya está finalizado → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-A-C2: el período ya está finalizado → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU10-A ClinicalService.closePeriod (cerrar período)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-A ClinicalService.closePeriod (cerrar período) CB-HU10-A-C3: la fecha de fin es anterior al inicio → BadRequestException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-A-C3: la fecha de fin es anterior al inicio → BadRequestException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU10-A ClinicalService.closePeriod (cerrar período)"
+          ],
+          "duration": 2,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-A ClinicalService.closePeriod (cerrar período) CB-HU10-A-C4: el período tiene controles → lo cierra y recalcula la situación del animal",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-A-C4: el período tiene controles → lo cierra y recalcula la situación del animal"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU10-A ClinicalService.closePeriod (cerrar período)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-A ClinicalService.closePeriod (cerrar período) CB-HU10-A-C5: sin controles y sin confirmación → ConflictException que pide confirmar",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-A-C5: sin controles y sin confirmación → ConflictException que pide confirmar"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU10-A ClinicalService.closePeriod (cerrar período)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-A ClinicalService.closePeriod (cerrar período) CB-HU10-A-C6: sin controles pero con confirmación → lo cierra",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-A-C6: sin controles pero con confirmación → lo cierra"
+        }
+      ],
+      "endTime": 1794903976379,
+      "message": "",
+      "name": "backend/src/modules/clinical/clinical.sprint2.spec.ts",
+      "startTime": 1794903975653,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU6-A RecommendationService.score (modelo o reglas fijas)"
+          ],
+          "duration": 5,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU6-A RecommendationService.score (modelo o reglas fijas) CB-HU6-A-C1: no pasa un filtro obligatorio → INCOMPATIBLE con reglas, sin consultar el modelo",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU6-A-C1: no pasa un filtro obligatorio → INCOMPATIBLE con reglas, sin consultar el modelo"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU6-A RecommendationService.score (modelo o reglas fijas)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU6-A RecommendationService.score (modelo o reglas fijas) CB-HU6-A-C2: pasa los filtros y no hay modelo activo → puntaje de las reglas fijas",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU6-A-C2: pasa los filtros y no hay modelo activo → puntaje de las reglas fijas"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU6-A RecommendationService.score (modelo o reglas fijas)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU6-A RecommendationService.score (modelo o reglas fijas) CB-HU6-A-C3: pasa los filtros y hay modelo activo → puntaje de la probabilidad del modelo",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 5,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU6-A-C3: pasa los filtros y hay modelo activo → puntaje de la probabilidad del modelo"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU6-B levelFor (nivel de compatibilidad)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU6-B levelFor (nivel de compatibilidad) CB-HU6-B-C1: puntaje 80 (igual al umbral alto) → ALTA",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU6-B-C1: puntaje 80 (igual al umbral alto) → ALTA"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU6-B levelFor (nivel de compatibilidad)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU6-B levelFor (nivel de compatibilidad) CB-HU6-B-C2: puntaje 60 (igual al umbral medio) → MEDIA",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU6-B-C2: puntaje 60 (igual al umbral medio) → MEDIA"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU6-B levelFor (nivel de compatibilidad)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU6-B levelFor (nivel de compatibilidad) CB-HU6-B-C3: puntaje 59,99 (bajo el umbral medio) → BAJA",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU6-B-C3: puntaje 59,99 (bajo el umbral medio) → BAJA"
+        }
+      ],
+      "endTime": 1794903976404,
+      "message": "",
+      "name": "backend/src/modules/recommendation/recommendation.sprint2.spec.ts",
+      "startTime": 1794903975663,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU5-A AdoptersService.assertCiFree (carnet de identidad único)"
+          ],
+          "duration": 5,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-A AdoptersService.assertCiFree (carnet de identidad único) CB-HU5-A-C1: no existe ninguna persona con esa CI → no lanza error",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-A-C1: no existe ninguna persona con esa CI → no lanza error"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-A AdoptersService.assertCiFree (carnet de identidad único)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-A AdoptersService.assertCiFree (carnet de identidad único) CB-HU5-A-C2: la CI pertenece a la misma persona que se edita → no lanza error",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-A-C2: la CI pertenece a la misma persona que se edita → no lanza error"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-A AdoptersService.assertCiFree (carnet de identidad único)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-A AdoptersService.assertCiFree (carnet de identidad único) CB-HU5-A-C3: la CI pertenece a otra persona → ConflictException con el adoptante existente",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-A-C3: la CI pertenece a otra persona → ConflictException con el adoptante existente"
+        }
+      ],
+      "endTime": 1794903976881,
+      "message": "",
+      "name": "backend/src/modules/adopters/adopters.sprint2.spec.ts",
+      "startTime": 1794903975666,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU5-B AdoptionsService.create (crear solicitud de adopción)"
+          ],
+          "duration": 12,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-B AdoptionsService.create (crear solicitud de adopción) CB-HU5-B-C1: el adoptante no existe → NotFoundException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-B-C1: el adoptante no existe → NotFoundException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-B AdoptionsService.create (crear solicitud de adopción)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-B AdoptionsService.create (crear solicitud de adopción) CB-HU5-B-C2: animal disponible → crea la solicitud pendiente y el animal pasa a En proceso",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-B-C2: animal disponible → crea la solicitud pendiente y el animal pasa a En proceso"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-B AdoptionsService.create (crear solicitud de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-B AdoptionsService.create (crear solicitud de adopción) CB-HU5-B-C3: el animal ya tiene una solicitud en curso → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-B-C3: el animal ya tiene una solicitud en curso → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-B AdoptionsService.create (crear solicitud de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-B AdoptionsService.create (crear solicitud de adopción) CB-HU5-B-C4: el animal no está disponible (Ingresado) → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-B-C4: el animal no está disponible (Ingresado) → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-B AdoptionsService.create (crear solicitud de adopción)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-B AdoptionsService.create (crear solicitud de adopción) CB-HU5-B-C5: la base rechaza una segunda solicitud activa (P2002) → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-B-C5: la base rechaza una segunda solicitud activa (P2002) → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-B AdoptionsService.create (crear solicitud de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-B AdoptionsService.create (crear solicitud de adopción) CB-HU5-B-C6: la base lanza otro error conocido (P2003) → se propaga el mismo error",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-B-C6: la base lanza otro error conocido (P2003) → se propaga el mismo error"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU5-B AdoptionsService.create (crear solicitud de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU5-B AdoptionsService.create (crear solicitud de adopción) CB-HU5-B-C7: la creación lanza un error que no es de Prisma → se propaga el mismo error",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU5-B-C7: la creación lanza un error que no es de Prisma → se propaga el mismo error"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción) CB-HU11-A-C1: rechazar una solicitud en evaluación → queda rechazada y el animal vuelve a estar disponible",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-A-C1: rechazar una solicitud en evaluación → queda rechazada y el animal vuelve a estar disponible"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción)"
+          ],
+          "duration": 2,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción) CB-HU11-A-C2: aprobar sin fecha de entrega → BadRequestException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-A-C2: aprobar sin fecha de entrega → BadRequestException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción) CB-HU11-A-C3: aprobar con una entrega anterior a la decisión → BadRequestException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-A-C3: aprobar con una entrega anterior a la decisión → BadRequestException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción) CB-HU11-A-C4: aprobar una solicitud en evaluación → queda aprobada y el animal pasa a Adoptado",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-A-C4: aprobar una solicitud en evaluación → queda aprobada y el animal pasa a Adoptado"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción) CB-HU11-A-C5: rechazar una solicitud que no existe → NotFoundException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-A-C5: rechazar una solicitud que no existe → NotFoundException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción) CB-HU11-A-C6: rechazar una solicitud pendiente (no en evaluación) → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-A-C6: rechazar una solicitud pendiente (no en evaluación) → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-A AdoptionsService.decide (registrar la decisión de adopción) CB-HU11-A-C7: aprobar una solicitud ya rechazada → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-A-C7: aprobar una solicitud ya rechazada → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-B AdoptionsService.act (obtener el acta de entrega)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-B AdoptionsService.act (obtener el acta de entrega) CB-HU11-B-C1: la solicitud no existe → NotFoundException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-B-C1: la solicitud no existe → NotFoundException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-B AdoptionsService.act (obtener el acta de entrega)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-B AdoptionsService.act (obtener el acta de entrega) CB-HU11-B-C2: la solicitud no está aprobada → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-B-C2: la solicitud no está aprobada → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU11-B AdoptionsService.act (obtener el acta de entrega)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU11-B AdoptionsService.act (obtener el acta de entrega) CB-HU11-B-C3: solicitud aprobada → devuelve el acta con animal, adoptante, entrega, responsable y compromisos",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 6,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU11-B-C3: solicitud aprobada → devuelve el acta con animal, adoptante, entrega, responsable y compromisos"
+        }
+      ],
+      "endTime": 1794903976972,
+      "message": "",
+      "name": "backend/src/modules/adoptions/adoptions.sprint2.spec.ts",
+      "startTime": 1794903975651,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU10-B AnimalsService.enableAdoption (habilitar para adopción)"
+          ],
+          "duration": 11,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-B AnimalsService.enableAdoption (habilitar para adopción) CB-HU10-B-C1: el animal ya está disponible para adopción → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-B-C1: el animal ya está disponible para adopción → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU10-B AnimalsService.enableAdoption (habilitar para adopción)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-B AnimalsService.enableAdoption (habilitar para adopción) CB-HU10-B-C2: el animal tiene una cuarentena activa → ConflictException con el impedimento",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-B-C2: el animal tiene una cuarentena activa → ConflictException con el impedimento"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU10-B AnimalsService.enableAdoption (habilitar para adopción)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU10-B AnimalsService.enableAdoption (habilitar para adopción) CB-HU10-B-C3: el animal no tiene impedimentos → pasa a Disponible para adopción",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU10-B-C3: el animal no tiene impedimentos → pasa a Disponible para adopción"
+        }
+      ],
+      "endTime": 1794903977048,
+      "message": "",
+      "name": "backend/src/modules/animals/animals.sprint2.spec.ts",
+      "startTime": 1794903975662,
+      "status": "passed",
+      "summary": ""
+    }
+  ],
+  "wasInterrupted": false
+}

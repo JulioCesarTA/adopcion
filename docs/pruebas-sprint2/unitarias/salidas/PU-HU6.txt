@@ -1,0 +1,14 @@
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/modules/recommendation/[22m[1mhu6.sprint2.unit.spec.ts[22m
+  HU6 Recomendación de Compatibilidad — pruebas unitarias
+    [32m√[39m [2mPU-HU6-01 con todos los criterios favorables el puntaje llega a 100 y no lo supera (6 ms)[22m
+    [32m√[39m [2mPU-HU6-02 un animal que no tolera otros animales es incompatible con un hogar que ya tiene (1 ms)[22m
+    [32m√[39m [2mPU-HU6-03 sortRanking ordena de mayor a menor puntaje y desempata por código[22m
+    [32m√[39m [2mPU-HU6-04 el Random Forest da la misma probabilidad con la misma semilla (30 ms)[22m
+    [32m√[39m [2mPU-HU6-05 solo el administrador puede entrenar el modelo de inteligencia artificial (7 ms)[22m
+    [32m√[39m [2mPU-HU6-06 la lista de adoptantes compatibles con un animal no muestra el carnet (1 ms)[22m
+
+[1mTest Suites: [22m[1m[33m3 skipped[39m[22m, [1m[32m1 passed[39m[22m, 1 of 4 total
+[1mTests:       [22m[1m[33m18 skipped[39m[22m, [1m[32m6 passed[39m[22m, 24 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        1.915 s, estimated 2 s
+[2mRan all test suites[22m[2m matching [22m/sprint2.unit.spec/i[2m with tests matching [22m"PU-HU6-"[2m.[22m
