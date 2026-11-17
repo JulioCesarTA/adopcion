@@ -1,0 +1,1797 @@
+{
+  "fecha_ejecucion": "2026-11-17",
+  "entorno": {
+    "sistema_operativo": "Windows 11 (10.0.26200)",
+    "node": "v26.13.1",
+    "navegador": "Chromium (Playwright)",
+    "base_de_datos": "PostgreSQL 16 (base de prueba)"
+  },
+  "caja_negra": [
+    {
+      "hu": "HU1",
+      "nombre": "Prueba de HU1. Gestión de Animal",
+      "descripcion": "Verificar que el sistema permita al personal de Gestión Animal registrar un animal nuevo con su fotografía, le asigne automáticamente un código único y lo deje en la situación «Ingresado».",
+      "precondicion": "El usuario del rol Gestión Animal y Adopciones ha iniciado sesión. Se dispone de una fotografía JPG de menos de 5 MB.",
+      "datos_entrada": [
+        {
+          "campo": "Nombre",
+          "valor": "Bruno"
+        },
+        {
+          "campo": "Especie",
+          "valor": "Perro"
+        },
+        {
+          "campo": "Raza",
+          "valor": "Labrador mestizo"
+        },
+        {
+          "campo": "Sexo",
+          "valor": "Macho"
+        },
+        {
+          "campo": "Edad aproximada (meses)",
+          "valor": "24"
+        },
+        {
+          "campo": "Color",
+          "valor": "Dorado"
+        },
+        {
+          "campo": "Tamaño",
+          "valor": "Grande"
+        },
+        {
+          "campo": "Fecha de ingreso",
+          "valor": "2026-11-17"
+        },
+        {
+          "campo": "Motivo de ingreso",
+          "valor": "Rescate en vía pública"
+        },
+        {
+          "campo": "Nivel de energía (1–5)",
+          "valor": "4 — Alto"
+        },
+        {
+          "campo": "Horas diarias de atención requeridas",
+          "valor": "3"
+        },
+        {
+          "campo": "Se lleva bien con niños",
+          "valor": "Sí"
+        },
+        {
+          "campo": "Temperamento",
+          "valor": "Sociable y juguetón"
+        },
+        {
+          "campo": "Foto",
+          "valor": "perro-prueba.jpg (JPG, 26 KB)"
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. El usuario tiene permiso para registrar animales.",
+      "pasos": [
+        "Ingresar al módulo «Animales» desde el menú lateral.",
+        "Presionar el botón «Registrar animal».",
+        "Completar los campos de «Datos generales»: Nombre, Especie, Raza, Sexo, Edad aproximada (meses), Color, Tamaño, Fecha de ingreso y Motivo de ingreso.",
+        "Completar los campos de «Comportamiento y necesidades»: Nivel de energía (1–5), Horas diarias de atención requeridas, Se lleva bien con niños y Temperamento.",
+        "En la sección «Foto», presionar «Seleccionar foto» y elegir la fotografía.",
+        "Presionar el botón «Registrar animal»."
+      ],
+      "resultado_esperado": "El sistema registra el animal, le asigna automáticamente un código único, lo deja en la situación «Ingresado» y muestra su ficha con la fotografía adjunta.",
+      "resultado_obtenido": "El sistema registró el animal, le asignó automáticamente el código ZOO-2026-0007, lo dejó en la situación «Ingresado» y mostró su ficha con la fotografía adjunta y el mensaje «Animal registrado».",
+      "captura_inicial": "capturas/HU1-inicial.png",
+      "captura_final": "capturas/HU1-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint1/e2e/hu1.spec.ts"
+    },
+    {
+      "hu": "HU2",
+      "nombre": "Prueba de HU2. Registro de Consulta Clínica",
+      "descripcion": "Verificar que el sistema permita al veterinario registrar una consulta clínica con signos vitales válidos, un diagnóstico y un tratamiento con un medicamento, y que guarde automáticamente el veterinario, la fecha y la hora.",
+      "precondicion": "El usuario del rol Personal Veterinario ha iniciado sesión. Existe el animal Toby (ZOO-2026-0001) en la situación «Ingresado».",
+      "datos_entrada": [
+        {
+          "campo": "Animal",
+          "valor": "Toby (ZOO-2026-0001)"
+        },
+        {
+          "campo": "Motivo",
+          "valor": "Decaimiento y falta de apetito"
+        },
+        {
+          "campo": "Peso (kg)",
+          "valor": "12.5"
+        },
+        {
+          "campo": "Temperatura (°C)",
+          "valor": "39.2"
+        },
+        {
+          "campo": "Evaluación clínica",
+          "valor": "Mucosas rosadas, leve deshidratación, abdomen sin dolor."
+        },
+        {
+          "campo": "Diagnóstico — Descripción",
+          "valor": "Gastroenteritis leve"
+        },
+        {
+          "campo": "Tratamiento — Descripción",
+          "valor": "Hidratación y protector gástrico"
+        },
+        {
+          "campo": "Tratamiento — Inicio",
+          "valor": "2026-11-17"
+        },
+        {
+          "campo": "Tratamiento — Instrucciones",
+          "valor": "Dieta blanda por cinco días y agua a libre demanda."
+        },
+        {
+          "campo": "Medicamento — Nombre",
+          "valor": "Omeprazol"
+        },
+        {
+          "campo": "Medicamento — Dosis",
+          "valor": "1 mg/kg"
+        },
+        {
+          "campo": "Medicamento — Vía",
+          "valor": "Oral"
+        },
+        {
+          "campo": "Medicamento — Frecuencia",
+          "valor": "Cada 24 horas"
+        },
+        {
+          "campo": "Medicamento — Duración",
+          "valor": "5 días"
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. El animal no ha salido de la institución.",
+      "pasos": [
+        "Ingresar al módulo «Animales» y buscar el animal por su nombre.",
+        "Abrir la ficha del animal y presionar el botón «Nueva consulta».",
+        "Completar los campos Motivo, Peso (kg), Temperatura (°C) y Evaluación clínica.",
+        "Presionar «Agregar diagnóstico» y completar la Descripción.",
+        "Presionar «Agregar tratamiento» y completar la Descripción y las Instrucciones.",
+        "Presionar «Agregar medicamento» y completar Nombre, Dosis, Vía, Frecuencia y Duración.",
+        "Presionar el botón «Guardar consulta»."
+      ],
+      "resultado_esperado": "El sistema registra la consulta con sus signos vitales, el diagnóstico y el tratamiento con su medicamento, y guarda automáticamente el veterinario que la realiza, la fecha y la hora.",
+      "resultado_obtenido": "El sistema registró la consulta con el peso y la temperatura ingresados, el diagnóstico y el tratamiento con su medicamento, y mostró el detalle con el veterinario Veterinario de Prueba y la fecha y hora 17/11/2026, 02:20, junto al mensaje «Consulta registrada».",
+      "captura_inicial": "capturas/HU2-inicial.png",
+      "captura_final": "capturas/HU2-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint1/e2e/hu2.spec.ts"
+    },
+    {
+      "hu": "HU3",
+      "nombre": "Prueba de HU3. Gestionar Historial Clínico",
+      "descripcion": "Verificar que el sistema muestre en un solo historial las consultas, las vacunas y los tratamientos de un animal, ordenados del más reciente al más antiguo, con la fecha, el tipo y el profesional de cada registro.",
+      "precondicion": "El usuario del rol Personal Veterinario ha iniciado sesión. Existe el animal Max (ZOO-2026-0004) con dos consultas, dos vacunas y un tratamiento registrados en fechas distintas.",
+      "datos_entrada": [
+        {
+          "campo": "Usuario",
+          "valor": "veterinario.prueba@zoonosis.test (Personal Veterinario)"
+        },
+        {
+          "campo": "Animal consultado",
+          "valor": "Max (ZOO-2026-0004)"
+        },
+        {
+          "campo": "Pestaña",
+          "valor": "Historial clínico"
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. El usuario ha iniciado sesión.",
+      "pasos": [
+        "Ingresar al módulo «Animales» y buscar el animal por su nombre.",
+        "Abrir la ficha del animal.",
+        "Presionar la pestaña «Historial clínico»."
+      ],
+      "resultado_esperado": "El sistema muestra en un solo historial las consultas, las vacunas y los tratamientos del animal, ordenados del más reciente al más antiguo. Cada registro muestra su fecha, su tipo y el profesional que lo realizó.",
+      "resultado_obtenido": "El sistema mostró 4 registros en un solo historial, ordenados del más reciente al más antiguo: 18/10/2026, 02:20 — Consulta: Tos persistente; 29/09/2026 — Vacuna: Quintuple canina; 08/09/2026 — Vacuna: Quintuple canina; 29/08/2026, 02:20 — Consulta: Revision de ingreso. Cada registro mostró su fecha, su tipo y el profesional que lo realizó, y el tratamiento se mostró dentro de su consulta.",
+      "captura_inicial": "capturas/HU3-inicial.png",
+      "captura_final": "capturas/HU3-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint1/e2e/hu3.spec.ts"
+    },
+    {
+      "hu": "HU4",
+      "nombre": "Prueba de HU4. Gestión de Vacunación",
+      "descripcion": "Verificar que el sistema permita al veterinario registrar una vacuna con su fecha de aplicación, su lote y su próxima dosis, y que el aviso de próximas dosis muestre los animales cuya dosis vence en los próximos 7 días.",
+      "precondicion": "El usuario del rol Personal Veterinario ha iniciado sesión. Existe el animal Canela (ZOO-2026-0006) en la situación «Ingresado» y la vacuna Antirrabica activa en el catálogo.",
+      "datos_entrada": [
+        {
+          "campo": "Animal",
+          "valor": "Canela (ZOO-2026-0006)"
+        },
+        {
+          "campo": "Vacuna",
+          "valor": "Antirrabica (Perro, Gato)"
+        },
+        {
+          "campo": "Fecha de aplicación",
+          "valor": "2026-11-17"
+        },
+        {
+          "campo": "Dosis",
+          "valor": "1 ml"
+        },
+        {
+          "campo": "Lote",
+          "valor": "AR-2231"
+        },
+        {
+          "campo": "Próxima dosis",
+          "valor": "2026-11-23"
+        },
+        {
+          "campo": "Horizonte del aviso",
+          "valor": "Próximos 7 días"
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. La vacuna no está dada de baja y el animal no ha salido de la institución.",
+      "pasos": [
+        "Ingresar al módulo «Animales» y abrir la ficha del animal.",
+        "Presionar la pestaña «Vacunas» y luego el botón «Nueva vacuna».",
+        "Seleccionar la Vacuna y completar Fecha de aplicación, Dosis, Lote y Próxima dosis.",
+        "Presionar el botón «Registrar».",
+        "Ingresar al módulo «Vacunas» desde el menú lateral.",
+        "En la pestaña «Próximas a vencer», seleccionar «Próximos 7 días»."
+      ],
+      "resultado_esperado": "El sistema registra la vacuna con su fecha de aplicación, su lote y su próxima dosis, y el aviso muestra los animales cuya próxima dosis vence en los próximos 7 días, considerando solo la última vacuna aplicada y excluyendo a los animales que salieron de la institución.",
+      "resultado_obtenido": "El sistema registró la vacuna con el lote AR-2231 y su próxima dosis, y mostró el mensaje «Vacuna registrada». El aviso de los próximos 7 días mostró a Canela y a Nala, y no mostró a Max (su última dosis no tiene próxima fecha) ni a Rocky (animal adoptado).",
+      "captura_inicial": "capturas/HU4-inicial.png",
+      "captura_final": "capturas/HU4-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint1/e2e/hu4.spec.ts"
+    },
+    {
+      "hu": "HU8",
+      "nombre": "Prueba de HU8. Gestión de Usuario",
+      "descripcion": "Verificar que el sistema permita al administrador crear una cuenta con un rol y una contraseña temporal, y que el nuevo usuario pueda iniciar sesión y ver el menú que corresponde a su rol.",
+      "precondicion": "El usuario del rol Administrador ha iniciado sesión. No existe ninguna cuenta con el email que se va a registrar.",
+      "datos_entrada": [
+        {
+          "campo": "Nombre completo",
+          "valor": "María López Rojas"
+        },
+        {
+          "campo": "Email",
+          "valor": "maria.lopez@zoonosis.test"
+        },
+        {
+          "campo": "Rol",
+          "valor": "Personal Veterinario"
+        },
+        {
+          "campo": "Contraseña temporal",
+          "valor": "contraseña válida"
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. El usuario tiene permiso para administrar cuentas.",
+      "pasos": [
+        "Ingresar al módulo «Usuarios» desde el menú lateral.",
+        "Presionar el botón «Nuevo usuario».",
+        "Completar Nombre completo, Email, Rol y Contraseña temporal.",
+        "Presionar el botón «Crear usuario».",
+        "En una sesión nueva, ingresar el Email y la Contraseña de la cuenta creada y presionar «Iniciar sesión»."
+      ],
+      "resultado_esperado": "El sistema crea la cuenta con el rol asignado y la contraseña temporal. El nuevo usuario inicia sesión y el sistema muestra su pantalla principal con el menú que corresponde a su rol.",
+      "resultado_obtenido": "El sistema creó la cuenta y mostró el mensaje «Usuario creado». El nuevo usuario inició sesión y el sistema mostró su pantalla principal con el menú del rol Personal Veterinario: Panel, Animales, Cuarentena, Vacunas, Adoptables, KPIs. El menú no incluyó el módulo «Usuarios».",
+      "captura_inicial": "capturas/HU8-inicial.png",
+      "captura_final": "capturas/HU8-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint1/e2e/hu8.spec.ts"
+    }
+  ],
+  "caja_blanca": [
+    {
+      "id": "CB-HU1-A",
+      "hu": "HU1",
+      "titulo": "HU1. Gestión de Animal - Registrar Animal",
+      "archivo": "backend/src/modules/animals/animals.service.ts",
+      "metodo": "AnimalsService.create",
+      "codigo": "async create(dto: CreateAnimalDto, user: AuthUser): Promise<Animal> {\n    (1) return this.prisma.$transaction(async (tx) => {\n        const code = await this.nextCode(tx);\n        (7) const animal = await tx.animal.create({\n            data: {\n                ...dto,\n                entryDate: new Date(dto.entryDate),\n                code,\n                status: 'INGRESADO',\n                createdById: user.id,\n            },\n        });\n        return animal;\n    });\n}\n\nprivate async nextCode(tx: Prisma.TransactionClient): Promise<string> {\n    (2) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('animal_code'))`;\n    const year = currentYearLaPaz();\n    const prefix = `ZOO-${year}-`;\n    const last = await tx.animal.findFirst({\n        where: { code: { startsWith: prefix } },\n        orderBy: { code: 'desc' },\n        select: { code: true },\n    });\n    (3) const next = last\n        (4) ? Number(last.code.slice(prefix.length)) + 1\n        (5) : 1;\n    (6) return `${prefix}${String(next).padStart(4, '0')}`;\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Abre la transacción y pide el siguiente código (nextCode)"
+        },
+        {
+          "id": "2",
+          "descripcion": "Toma el bloqueo, calcula el prefijo del año y busca el último código"
+        },
+        {
+          "id": "3",
+          "descripcion": "¿Existe un código registrado este año?"
+        },
+        {
+          "id": "4",
+          "descripcion": "Siguiente = número del último código + 1"
+        },
+        {
+          "id": "5",
+          "descripcion": "Siguiente = 1"
+        },
+        {
+          "id": "6",
+          "descripcion": "Devuelve el código con el formato ZOO-AAAA-NNNN"
+        },
+        {
+          "id": "7",
+          "descripcion": "Crea el animal con el código y la situación INGRESADO, y lo devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": ""
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": "V"
+        },
+        {
+          "de": "3",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "4",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": ""
+        },
+        {
+          "de": "7",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 8,
+        "N": 8,
+        "P": 1,
+        "R": 2,
+        "VG": 2
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, 3, 4, 6, 7, (F)",
+          "entrada_simulada": "Ya existe un animal registrado en el año en curso; el último código es ZOO-AAAA-0007.",
+          "salida_esperada": "El sistema asigna el código ZOO-AAAA-0008, registra el animal con la situación «Ingresado» y devuelve el animal creado.",
+          "test": "CB-HU1-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 5, 6, 7, (F)",
+          "entrada_simulada": "No existe ningún animal registrado en el año en curso (último código = null).",
+          "salida_esperada": "El sistema asigna el código ZOO-AAAA-0001, registra el animal con la situación «Ingresado» y devuelve el animal creado.",
+          "test": "CB-HU1-A-C2",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU1-B",
+      "hu": "HU1",
+      "titulo": "HU1. Gestión de Animal - Editar Animal",
+      "archivo": "backend/src/modules/animals/animals.service.ts",
+      "metodo": "AnimalsService.update",
+      "codigo": "async update(id: string, dto: UpdateAnimalDto): Promise<Animal> {\n    (1) const current = await this.getOrThrow(id);\n    (3) const isFinal = OUTSIDE_STATES.includes(current.status);\n    const provided = Object.entries(dto).filter(([, v]) => v !== undefined);\n\n    (4) if (isFinal) {\n        (5) const forbidden = provided\n            .map(([k]) => k)\n            .filter((k) => !(NOTE_FIELDS as readonly string[]).includes(k));\n        (6) if (forbidden.length) {\n            throw new ConflictException(\n                `El animal está \"${STATUS_LABELS[current.status]}\": solo se pueden editar las notas`,\n            );\n        }\n    }\n\n    (7) const data: Prisma.AnimalUpdateInput = Object.fromEntries(\n        provided.filter(([k]) => isFinal || k !== 'exitNotes'),\n    );\n    (8) if (dto.entryDate)\n        (9) data.entryDate = new Date(dto.entryDate);\n\n    (10) return this.prisma.$transaction(async (tx) => {\n        const updated = await tx.animal.update({ where: { id }, data });\n        return updated;\n    });\n}\n\nasync getOrThrow(id: string): Promise<Animal> {\n    const animal = await this.prisma.animal.findFirst({\n        where: { id, deletedAt: null },\n    });\n    (2) if (!animal) throw new NotFoundException('Animal no encontrado');\n    return animal;\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Busca el animal (getOrThrow)"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El animal no existe?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Determina si el animal salió de la institución y reúne los campos enviados"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿El animal está en una situación final (Adoptado, Fallecido o Devuelto)?"
+        },
+        {
+          "id": "5",
+          "descripcion": "Reúne los campos enviados que no son notas"
+        },
+        {
+          "id": "6",
+          "descripcion": "¿Se envió algún campo que no es una nota?"
+        },
+        {
+          "id": "7",
+          "descripcion": "Arma los datos por actualizar"
+        },
+        {
+          "id": "8",
+          "descripcion": "¿Se envió la fecha de ingreso?"
+        },
+        {
+          "id": "9",
+          "descripcion": "Convierte la fecha de ingreso"
+        },
+        {
+          "id": "10",
+          "descripcion": "Actualiza el animal y lo devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "7",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "6",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": "F"
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": ""
+        },
+        {
+          "de": "8",
+          "a": "9",
+          "etiqueta": "V"
+        },
+        {
+          "de": "8",
+          "a": "10",
+          "etiqueta": "F"
+        },
+        {
+          "de": "9",
+          "a": "10",
+          "etiqueta": ""
+        },
+        {
+          "de": "10",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 14,
+        "N": 11,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Identificador de un animal que no existe (animal = null).",
+          "salida_esperada": "El sistema rechaza la edición y lanza NotFoundException con el mensaje «Animal no encontrado». No se actualiza ningún registro.",
+          "test": "CB-HU1-B-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 7, 8, 10, (F)",
+          "entrada_simulada": "Animal en la situación «Ingresado»; se envía solo el nombre.",
+          "salida_esperada": "El sistema actualiza el nombre del animal y devuelve el animal actualizado.",
+          "test": "CB-HU1-B-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 7, 8, 9, 10, (F)",
+          "entrada_simulada": "Animal en la situación «Ingresado»; se envía la fecha de ingreso.",
+          "salida_esperada": "El sistema convierte la fecha de ingreso, actualiza el animal y lo devuelve.",
+          "test": "CB-HU1-B-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, (F)",
+          "entrada_simulada": "Animal en la situación «Adoptado»; se intenta cambiar el nombre.",
+          "salida_esperada": "El sistema rechaza la edición y lanza ConflictException: en una situación final solo se pueden editar las notas. No se actualiza ningún registro.",
+          "test": "CB-HU1-B-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 8, 10, (F)",
+          "entrada_simulada": "Animal en la situación «Adoptado»; se envían solo las notas de salida.",
+          "salida_esperada": "El sistema actualiza las notas de salida y devuelve el animal actualizado.",
+          "test": "CB-HU1-B-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU1-C",
+      "hu": "HU1",
+      "titulo": "HU1. Gestión de Animal - Subir o Reemplazar la Fotografía",
+      "archivo": "backend/src/modules/animals/animals.service.ts",
+      "metodo": "AnimalsService.savePhoto",
+      "codigo": "async savePhoto(id: string, file: Express.Multer.File | undefined): Promise<Animal> {\n    (1) if (!file) throw new BadRequestException('Debes adjuntar una foto (campo \"file\")');\n    (2) if (file.size > MAX_PHOTO_BYTES) throw new BadRequestException('La foto supera los 5 MB');\n    (3) const ext = detectImageType(file.buffer);\n    (4) if (!ext) throw new BadRequestException('Formato no permitido. Usa JPG, PNG o WEBP');\n\n    (5) const current = await this.getOrThrow(id);\n    (7) const photoUrl = await this.storage.put(\n        `animals/${id}-${randomUUID()}.${ext}`,\n        file.buffer,\n        ext,\n    );\n\n    const updated = await this.prisma.$transaction(async (tx) => {\n        const a = await tx.animal.update({ where: { id }, data: { photoUrl } });\n        return a;\n    });\n\n    await this.storage.remove(current.photoUrl);\n    return updated;\n}\n\nasync getOrThrow(id: string): Promise<Animal> {\n    const animal = await this.prisma.animal.findFirst({\n        where: { id, deletedAt: null },\n    });\n    (6) if (!animal) throw new NotFoundException('Animal no encontrado');\n    return animal;\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "¿No se adjuntó ningún archivo?"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El archivo supera los 5 MB?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Detecta el formato por el contenido del archivo"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿El formato no es JPG, PNG ni WEBP?"
+        },
+        {
+          "id": "5",
+          "descripcion": "Busca el animal (getOrThrow)"
+        },
+        {
+          "id": "6",
+          "descripcion": "¿El animal no existe?"
+        },
+        {
+          "id": "7",
+          "descripcion": "Guarda la foto nueva, actualiza el animal, elimina la foto anterior y devuelve el animal"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": "F"
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "6",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": "F"
+        },
+        {
+          "de": "7",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 11,
+        "N": 8,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, (F)",
+          "entrada_simulada": "No se adjunta ningún archivo (file = undefined).",
+          "salida_esperada": "El sistema rechaza la carga y lanza BadRequestException con el mensaje «Debes adjuntar una foto». No se guarda ningún archivo.",
+          "test": "CB-HU1-C-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Archivo de 5 MB más un byte.",
+          "salida_esperada": "El sistema rechaza la carga y lanza BadRequestException con el mensaje «La foto supera los 5 MB». No se guarda ningún archivo.",
+          "test": "CB-HU1-C-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, (F)",
+          "entrada_simulada": "Archivo cuyo contenido es un PDF (no es JPG, PNG ni WEBP).",
+          "salida_esperada": "El sistema rechaza la carga y lanza BadRequestException con el mensaje «Formato no permitido. Usa JPG, PNG o WEBP». No se guarda ningún archivo.",
+          "test": "CB-HU1-C-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, (F)",
+          "entrada_simulada": "Archivo JPG válido; identificador de un animal que no existe.",
+          "salida_esperada": "El sistema lanza NotFoundException con el mensaje «Animal no encontrado». No se guarda ningún archivo.",
+          "test": "CB-HU1-C-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, (F)",
+          "entrada_simulada": "Archivo JPG válido de menos de 5 MB; el animal existe y ya tenía una foto.",
+          "salida_esperada": "El sistema guarda la foto nueva, la asocia al animal, elimina la foto anterior y devuelve el animal actualizado.",
+          "test": "CB-HU1-C-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU2-A",
+      "hu": "HU2",
+      "titulo": "HU2. Registro de Consulta Clínica - Registrar Consulta",
+      "archivo": "backend/src/modules/clinical/clinical.service.ts",
+      "metodo": "ClinicalService.createConsultation",
+      "codigo": "async createConsultation(animalId: string, dto: CreateConsultationDto, user: AuthUser) {\n    (1) const animal = await this.animalOrThrow(animalId);\n    (3) this.assertAcceptsRecords(animal);\n    (5) return this.prisma.$transaction(async (tx) => {\n        const c = await tx.veterinaryConsultation.create({\n            data: {\n                ...dto,\n                consultationDate: new Date(dto.consultationDate),\n                animalId,\n                veterinarianId: user.id,\n            },\n        });\n        return c;\n    });\n}\n\nprivate async animalOrThrow(id: string, tx: Tx = this.prisma): Promise<Animal> {\n    const animal = await tx.animal.findFirst({\n        where: { id, deletedAt: null },\n    });\n    (2) if (!animal) throw new NotFoundException('Animal no encontrado');\n    return animal;\n}\n\nprivate assertAcceptsRecords(animal: Animal) {\n    (4) if (NO_CLINICAL_RECORDS_STATES.includes(animal.status)) {\n        throw new ConflictException(\n            `No se pueden registrar datos clínicos: el animal está \"${STATUS_LABELS[animal.status]}\"`,\n        );\n    }\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Busca el animal (animalOrThrow)"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El animal no existe?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Verifica si el animal admite registros clínicos (assertAcceptsRecords)"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿El animal salió de la institución (Adoptado, Fallecido o Devuelto)?"
+        },
+        {
+          "id": "5",
+          "descripcion": "Registra la consulta con el animal, el veterinario y la fecha, y la devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 7,
+        "N": 6,
+        "P": 2,
+        "R": 3,
+        "VG": 3
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Identificador de un animal que no existe (animal = null).",
+          "salida_esperada": "El sistema rechaza el registro y lanza NotFoundException con el mensaje «Animal no encontrado». No se crea la consulta.",
+          "test": "CB-HU2-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, (F)",
+          "entrada_simulada": "Animal en la situación «Adoptado».",
+          "salida_esperada": "El sistema rechaza el registro y lanza ConflictException: no se pueden registrar datos clínicos de un animal que salió de la institución. No se crea la consulta.",
+          "test": "CB-HU2-A-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, (F)",
+          "entrada_simulada": "Animal en la situación «Ingresado»; datos de la consulta válidos.",
+          "salida_esperada": "El sistema registra la consulta, guarda automáticamente el veterinario que la realiza y la fecha, y devuelve la consulta creada.",
+          "test": "CB-HU2-A-C3",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU3-A",
+      "hu": "HU3",
+      "titulo": "HU3. Gestionar Historial Clínico - Corregir un Registro Clínico",
+      "archivo": "backend/src/modules/clinical/clinical.service.ts",
+      "metodo": "ClinicalService.updateConsultation",
+      "codigo": "async updateConsultation(id: string, dto: UpdateConsultationDto, user: AuthUser) {\n    (1) const current = await this.prisma.veterinaryConsultation.findUnique({\n        where: { id },\n    });\n    (2) if (!current) throw new NotFoundException('Consulta no encontrada');\n    (3) this.assertCanEdit(current.veterinarianId, user);\n    return this.prisma.$transaction(async (tx) => {\n        const updated = await tx.veterinaryConsultation.update({\n            where: { id },\n            data: {\n                ...dto,\n                (6) ...(dto.consultationDate\n                    (7) ? { consultationDate: new Date(dto.consultationDate) }\n                    (8) : {}),\n            },\n        });\n        (9) return updated;\n    });\n}\n\nprivate assertCanEdit(authorId: string, user: AuthUser) {\n    (4) if (user.role !== 'ADMIN'\n        (5) && user.id !== authorId) {\n        throw new ForbiddenException(\n            'Solo el veterinario autor o un administrador puede corregir este registro',\n        );\n    }\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Busca la consulta"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿La consulta no existe?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Verifica quién puede corregir el registro (assertCanEdit)"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿El usuario no es administrador?"
+        },
+        {
+          "id": "5",
+          "descripcion": "¿El usuario no es el veterinario autor?"
+        },
+        {
+          "id": "6",
+          "descripcion": "Abre la transacción. ¿Se envió una nueva fecha de consulta?"
+        },
+        {
+          "id": "7",
+          "descripcion": "Convierte la nueva fecha de consulta"
+        },
+        {
+          "id": "8",
+          "descripcion": "No modifica la fecha de consulta"
+        },
+        {
+          "id": "9",
+          "descripcion": "Actualiza la consulta y la devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "6",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": "F"
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": "V"
+        },
+        {
+          "de": "6",
+          "a": "8",
+          "etiqueta": "F"
+        },
+        {
+          "de": "7",
+          "a": "9",
+          "etiqueta": ""
+        },
+        {
+          "de": "8",
+          "a": "9",
+          "etiqueta": ""
+        },
+        {
+          "de": "9",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 13,
+        "N": 10,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Identificador de una consulta que no existe (current = null).",
+          "salida_esperada": "El sistema lanza NotFoundException con el mensaje «Consulta no encontrada». No se modifica ningún registro.",
+          "test": "CB-HU3-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 6, 8, 9, (F)",
+          "entrada_simulada": "Usuario administrador; se corrige el motivo, sin cambiar la fecha.",
+          "salida_esperada": "El sistema permite la corrección, actualiza el motivo de la consulta y devuelve la consulta actualizada.",
+          "test": "CB-HU3-A-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, (F)",
+          "entrada_simulada": "Usuario veterinario que no es el autor de la consulta.",
+          "salida_esperada": "El sistema rechaza la corrección y lanza ForbiddenException: solo el veterinario autor o un administrador puede corregir el registro. No se modifica la consulta.",
+          "test": "CB-HU3-A-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, 9, (F)",
+          "entrada_simulada": "Usuario veterinario autor de la consulta; se corrigen las observaciones, sin cambiar la fecha.",
+          "salida_esperada": "El sistema permite la corrección, actualiza las observaciones y devuelve la consulta actualizada.",
+          "test": "CB-HU3-A-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 6, 7, 9, (F)",
+          "entrada_simulada": "Usuario administrador; se corrige la fecha de la consulta.",
+          "salida_esperada": "El sistema convierte la nueva fecha, actualiza la consulta y la devuelve.",
+          "test": "CB-HU3-A-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU4-A",
+      "hu": "HU4",
+      "titulo": "HU4. Gestión de Vacunación - Registrar Vacuna",
+      "archivo": "backend/src/modules/clinical/clinical.service.ts",
+      "metodo": "ClinicalService.createVaccination",
+      "codigo": "async createVaccination(animalId: string, dto: CreateVaccinationDto, user: AuthUser) {\n    (1) const animal = await this.animalOrThrow(animalId);\n    (3) this.assertAcceptsRecords(animal);\n    (5) this.assertDateOrder(\n        dto.applicationDate,\n        dto.nextDoseDate,\n        'La próxima dosis no puede ser anterior a la fecha de aplicación',\n    );\n    (8) const vaccine = await this.prisma.vaccine.findUnique({\n        where: { id: dto.vaccineId },\n    });\n    (9) if (!vaccine) throw new BadRequestException('La vacuna no existe en el catálogo');\n    (10) if (!vaccine.isActive)\n        throw new BadRequestException('La vacuna está desactivada en el catálogo');\n\n    (11) const warnings = vaccine.species.includes(animal.species)\n        (12) ? []\n        (13) : [`La vacuna \"${vaccine.name}\" no está indicada en el catálogo para la especie del animal`];\n\n    const vaccination = await this.prisma.$transaction(async (tx) => {\n        const v = await tx.vaccination.create({\n            data: {\n                ...dto,\n                animalId,\n                applicationDate: toDateOnly(dto.applicationDate),\n                (14) nextDoseDate: dto.nextDoseDate\n                    (15) ? toDateOnly(dto.nextDoseDate)\n                    (16) : null,\n                appliedById: user.id,\n            },\n            include: { vaccine: true },\n        });\n        return v;\n    });\n    (17) return { ...vaccination, warnings };\n}\n\nprivate async animalOrThrow(id: string, tx: Tx = this.prisma): Promise<Animal> {\n    const animal = await tx.animal.findFirst({\n        where: { id, deletedAt: null },\n    });\n    (2) if (!animal) throw new NotFoundException('Animal no encontrado');\n    return animal;\n}\n\nprivate assertAcceptsRecords(animal: Animal) {\n    (4) if (NO_CLINICAL_RECORDS_STATES.includes(animal.status)) {\n        throw new ConflictException(\n            `No se pueden registrar datos clínicos: el animal está \"${STATUS_LABELS[animal.status]}\"`,\n        );\n    }\n}\n\nprivate assertDateOrder(\n    start: string | Date,\n    end: string | Date | null | undefined,\n    msg: string,\n) {\n    (6) if (end\n        (7) && toDateOnly(end) < toDateOnly(start)) throw new BadRequestException(msg);\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Busca el animal (animalOrThrow)"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El animal no existe?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Verifica si el animal admite registros clínicos (assertAcceptsRecords)"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿El animal salió de la institución?"
+        },
+        {
+          "id": "5",
+          "descripcion": "Verifica el orden de las fechas (assertDateOrder)"
+        },
+        {
+          "id": "6",
+          "descripcion": "¿Se envió la fecha de la próxima dosis?"
+        },
+        {
+          "id": "7",
+          "descripcion": "¿La próxima dosis es anterior a la fecha de aplicación?"
+        },
+        {
+          "id": "8",
+          "descripcion": "Busca la vacuna en el catálogo"
+        },
+        {
+          "id": "9",
+          "descripcion": "¿La vacuna no existe en el catálogo?"
+        },
+        {
+          "id": "10",
+          "descripcion": "¿La vacuna está dada de baja?"
+        },
+        {
+          "id": "11",
+          "descripcion": "¿La vacuna está indicada para la especie del animal?"
+        },
+        {
+          "id": "12",
+          "descripcion": "Sin advertencias"
+        },
+        {
+          "id": "13",
+          "descripcion": "Agrega la advertencia de especie no indicada"
+        },
+        {
+          "id": "14",
+          "descripcion": "Abre la transacción. ¿Se envió la fecha de la próxima dosis?"
+        },
+        {
+          "id": "15",
+          "descripcion": "Convierte la fecha de la próxima dosis"
+        },
+        {
+          "id": "16",
+          "descripcion": "Deja la próxima dosis vacía (null)"
+        },
+        {
+          "id": "17",
+          "descripcion": "Registra la vacunación y la devuelve con las advertencias"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": "V"
+        },
+        {
+          "de": "6",
+          "a": "8",
+          "etiqueta": "F"
+        },
+        {
+          "de": "7",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": "F"
+        },
+        {
+          "de": "8",
+          "a": "9",
+          "etiqueta": ""
+        },
+        {
+          "de": "9",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "9",
+          "a": "10",
+          "etiqueta": "F"
+        },
+        {
+          "de": "10",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "10",
+          "a": "11",
+          "etiqueta": "F"
+        },
+        {
+          "de": "11",
+          "a": "12",
+          "etiqueta": "V"
+        },
+        {
+          "de": "11",
+          "a": "13",
+          "etiqueta": "F"
+        },
+        {
+          "de": "12",
+          "a": "14",
+          "etiqueta": ""
+        },
+        {
+          "de": "13",
+          "a": "14",
+          "etiqueta": ""
+        },
+        {
+          "de": "14",
+          "a": "15",
+          "etiqueta": "V"
+        },
+        {
+          "de": "14",
+          "a": "16",
+          "etiqueta": "F"
+        },
+        {
+          "de": "15",
+          "a": "17",
+          "etiqueta": ""
+        },
+        {
+          "de": "16",
+          "a": "17",
+          "etiqueta": ""
+        },
+        {
+          "de": "17",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 25,
+        "N": 18,
+        "P": 8,
+        "R": 9,
+        "VG": 9
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Identificador de un animal que no existe (animal = null).",
+          "salida_esperada": "El sistema lanza NotFoundException con el mensaje «Animal no encontrado». No se registra la vacuna.",
+          "test": "CB-HU4-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, (F)",
+          "entrada_simulada": "Animal en la situación «Fallecido».",
+          "salida_esperada": "El sistema rechaza el registro y lanza ConflictException: no se pueden registrar datos clínicos de un animal que salió de la institución.",
+          "test": "CB-HU4-A-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, (F)",
+          "entrada_simulada": "Fecha de la próxima dosis anterior a la fecha de aplicación.",
+          "salida_esperada": "El sistema rechaza el registro y lanza BadRequestException con el mensaje «La próxima dosis no puede ser anterior a la fecha de aplicación».",
+          "test": "CB-HU4-A-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, 9, (F)",
+          "entrada_simulada": "Sin fecha de próxima dosis; identificador de una vacuna que no existe (vaccine = null).",
+          "salida_esperada": "El sistema rechaza el registro y lanza BadRequestException con el mensaje «La vacuna no existe en el catálogo».",
+          "test": "CB-HU4-A-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, 9, 10, (F)",
+          "entrada_simulada": "Sin fecha de próxima dosis; la vacuna existe pero está dada de baja (isActive = false).",
+          "salida_esperada": "El sistema rechaza el registro y lanza BadRequestException con el mensaje «La vacuna está desactivada en el catálogo». No se registra la vacuna.",
+          "test": "CB-HU4-A-C5",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 16, 17, (F)",
+          "entrada_simulada": "Perro; vacuna activa indicada para perros; sin fecha de próxima dosis.",
+          "salida_esperada": "El sistema registra la vacunación sin advertencias, con la próxima dosis vacía, y guarda el veterinario que la aplica.",
+          "test": "CB-HU4-A-C6",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 13, 14, 16, 17, (F)",
+          "entrada_simulada": "Perro; vacuna activa indicada solo para gatos; sin fecha de próxima dosis.",
+          "salida_esperada": "El sistema registra la vacunación igualmente y devuelve una advertencia: la vacuna no está indicada para la especie del animal.",
+          "test": "CB-HU4-A-C7",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 17, (F)",
+          "entrada_simulada": "Perro; vacuna activa indicada para perros; fecha de próxima dosis posterior a la aplicación.",
+          "salida_esperada": "El sistema registra la vacunación sin advertencias y guarda la fecha de la próxima dosis.",
+          "test": "CB-HU4-A-C8",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 8, 9, (F)",
+          "entrada_simulada": "Fecha de próxima dosis posterior a la aplicación; identificador de una vacuna que no existe.",
+          "salida_esperada": "El sistema acepta el orden de las fechas, no encuentra la vacuna y lanza BadRequestException con el mensaje «La vacuna no existe en el catálogo».",
+          "test": "CB-HU4-A-C9",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU8-A",
+      "hu": "HU8",
+      "titulo": "HU8. Gestión de Usuario - Iniciar Sesión",
+      "archivo": "backend/src/modules/auth/auth.service.ts",
+      "metodo": "AuthService.login",
+      "codigo": "async login(email: string, password: string): Promise<SessionResult> {\n    (1) const user = await this.prisma.user.findUnique({\n        where: { email: email.toLowerCase() },\n    });\n    (2) if (!user) throw new UnauthorizedException(INVALID_CREDENTIALS);\n\n    (3) const now = new Date();\n    (4) if (user.lockedUntil\n        (5) && user.lockedUntil > now) {\n        throw this.lockedError(user.lockedUntil, now);\n    }\n\n    (6) const ok = await bcrypt.compare(password, user.passwordHash);\n    (7) if (!ok) {\n        (8) const attempts = user.failedAttempts + 1;\n        (9) if (attempts >= MAX_FAILED_ATTEMPTS) {\n            (10) const lockedUntil = new Date(now.getTime() + LOCK_MINUTES * 60_000);\n            await this.prisma.user.update({\n                where: { id: user.id },\n                data: { failedAttempts: 0, lockedUntil },\n            });\n            throw this.lockedError(lockedUntil, now);\n        }\n        (11) await this.prisma.user.update({\n            where: { id: user.id },\n            data: { failedAttempts: attempts, lockedUntil: null },\n        });\n        throw new UnauthorizedException(INVALID_CREDENTIALS);\n    }\n\n    (12) if (!user.isActive) throw new ForbiddenException(ACCOUNT_DISABLED);\n\n    (13) const session = await this.issueSession(user, {\n        failedAttempts: 0,\n        lockedUntil: null,\n    });\n    return session;\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Busca el usuario por su email"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El usuario no existe?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Toma la fecha y hora actual"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿La cuenta tiene una fecha de bloqueo?"
+        },
+        {
+          "id": "5",
+          "descripcion": "¿El bloqueo sigue vigente?"
+        },
+        {
+          "id": "6",
+          "descripcion": "Compara la contraseña con la almacenada"
+        },
+        {
+          "id": "7",
+          "descripcion": "¿La contraseña es incorrecta?"
+        },
+        {
+          "id": "8",
+          "descripcion": "Suma un intento fallido"
+        },
+        {
+          "id": "9",
+          "descripcion": "¿Se alcanzaron los 5 intentos fallidos?"
+        },
+        {
+          "id": "10",
+          "descripcion": "Bloquea la cuenta 10 minutos y rechaza el ingreso"
+        },
+        {
+          "id": "11",
+          "descripcion": "Guarda la cantidad de intentos fallidos y rechaza el ingreso"
+        },
+        {
+          "id": "12",
+          "descripcion": "¿La cuenta está desactivada?"
+        },
+        {
+          "id": "13",
+          "descripcion": "Emite la sesión (tokens) y la devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "6",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": "F"
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": ""
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": "V"
+        },
+        {
+          "de": "7",
+          "a": "12",
+          "etiqueta": "F"
+        },
+        {
+          "de": "8",
+          "a": "9",
+          "etiqueta": ""
+        },
+        {
+          "de": "9",
+          "a": "10",
+          "etiqueta": "V"
+        },
+        {
+          "de": "9",
+          "a": "11",
+          "etiqueta": "F"
+        },
+        {
+          "de": "10",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "11",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "12",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "12",
+          "a": "13",
+          "etiqueta": "F"
+        },
+        {
+          "de": "13",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 19,
+        "N": 14,
+        "P": 6,
+        "R": 7,
+        "VG": 7
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Email no registrado (user = null).",
+          "salida_esperada": "El sistema rechaza el ingreso y lanza UnauthorizedException con el mensaje «Credenciales inválidas». No se emite ninguna sesión.",
+          "test": "CB-HU8-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 6, 7, 12, 13, (F)",
+          "entrada_simulada": "Email registrado, contraseña correcta, cuenta activa y sin bloqueo.",
+          "salida_esperada": "El sistema emite la sesión, reinicia el contador de intentos fallidos y devuelve los datos del usuario.",
+          "test": "CB-HU8-A-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, (F)",
+          "entrada_simulada": "Cuenta con un bloqueo que vence dentro de 5 minutos.",
+          "salida_esperada": "El sistema rechaza el ingreso con el código 429 e informa que la cuenta está bloqueada por intentos fallidos. No compara la contraseña.",
+          "test": "CB-HU8-A-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 12, 13, (F)",
+          "entrada_simulada": "Cuenta cuyo bloqueo ya venció; contraseña correcta.",
+          "salida_esperada": "El sistema permite el ingreso, emite la sesión y devuelve los datos del usuario.",
+          "test": "CB-HU8-A-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 6, 7, 8, 9, 11, (F)",
+          "entrada_simulada": "Contraseña incorrecta; la cuenta tiene 2 intentos fallidos previos.",
+          "salida_esperada": "El sistema registra el tercer intento fallido y lanza UnauthorizedException con el mensaje «Credenciales inválidas».",
+          "test": "CB-HU8-A-C5",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 6, 7, 8, 9, 10, (F)",
+          "entrada_simulada": "Contraseña incorrecta; la cuenta tiene 4 intentos fallidos previos (quinto intento).",
+          "salida_esperada": "El sistema bloquea la cuenta durante 10 minutos, reinicia el contador y rechaza el ingreso con el código 429.",
+          "test": "CB-HU8-A-C6",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 6, 7, 12, (F)",
+          "entrada_simulada": "Contraseña correcta; la cuenta está desactivada (isActive = false).",
+          "salida_esperada": "El sistema rechaza el ingreso y lanza ForbiddenException con el mensaje «Cuenta desactivada, contacta al administrador». No se emite ninguna sesión.",
+          "test": "CB-HU8-A-C7",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU8-B",
+      "hu": "HU8",
+      "titulo": "HU8. Gestión de Usuario - Activar o Desactivar Usuario",
+      "archivo": "backend/src/modules/users/users.service.ts",
+      "metodo": "UsersService.setActive",
+      "codigo": "async setActive(id: string, isActive: boolean, actor: AuthUser): Promise<PublicUser> {\n    (1) if (id === actor.id\n        (2) && !isActive) {\n        throw new BadRequestException('No puedes desactivar tu propia cuenta');\n    }\n    (3) await this.getOrThrow(id);\n    return this.prisma.$transaction(async (tx) => {\n        const updated = await tx.user.update({\n            where: { id },\n            (5) data: isActive\n                (6) ? { isActive: true, failedAttempts: 0, lockedUntil: null }\n                (7) : { isActive: false, refreshTokenHash: null },\n        });\n        (8) return toPublicUser(updated);\n    });\n}\n\nprivate async getOrThrow(id: string): Promise<User> {\n    const user = await this.prisma.user.findUnique({ where: { id } });\n    (4) if (!user) throw new NotFoundException('Usuario no encontrado');\n    return user;\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "¿El usuario a modificar es el mismo que ejecuta la acción?"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿La acción es desactivar?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Busca el usuario (getOrThrow)"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿El usuario no existe?"
+        },
+        {
+          "id": "5",
+          "descripcion": "Abre la transacción. ¿La acción es activar?"
+        },
+        {
+          "id": "6",
+          "descripcion": "Activa la cuenta y limpia los intentos fallidos y el bloqueo"
+        },
+        {
+          "id": "7",
+          "descripcion": "Desactiva la cuenta e invalida su sesión"
+        },
+        {
+          "id": "8",
+          "descripcion": "Devuelve el usuario actualizado"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": "V"
+        },
+        {
+          "de": "1",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": "V"
+        },
+        {
+          "de": "5",
+          "a": "7",
+          "etiqueta": "F"
+        },
+        {
+          "de": "6",
+          "a": "8",
+          "etiqueta": ""
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": ""
+        },
+        {
+          "de": "8",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 12,
+        "N": 9,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, 3, 4, (F)",
+          "entrada_simulada": "Identificador de otro usuario que no existe (user = null).",
+          "salida_esperada": "El sistema lanza NotFoundException con el mensaje «Usuario no encontrado». No se modifica ninguna cuenta.",
+          "test": "CB-HU8-B-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 3, 4, 5, 7, 8, (F)",
+          "entrada_simulada": "El administrador desactiva la cuenta de otro usuario.",
+          "salida_esperada": "El sistema desactiva la cuenta, invalida la sesión del usuario y devuelve el usuario actualizado.",
+          "test": "CB-HU8-B-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 3, 4, 5, 6, 8, (F)",
+          "entrada_simulada": "El administrador activa la cuenta de otro usuario.",
+          "salida_esperada": "El sistema activa la cuenta, limpia los intentos fallidos y el bloqueo, y devuelve el usuario actualizado.",
+          "test": "CB-HU8-B-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "El administrador intenta desactivar su propia cuenta.",
+          "salida_esperada": "El sistema rechaza la acción y lanza BadRequestException con el mensaje «No puedes desactivar tu propia cuenta». No se consulta ni se modifica ninguna cuenta.",
+          "test": "CB-HU8-B-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, (F)",
+          "entrada_simulada": "El administrador activa su propia cuenta.",
+          "salida_esperada": "El sistema permite la acción, activa la cuenta y devuelve el usuario actualizado.",
+          "test": "CB-HU8-B-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU8-C",
+      "hu": "HU8",
+      "titulo": "HU8. Gestión de Usuario - Crear Usuario",
+      "archivo": "backend/src/modules/users/users.service.ts",
+      "metodo": "UsersService.create",
+      "codigo": "async create(dto: CreateUserDto): Promise<PublicUser> {\n    (1) await this.assertEmailFree(dto.email);\n    (3) const passwordHash = await bcrypt.hash(dto.password, BCRYPT_COST);\n    return this.prisma.$transaction(async (tx) => {\n        const user = await tx.user.create({\n            data: {\n                fullName: dto.fullName,\n                email: dto.email,\n                role: dto.role,\n                passwordHash,\n            },\n        });\n        const pub = toPublicUser(user);\n        return pub;\n    });\n}\n\nprivate async assertEmailFree(email: string): Promise<void> {\n    const exists = await this.prisma.user.findUnique({\n        where: { email },\n        select: { id: true },\n    });\n    (2) if (exists) throw new ConflictException('El email ya está registrado');\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Busca si el email ya está registrado (assertEmailFree)"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El email ya está registrado?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Cifra la contraseña temporal, crea la cuenta con su rol y la devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 4,
+        "N": 4,
+        "P": 1,
+        "R": 2,
+        "VG": 2
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Email que ya pertenece a otra cuenta.",
+          "salida_esperada": "El sistema rechaza la creación y lanza ConflictException con el mensaje «El email ya está registrado». No se crea la cuenta.",
+          "test": "CB-HU8-C-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, (F)",
+          "entrada_simulada": "Email libre, rol Personal Veterinario y contraseña temporal válida.",
+          "salida_esperada": "El sistema crea la cuenta con el rol indicado, guarda la contraseña cifrada y devuelve el usuario sin exponer la contraseña.",
+          "test": "CB-HU8-C-C2",
+          "resultado": "Aprobado"
+        }
+      ]
+    }
+  ],
+  "defectos": [
+    {
+      "hu": "HU1",
+      "descripcion": "El listado de animales no permite filtrar por tamaño. El criterio de aceptación 4 de HU1 pide filtrar por especie, situación, sexo y tamaño; el listado solo ofrece especie, situación (estado) y sexo.",
+      "causa": "El filtro no está implementado: la pantalla del listado no tiene el selector de tamaño y el servicio rechaza el parámetro (la petición con el filtro de tamaño devuelve 400, «property size should not exist»).",
+      "correccion": "",
+      "estado": "Pendiente"
+    },
+    {
+      "hu": "HU2",
+      "descripcion": "El administrador no puede registrar consultas clínicas. El criterio de aceptación 1 de HU2 dice que el veterinario y el administrador pueden registrar o corregir consultas; el sistema solo permite al administrador corregirlas.",
+      "causa": "El registro de consultas está restringido al rol veterinario: la petición de registro hecha por un administrador devuelve 403. La corrección sí admite los dos roles.",
+      "correccion": "",
+      "estado": "Pendiente"
+    }
+  ],
+  "pendientes": [
+    "Los dos defectos registrados quedan en estado Pendiente: no se modificó el código de la aplicación. El equipo debe decidir si se corrige el sistema o se ajusta el criterio de aceptación. Ninguno afecta a los cinco escenarios de caja negra, que resultaron CORRECTO.",
+    "Los grafos de flujo no se dibujaron en este entregable: se entregan los nodos y las aristas de cada método para que se dibujen en el documento.",
+    "El valor R (regiones) de cada método se obtuvo con la fórmula de Euler para grafos planos (R = A − N + 2), no contando las regiones sobre un dibujo. Conviene comprobarlo al dibujar cada grafo.",
+    "Cada prueba de caja negra tiene dos capturas de la ventana del navegador (1280 × 800). En los formularios largos de HU1 y HU2 la captura inicial muestra la parte final del formulario, con el botón de la acción; los campos superiores no entran en la ventana.",
+    "HU3: el animal de prueba no tiene períodos de cuarentena u observación, por lo que el historial capturado muestra consultas, vacunas y un tratamiento. La presencia de los períodos en el historial no se probó en este escenario.",
+    "Las situaciones del animal del documento coinciden con el sistema, pero los roles no: el sistema tiene un solo rol «Gestión Animal y Adopciones», no dos roles separados de Gestión Animal y Gestión de Adopciones.",
+    "El formato real del código del animal es ZOO-AAAA-NNNN (por ejemplo, ZOO-2026-0007), no ZA-0001 como en el ejemplo de estilo de la guía."
+  ]
+}

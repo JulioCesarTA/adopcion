@@ -1,0 +1,30 @@
+{
+  "datos_entrada": [
+    {
+      "campo": "Usuario",
+      "valor": "veterinario.prueba@zoonosis.test (Personal Veterinario)"
+    },
+    {
+      "campo": "Animal consultado",
+      "valor": "Max (ZOO-2026-0004)"
+    },
+    {
+      "campo": "Pestaña",
+      "valor": "Historial clínico"
+    }
+  ],
+  "observado": {
+    "cantidad_registros": 4,
+    "orden_mostrado": [
+      "18/10/2026, 02:20 — Consulta: Tos persistente",
+      "29/09/2026 — Vacuna: Quintuple canina",
+      "08/09/2026 — Vacuna: Quintuple canina",
+      "29/08/2026, 02:20 — Consulta: Revision de ingreso"
+    ],
+    "del_mas_reciente_al_mas_antiguo": true,
+    "hay_consultas": true,
+    "hay_vacunas": true,
+    "muestra_tratamiento": true,
+    "muestra_profesional": true
+  }
+}
