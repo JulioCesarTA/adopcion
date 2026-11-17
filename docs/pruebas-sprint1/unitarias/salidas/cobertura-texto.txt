@@ -1,0 +1,75 @@
+PASS src/modules/clinical/vacunas.hu4.unit.spec.ts
+FAIL src/modules/clinical/consultas.hu2.unit.spec.ts
+  ● HU2 Registro de Consulta Clínica — pruebas unitarias › PU-HU2-06 el administrador puede registrar una consulta
+
+    expect(received).not.toThrow()
+
+    Error name:    "ForbiddenException"
+    Error message: "No tienes acceso a este recurso"
+
+        [0m [90m 30 |[39m     [36mconst[39m allowed [33m=[39m roles [33m&&[39m roles[33m.[39mlength [33m?[39m roles [33m:[39m [33mSTAFF_ROLES[39m[33m;[39m
+         [90m 31 |[39m     [36mif[39m ([33m![39mallowed[33m.[39mincludes(req[33m.[39muser[33m.[39mrole)) {
+        [31m[1m>[22m[39m[90m 32 |[39m       [36mthrow[39m [36mnew[39m [33mForbiddenException[39m([32m'No tienes acceso a este recurso'[39m)[33m;[39m
+         [90m    |[39m             [31m[1m^[22m[39m
+         [90m 33 |[39m     }
+         [90m 34 |[39m     [36mreturn[39m [36mtrue[39m[33m;[39m
+         [90m 35 |[39m   }[0m
+
+      at RolesGuard.canActivate (common/guards/roles.guard.ts:32:13)
+      at permitir (modules/clinical/consultas.hu2.unit.spec.ts:117:34)
+      at Object.<anonymous> (../node_modules/expect/build/toThrowMatchers.js:74:11)
+      at Object.throwingMatcher [as toThrow] (../node_modules/expect/build/index.js:320:21)
+      at Object.<anonymous> (modules/clinical/consultas.hu2.unit.spec.ts:119:26)
+      at Object.<anonymous> (modules/clinical/consultas.hu2.unit.spec.ts:119:26)
+
+FAIL src/modules/animals/animals.hu1.unit.spec.ts
+  ● HU1 Gestión de Animal — pruebas unitarias › PU-HU1-06 el listado de animales acepta el filtro por tamaño
+
+    expect(received).resolves.toMatchObject()
+
+    Received promise rejected instead of resolved
+    Rejected to value: [BadRequestException: Datos inválidos]
+
+    [0m [90m 125 |[39m     [36mconst[39m resultado [33m=[39m pipe[33m.[39mtransform(consulta[33m,[39m { type[33m:[39m [32m'query'[39m[33m,[39m metatype[33m:[39m [33mListAnimalsQueryDto[39m })[33m;[39m
+     [90m 126 |[39m     [90m// Assert[39m
+    [31m[1m>[22m[39m[90m 127 |[39m     [36mawait[39m expect(resultado)[33m.[39mresolves[33m.[39mtoMatchObject({ species[33m:[39m [32m'PERRO'[39m[33m,[39m size[33m:[39m [32m'GRANDE'[39m })[33m;[39m
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 128 |[39m   })[33m;[39m
+     [90m 129 |[39m })[33m;[39m
+     [90m 130 |[39m[0m
+
+      at expect (../node_modules/expect/build/index.js:113:15)
+      at Object.<anonymous> (modules/animals/animals.hu1.unit.spec.ts:127:11)
+
+PASS src/modules/clinical/historial.hu3.unit.spec.ts
+PASS src/modules/users/usuarios.hu8.unit.spec.ts
+----------------------|---------|----------|---------|---------|-----------------------------------------------
+File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                             
+----------------------|---------|----------|---------|---------|-----------------------------------------------
+All files             |   56.68 |    40.11 |   46.66 |   58.74 |                                               
+ common               |   82.14 |    61.53 |      80 |   82.14 |                                               
+  dates.ts            |      75 |       50 |   66.66 |      75 | 35-36,41-43                                   
+  validation.ts       |     100 |    71.42 |     100 |     100 | 10-11                                         
+ common/guards        |   88.23 |       80 |     100 |   92.85 |                                               
+  roles.guard.ts      |   88.23 |       80 |     100 |   92.85 | 34                                            
+ modules/animals      |   46.42 |       33 |   43.33 |   47.65 |                                               
+  animals.service.ts  |   46.42 |       33 |   43.33 |   47.65 | 76-165,192-214,242-340                        
+ modules/animals/dto  |   91.22 |    66.66 |    37.5 |   91.22 |                                               
+  animals.dto.ts      |   91.22 |    66.66 |    37.5 |   91.22 | 49,175,182,189,234                            
+ modules/auth         |   44.44 |     38.7 |   45.45 |   46.37 |                                               
+  auth.service.ts     |   44.44 |     38.7 |   45.45 |   46.37 | 43-77,85-109,121,124,137-156,171-177          
+ modules/clinical     |   31.84 |     23.8 |   36.11 |   33.56 |                                               
+  clinical.service.ts |   31.84 |     23.8 |   36.11 |   33.56 | 69,97-109,136-223,237-285,305,340-343,387-537 
+ modules/clinical/dto |   95.38 |    66.66 |   66.66 |   96.82 |                                               
+  clinical.dto.ts     |   95.38 |    66.66 |   66.66 |   96.82 | 170,226                                       
+ modules/users        |   45.83 |    29.16 |   42.85 |   46.51 |                                               
+  users.service.ts    |   45.83 |    29.16 |   42.85 |   46.51 | 37-78,87-109,137-141                          
+ modules/users/dto    |   96.42 |       55 |   66.66 |   96.29 |                                               
+  users.dto.ts        |   96.42 |       55 |   66.66 |   96.29 | 94                                            
+----------------------|---------|----------|---------|---------|-----------------------------------------------
+
+Test Suites: 2 failed, 3 passed, 5 total
+Tests:       2 failed, 28 passed, 30 total
+Snapshots:   0 total
+Time:        3.267 s
+Ran all test suites matching /unit.spec/i with tests matching "PU-HU".

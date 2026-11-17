@@ -1,0 +1,14 @@
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/modules/clinical/[22m[1mvacunas.hu4.unit.spec.ts[22m
+  HU4 Gestión de Vacunación — pruebas unitarias
+    [32m√[39m [2mPU-HU4-01 toDateOnly convierte una fecha con o sin hora a la medianoche UTC (2 ms)[22m
+    [32m√[39m [2mPU-HU4-02 addDays suma 7 días cruzando el fin de mes (1 ms)[22m
+    [32m√[39m [2mPU-HU4-03 todayLaPaz devuelve el día de Bolivia y no el de UTC[22m
+    [32m√[39m [2mPU-HU4-04 las próximas dosis se buscan hasta hoy + 7 días[22m
+    [32m√[39m [2mPU-HU4-05 la consulta de próximas dosis toma solo la última dosis y excluye a los que salieron[22m
+    [32m√[39m [2mPU-HU4-06 acepta una próxima dosis el mismo día de la aplicación (1 ms)[22m
+
+[1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
+[1mTests:       [22m[1m[32m6 passed[39m[22m, 6 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        0.948 s, estimated 2 s
+[2mRan all test suites[22m[2m matching [22m/hu4.unit.spec/i[2m with tests matching [22m"PU-HU4"[2m.[22m
