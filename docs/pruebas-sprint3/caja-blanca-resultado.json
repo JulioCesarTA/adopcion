@@ -1,0 +1,524 @@
+{
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 4,
+  "numPassedTests": 30,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 0,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 4,
+  "numTotalTests": 30,
+  "openHandles": [],
+  "snapshot": {
+    "added": 0,
+    "didUpdate": false,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0
+  },
+  "startTime": 1794905012890,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU7-C KpisService.build (tendencia respecto al período anterior)"
+          ],
+          "duration": 5,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-C KpisService.build (tendencia respecto al período anterior) CB-HU7-C-C1: el período actual no tiene valor → sin diferencia y tendencia estable",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-C-C1: el período actual no tiene valor → sin diferencia y tendencia estable"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU7-C KpisService.build (tendencia respecto al período anterior)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-C KpisService.build (tendencia respecto al período anterior) CB-HU7-C-C2: el período anterior no tiene valor → sin diferencia y tendencia estable",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-C-C2: el período anterior no tiene valor → sin diferencia y tendencia estable"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU7-C KpisService.build (tendencia respecto al período anterior)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-C KpisService.build (tendencia respecto al período anterior) CB-HU7-C-C3: la diferencia es menor que el umbral (0,3 < 0,5) → tendencia estable",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-C-C3: la diferencia es menor que el umbral (0,3 < 0,5) → tendencia estable"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU7-C KpisService.build (tendencia respecto al período anterior)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-C KpisService.build (tendencia respecto al período anterior) CB-HU7-C-C4: el valor sube por encima del umbral → tendencia sube",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-C-C4: el valor sube por encima del umbral → tendencia sube"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU7-C KpisService.build (tendencia respecto al período anterior)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-C KpisService.build (tendencia respecto al período anterior) CB-HU7-C-C5: el valor baja por encima del umbral → tendencia baja",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-C-C5: el valor baja por encima del umbral → tendencia baja"
+        }
+      ],
+      "endTime": 1794905014281,
+      "message": "",
+      "name": "backend/src/modules/kpis/kpis.sprint3.spec.ts",
+      "startTime": 1794905013496,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU7-A DashboardService.section (cada indicador aislado)"
+          ],
+          "duration": 6,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-A DashboardService.section (cada indicador aislado) CB-HU7-A-C1: el indicador se calcula → devuelve ok con sus datos",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-A-C1: el indicador se calcula → devuelve ok con sus datos"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU7-A DashboardService.section (cada indicador aislado)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-A DashboardService.section (cada indicador aislado) CB-HU7-A-C2: el indicador lanza un error → devuelve ok=false con un mensaje, sin propagar el error",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-A-C2: el indicador lanza un error → devuelve ok=false con un mensaje, sin propagar el error"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU7-B DashboardService.dashboard (panel según el rol)"
+          ],
+          "duration": 3,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-B DashboardService.dashboard (panel según el rol) CB-HU7-B-C1: rol Personal Veterinario → sin la sección de últimas solicitudes",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 3,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-B-C1: rol Personal Veterinario → sin la sección de últimas solicitudes"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU7-B DashboardService.dashboard (panel según el rol)"
+          ],
+          "duration": 2,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU7-B DashboardService.dashboard (panel según el rol) CB-HU7-B-C2: rol Personal Directivo → incluye las últimas solicitudes",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU7-B-C2: rol Personal Directivo → incluye las últimas solicitudes"
+        }
+      ],
+      "endTime": 1794905014292,
+      "message": "",
+      "name": "backend/src/modules/dashboard/dashboard.sprint3.spec.ts",
+      "startTime": 1794905013496,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU9-A ChatService.validate (forma del historial)"
+          ],
+          "duration": 14,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-A ChatService.validate (forma del historial) CB-HU9-A-C1: la conversación empieza con el asistente → BadRequestException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-A-C1: la conversación empieza con el asistente → BadRequestException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-A ChatService.validate (forma del historial)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-A ChatService.validate (forma del historial) CB-HU9-A-C2: la conversación termina con el asistente → BadRequestException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-A-C2: la conversación termina con el asistente → BadRequestException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-A ChatService.validate (forma del historial)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-A ChatService.validate (forma del historial) CB-HU9-A-C3: un solo mensaje del usuario → válido (el ciclo no se repite)",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-A-C3: un solo mensaje del usuario → válido (el ciclo no se repite)"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-A ChatService.validate (forma del historial)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-A ChatService.validate (forma del historial) CB-HU9-A-C4: usuario, asistente y usuario alternados → válido",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-A-C4: usuario, asistente y usuario alternados → válido"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-A ChatService.validate (forma del historial)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-A ChatService.validate (forma del historial) CB-HU9-A-C5: dos mensajes seguidos del usuario → BadRequestException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-A-C5: dos mensajes seguidos del usuario → BadRequestException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C1: el servicio de IA no está configurado → mensaje amable (503)",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C1: el servicio de IA no está configurado → mensaje amable (503)"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 2,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C2: modelo sin respaldo y respuesta con texto → devuelve la respuesta sin guardar nada",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C2: modelo sin respaldo y respuesta con texto → devuelve la respuesta sin guardar nada"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C3: modelo con respaldo de servidor → pide el respaldo y devuelve la respuesta",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C3: modelo con respaldo de servidor → pide el respaldo y devuelve la respuesta"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C4: el modelo se niega a responder → respuesta amable de rechazo",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C4: el modelo se niega a responder → respuesta amable de rechazo"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C5: la respuesta llega sin texto → respuesta amable de rechazo",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C5: la respuesta llega sin texto → respuesta amable de rechazo"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C6: la API responde 429 (límite) → ServiceUnavailableException «muy ocupado»",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C6: la API responde 429 (límite) → ServiceUnavailableException «muy ocupado»"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C7: la clave de la API no es válida → mensaje amable (503)",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C7: la clave de la API no es válida → mensaje amable (503)"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C8: la API falla con otro error (500) → mensaje amable (503)",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C8: la API falla con otro error (500) → mensaje amable (503)"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU9-B ChatService.reply (responder una consulta)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU9-B ChatService.reply (responder una consulta) CB-HU9-B-C9: falla con un error que no es de la API → se propaga el mismo error",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU9-B-C9: falla con un error que no es de la API → se propaga el mismo error"
+        }
+      ],
+      "endTime": 1794905014432,
+      "message": "",
+      "name": "backend/src/modules/chat/chat.sprint3.spec.ts",
+      "startTime": 1794905013494,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento)"
+          ],
+          "duration": 13,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento) CB-HU12-A-C1: la solicitud no existe → NotFoundException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU12-A-C1: la solicitud no existe → NotFoundException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento) CB-HU12-A-C2: la solicitud está en evaluación → ConflictException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU12-A-C2: la solicitud está en evaluación → ConflictException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento) CB-HU12-A-C3: aprobada sin fecha de entrega registrada → crea el seguimiento",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU12-A-C3: aprobada sin fecha de entrega registrada → crea el seguimiento"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento) CB-HU12-A-C4: el seguimiento es anterior a la entrega del animal → BadRequestException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU12-A-C4: el seguimiento es anterior a la entrega del animal → BadRequestException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU12-A AdoptionsService.createFollowup (registrar un seguimiento) CB-HU12-A-C5: aprobada y el seguimiento es posterior a la entrega → crea el seguimiento con su autor",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 4,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU12-A-C5: aprobada y el seguimiento es posterior a la entrega → crea el seguimiento con su autor"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU12-B AdoptionsService.listFollowups (listar los seguimientos)"
+          ],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU12-B AdoptionsService.listFollowups (listar los seguimientos) CB-HU12-B-C1: la solicitud no existe → NotFoundException",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 2,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU12-B-C1: la solicitud no existe → NotFoundException"
+        },
+        {
+          "ancestorTitles": [
+            "CB-HU12-B AdoptionsService.listFollowups (listar los seguimientos)"
+          ],
+          "duration": 0,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "CB-HU12-B AdoptionsService.listFollowups (listar los seguimientos) CB-HU12-B-C2: la solicitud existe → devuelve sus seguimientos",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "CB-HU12-B-C2: la solicitud existe → devuelve sus seguimientos"
+        }
+      ],
+      "endTime": 1794905014818,
+      "message": "",
+      "name": "backend/src/modules/adoptions/adoptions.sprint3.spec.ts",
+      "startTime": 1794905013492,
+      "status": "passed",
+      "summary": ""
+    }
+  ],
+  "wasInterrupted": false
+}

@@ -1,0 +1,36 @@
+{
+  "datos_entrada": [
+    {
+      "campo": "Usuario",
+      "valor": "directivo.prueba@zoonosis.test"
+    },
+    {
+      "campo": "Contraseña",
+      "valor": "contraseña válida"
+    },
+    {
+      "campo": "Periodo de análisis",
+      "valor": "Últimos 3 meses"
+    }
+  ],
+  "observado": {
+    "tarjetas": [
+      "En la institución: 7",
+      "En cuarentena / observación: 2",
+      "Disponibles para adopción: 3",
+      "Solicitudes activas: 1",
+      "Adopciones del mes: 1"
+    ],
+    "graficos": true,
+    "indicadores": [
+      "Adopciones concretadas 66,7 % +33,3 pts vs. periodo anterior 2 aprobadas de 3 solicitudes resueltas",
+      "Permanencia hasta la adopción 42,5 días -37,5 días vs. periodo anterior Desde el ingreso del animal hasta la fecha de entrega",
+      "Animales devueltos 50,0 % +50,0 pts vs. periodo anterior 1 devoluciones frente a 2 adopciones",
+      "Solicitudes recibidas 3 solicitudes 0,0 solicitudes vs. periodo anterior 3 solicitudes evaluadas en el periodo",
+      "Tiempo de evaluación 4,4 días -6,6 días vs. periodo anterior Desde que se registra la solicitud hasta la decisión",
+      "Cobertura de vacunación 42,9 % Sin periodo anterior para comparar 3 de 7 animales en la institución, con esquema al día"
+    ],
+    "seis_indicadores": true,
+    "cinco_con_tendencia": true
+  }
+}

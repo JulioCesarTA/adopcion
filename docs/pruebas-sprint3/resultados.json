@@ -1,0 +1,1182 @@
+{
+  "fecha_ejecucion": "2026-11-17",
+  "entorno": {
+    "sistema_operativo": "Windows 11 (10.0.26200)",
+    "node": "v26.13.1",
+    "navegador": "Chromium (Playwright)",
+    "base_de_datos": "PostgreSQL 16 (base de prueba)",
+    "servicio_ia": "No disponible (sin clave de la API de Anthropic en el entorno de prueba)"
+  },
+  "caja_negra": [
+    {
+      "hu": "HU7",
+      "nombre": "Prueba de HU7. Panel de KPI en Tiempo Real",
+      "descripcion": "Verificar que el sistema muestre al personal directivo el panel de indicadores, con las cinco tarjetas y los dos gráficos, y la pantalla de indicadores de gestión con los seis indicadores y su tendencia respecto al período anterior.",
+      "precondicion": "Existe un usuario con el rol Personal Directivo. La base de prueba tiene animales en distintas situaciones, solicitudes, adopciones, devoluciones y vacunas en el período actual y en el período anterior.",
+      "datos_entrada": [
+        {
+          "campo": "Usuario",
+          "valor": "directivo.prueba@zoonosis.test"
+        },
+        {
+          "campo": "Contraseña",
+          "valor": "contraseña válida"
+        },
+        {
+          "campo": "Periodo de análisis",
+          "valor": "Últimos 3 meses"
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. El usuario tiene permiso para ver el panel y los indicadores de gestión.",
+      "pasos": [
+        "Ingresar al sistema con el Email y la Contraseña del usuario directivo y presionar «Iniciar sesión».",
+        "Revisar el «Panel»: las tarjetas «En la institución», «En cuarentena / observación», «Disponibles para adopción», «Solicitudes activas» y «Adopciones del mes», y los gráficos «Animales por estado» e «Ingresos vs. adopciones».",
+        "Ingresar al módulo «KPIs» desde el menú lateral.",
+        "En «Periodo de análisis», seleccionar «Últimos 3 meses»."
+      ],
+      "resultado_esperado": "El sistema muestra en el panel la cantidad de animales en la institución, en cuarentena u observación y disponibles para adopción, las solicitudes en curso y las adopciones del mes, junto con el gráfico de animales por situación y el que compara los ingresos con las adopciones de cada mes. La pantalla de indicadores muestra las adopciones concretadas, el tiempo promedio hasta la adopción, los animales devueltos, las solicitudes recibidas, el tiempo de evaluación y el porcentaje de animales vacunados, y la tendencia respecto al período anterior de los cinco primeros.",
+      "resultado_obtenido": "El sistema mostró el panel con las tarjetas En la institución: 7; En cuarentena / observación: 2; Disponibles para adopción: 3; Solicitudes activas: 1; Adopciones del mes: 1, y los gráficos «Animales por estado» e «Ingresos vs. adopciones». En «Indicadores de gestión», con «Últimos 3 meses», mostró los seis indicadores: Adopciones concretadas 66,7 % +33,3 pts; Permanencia hasta la adopción 42,5 días -37,5 días; Animales devueltos 50,0 % +50,0 pts; Solicitudes recibidas 3 solicitudes 0,0 solicitudes; Tiempo de evaluación 4,4 días -6,6 días; Cobertura de vacunación 42,9 %. Los cinco primeros mostraron su diferencia «vs. periodo anterior»; la cobertura de vacunación mostró su valor.",
+      "captura_inicial": "capturas/HU7-inicial.png",
+      "captura_final": "capturas/HU7-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint3/e2e/hu7.spec.ts"
+    },
+    {
+      "hu": "HU9",
+      "nombre": "Prueba de HU9. Asistente Virtual con IA",
+      "descripcion": "Verificar que un visitante pueda usar el asistente virtual desde el sitio público sin iniciar sesión y que, si el servicio de inteligencia artificial no está disponible, el asistente muestre un mensaje amable.",
+      "precondicion": "El visitante no inició sesión. Hay animales disponibles para adopción en la base de prueba. El entorno de prueba no tiene la clave de la API de Anthropic, por lo que el servicio de inteligencia artificial no está disponible.",
+      "datos_entrada": [
+        {
+          "campo": "Usuario",
+          "valor": "Visitante sin iniciar sesión"
+        },
+        {
+          "campo": "Pregunta",
+          "valor": "¿Qué animales hay disponibles para adoptar?"
+        },
+        {
+          "campo": "Servicio de IA",
+          "valor": "No disponible (entorno de prueba sin clave de la API)"
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. El servicio de inteligencia artificial no está disponible.",
+      "pasos": [
+        "Ingresar al sitio público del sistema, sin iniciar sesión.",
+        "En el aviso de cookies, presionar «Solo necesarias».",
+        "Presionar el botón flotante del asistente («Abrir asistente virtual»).",
+        "En la ventana «Asistente virtual», escribir la pregunta en «Escribe tu pregunta…».",
+        "Presionar el botón «Enviar»."
+      ],
+      "resultado_esperado": "El sistema permite usar el asistente sin iniciar sesión y, como el servicio de inteligencia artificial no está disponible, muestra un mensaje amable que indica que el asistente no está disponible en ese momento.",
+      "resultado_obtenido": "El sistema abrió el asistente sin pedir el inicio de sesión. Al enviar la pregunta, el servicio respondió con el estado 503 y el asistente mostró el mensaje «El asistente no está disponible en este momento. Escríbenos por el formulario de contacto.». La pregunta quedó en el campo de texto para volver a enviarla.",
+      "captura_inicial": "capturas/HU9-inicial.png",
+      "captura_final": "capturas/HU9-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint3/e2e/hu9.spec.ts"
+    },
+    {
+      "hu": "HU12",
+      "nombre": "Prueba de HU12. Seguimiento Post-adopción",
+      "descripcion": "Verificar que el sistema permita al personal de Gestión de Adopciones registrar un seguimiento de una adopción aprobada, con su fecha, sus observaciones y su autor, y que lo muestre en la lista de seguimientos ordenada por fecha.",
+      "precondicion": "El usuario del rol Gestión Animal y Adopciones ha iniciado sesión. Existe la solicitud aprobada del animal Lola (ZOO-2026-0007) para la adoptante Rosa Quiroga Leon, con el animal entregado y un seguimiento anterior.",
+      "datos_entrada": [
+        {
+          "campo": "Solicitud",
+          "valor": "Lola (ZOO-2026-0007) → Rosa Quiroga Leon, Aprobada"
+        },
+        {
+          "campo": "Fecha y hora",
+          "valor": "Fecha y hora actuales (valor propuesto por el sistema)"
+        },
+        {
+          "campo": "Estado general del animal",
+          "valor": "Sano y bien adaptado"
+        },
+        {
+          "campo": "Observaciones",
+          "valor": "Visita domiciliaria: duerme dentro de la casa, tiene su vacuna al día y juega con la familia."
+        }
+      ],
+      "condicion_ejecucion": "El backend, el frontend y la base de datos de prueba están en funcionamiento. La solicitud está aprobada.",
+      "pasos": [
+        "Ingresar al módulo «Solicitudes» desde el menú lateral.",
+        "Abrir la solicitud aprobada.",
+        "En «Seguimiento posterior a la adopción», presionar el botón «Nuevo seguimiento».",
+        "Completar «Estado general del animal» y «Observaciones».",
+        "Presionar el botón «Guardar»."
+      ],
+      "resultado_esperado": "El sistema registra el seguimiento de la adopción aprobada con su fecha, sus observaciones y el nombre de quien lo registró, y lo muestra en la lista de seguimientos ordenada por fecha.",
+      "resultado_obtenido": "El sistema registró el seguimiento, mostró el mensaje «Seguimiento registrado» y lo listó primero: «Sano y bien adaptado 17/11/2026, 04:38 · Gestion de Adopciones de Prueba Visita domiciliaria: duerme dentro de la casa, tiene su vacuna al día y juega con la familia.». Debajo quedó el seguimiento anterior: «Adaptándose bien al hogar 16/11/2026, 08:38 · Gestion de Adopciones de Prueba Llamada telefónica. Come con normalidad y duerme dentro de la casa.».",
+      "captura_inicial": "capturas/HU12-inicial.png",
+      "captura_final": "capturas/HU12-final.png",
+      "resultado_prueba": "CORRECTO",
+      "script": "test/sprint3/e2e/hu12.spec.ts"
+    }
+  ],
+  "caja_blanca": [
+    {
+      "id": "CB-HU7-A",
+      "hu": "HU7",
+      "titulo": "HU7. Panel de KPI en Tiempo Real - Calcular un indicador aislado",
+      "archivo": "backend/src/modules/dashboard/dashboard.service.ts",
+      "metodo": "DashboardService.section",
+      "codigo": "private async section<T>(name: string, fn: () => Promise<T>): Promise<Section<T>> {\n    try {\n        (1) return { ok: true, data: await fn() };\n    } catch (err) {\n        (2) this.logger.error(`Indicador \"${name}\" falló: ${String(err)}`);\n        return { ok: false, error: 'No se pudo calcular este indicador' };\n    }\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Calcula el indicador y devuelve ok con sus datos. ¿El cálculo lanza un error?"
+        },
+        {
+          "id": "2",
+          "descripcion": "Registra el error y devuelve ok = false con el mensaje «No se pudo calcular este indicador»"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": "V"
+        },
+        {
+          "de": "1",
+          "a": "F",
+          "etiqueta": "F"
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 3,
+        "N": 3,
+        "P": 1,
+        "R": 2,
+        "VG": 2
+      },
+      "caminos": [
+        {
+          "camino": "1, (F)",
+          "entrada_simulada": "El cálculo del indicador termina sin errores (tarjeta «Disponibles para adopción» = 3).",
+          "salida_esperada": "El sistema devuelve el indicador con ok = true y sus datos.",
+          "test": "CB-HU7-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "La consulta del indicador falla (error «consulta fallida»).",
+          "salida_esperada": "El sistema devuelve ese indicador con ok = false y el mensaje «No se pudo calcular este indicador», sin interrumpir el resto del panel.",
+          "test": "CB-HU7-A-C2",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU7-B",
+      "hu": "HU7",
+      "titulo": "HU7. Panel de KPI en Tiempo Real - Armar el panel según el rol",
+      "archivo": "backend/src/modules/dashboard/dashboard.service.ts",
+      "metodo": "DashboardService.dashboard",
+      "codigo": "async dashboard(role: UserRole) {\n    (1) const seesRequests = role !== 'VETERINARIO';\n    const [cards, byStatus, entriesVsAdoptions, latestRequests] = await Promise.all([\n        this.section('cards', () => this.cards()),\n        this.section('byStatus', () => this.byStatus()),\n        this.section('entriesVsAdoptions', () => this.entriesVsAdoptions()),\n        (2) seesRequests\n            (3) ? this.section('latestRequests', () => this.latestRequests())\n            (4) : Promise.resolve(null),\n    ]);\n    (5) return { cards, byStatus, entriesVsAdoptions, latestRequests };\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Determina si el rol ve las solicitudes y calcula las tarjetas y los dos gráficos, cada uno aislado"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El rol ve las solicitudes (no es Personal Veterinario)?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Calcula la sección de últimas solicitudes"
+        },
+        {
+          "id": "4",
+          "descripcion": "Deja la sección de últimas solicitudes vacía (null)"
+        },
+        {
+          "id": "5",
+          "descripcion": "Devuelve las tarjetas, los dos gráficos y las últimas solicitudes"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "4",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "5",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": ""
+        },
+        {
+          "de": "5",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 6,
+        "N": 6,
+        "P": 1,
+        "R": 2,
+        "VG": 2
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, 4, 5, (F)",
+          "entrada_simulada": "Usuario con rol Personal Veterinario.",
+          "salida_esperada": "El sistema devuelve las tarjetas y los gráficos, sin la sección de últimas solicitudes.",
+          "test": "CB-HU7-B-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 5, (F)",
+          "entrada_simulada": "Usuario con rol Personal Directivo.",
+          "salida_esperada": "El sistema devuelve las tarjetas, los gráficos y las últimas solicitudes.",
+          "test": "CB-HU7-B-C2",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU7-C",
+      "hu": "HU7",
+      "titulo": "HU7. Panel de KPI en Tiempo Real - Calcular la tendencia de un indicador",
+      "archivo": "backend/src/modules/kpis/kpis.service.ts",
+      "metodo": "KpisService.build",
+      "codigo": "private build(\n    base: Omit<Kpi, 'delta' | 'trend'>,\n    { threshold = 0.5 }: { threshold?: number } = {},\n): Kpi {\n    (1) const { value, previous } = base;\n    (2) if (value === null ||\n        (3) previous === null) {\n        (4) return { ...base, delta: null, trend: 'estable' };\n    }\n    (5) const delta = r2(value - previous);\n    const trend: Trend =\n        (6) Math.abs(delta) < threshold\n        (7) ? 'estable'\n        (8) : delta > 0\n        (9) ? 'sube'\n        (10) : 'baja';\n    (11) return { ...base, delta, trend };\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Toma el valor del período actual y el del período anterior"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El período actual no tiene valor?"
+        },
+        {
+          "id": "3",
+          "descripcion": "¿El período anterior no tiene valor?"
+        },
+        {
+          "id": "4",
+          "descripcion": "Devuelve el indicador sin diferencia y con tendencia estable"
+        },
+        {
+          "id": "5",
+          "descripcion": "Calcula la diferencia contra el período anterior, con 2 decimales"
+        },
+        {
+          "id": "6",
+          "descripcion": "¿La diferencia es menor que el umbral?"
+        },
+        {
+          "id": "7",
+          "descripcion": "Tendencia estable"
+        },
+        {
+          "id": "8",
+          "descripcion": "¿La diferencia es positiva?"
+        },
+        {
+          "id": "9",
+          "descripcion": "Tendencia sube"
+        },
+        {
+          "id": "10",
+          "descripcion": "Tendencia baja"
+        },
+        {
+          "id": "11",
+          "descripcion": "Devuelve el indicador con su diferencia y su tendencia"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "4",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": "V"
+        },
+        {
+          "de": "3",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": "V"
+        },
+        {
+          "de": "6",
+          "a": "8",
+          "etiqueta": "F"
+        },
+        {
+          "de": "8",
+          "a": "9",
+          "etiqueta": "V"
+        },
+        {
+          "de": "8",
+          "a": "10",
+          "etiqueta": "F"
+        },
+        {
+          "de": "7",
+          "a": "11",
+          "etiqueta": ""
+        },
+        {
+          "de": "9",
+          "a": "11",
+          "etiqueta": ""
+        },
+        {
+          "de": "10",
+          "a": "11",
+          "etiqueta": ""
+        },
+        {
+          "de": "11",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 15,
+        "N": 12,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, 4, (F)",
+          "entrada_simulada": "Período actual sin datos (valor null) y período anterior con 40 %.",
+          "salida_esperada": "El sistema devuelve el indicador sin diferencia y con la tendencia estable.",
+          "test": "CB-HU7-C-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, (F)",
+          "entrada_simulada": "Período actual con 66,67 % y período anterior sin datos (valor null).",
+          "salida_esperada": "El sistema devuelve el indicador sin diferencia y con la tendencia estable.",
+          "test": "CB-HU7-C-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 5, 6, 7, 11, (F)",
+          "entrada_simulada": "Período actual 50,3 y anterior 50 (diferencia 0,3, menor que el umbral 0,5).",
+          "salida_esperada": "El sistema devuelve la diferencia 0,3 y la tendencia estable.",
+          "test": "CB-HU7-C-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 5, 6, 8, 9, 11, (F)",
+          "entrada_simulada": "Período actual 66,67 % y anterior 33,33 %.",
+          "salida_esperada": "El sistema devuelve la diferencia 33,34 y la tendencia sube.",
+          "test": "CB-HU7-C-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 5, 6, 8, 10, 11, (F)",
+          "entrada_simulada": "Período actual 4,4 días y anterior 11 días, con umbral 1.",
+          "salida_esperada": "El sistema devuelve la diferencia −6,6 y la tendencia baja.",
+          "test": "CB-HU7-C-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU9-A",
+      "hu": "HU9",
+      "titulo": "HU9. Asistente Virtual con IA - Validar el historial de la conversación",
+      "archivo": "backend/src/modules/chat/chat.service.ts",
+      "metodo": "ChatService.validate",
+      "codigo": "private validate(messages: ChatTurnDto[]) {\n    (1) if (messages[0].role !== 'user' ||\n        (2) messages[messages.length - 1].role !== 'user') {\n        (3) throw new BadRequestException(\n            'La conversación debe empezar y terminar con un mensaje del usuario',\n        );\n    }\n    (4) for (let i = 1; i < messages.length; i++) {\n        (5) if (messages[i].role === messages[i - 1].role) {\n            (6) throw new BadRequestException('Los turnos deben alternar entre usuario y asistente');\n        }\n    }\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "¿La conversación no empieza con un mensaje del usuario?"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿La conversación no termina con un mensaje del usuario?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Lanza BadRequestException: debe empezar y terminar con un mensaje del usuario"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿Quedan mensajes por revisar?"
+        },
+        {
+          "id": "5",
+          "descripcion": "¿El mensaje tiene el mismo rol que el anterior?"
+        },
+        {
+          "id": "6",
+          "descripcion": "Lanza BadRequestException: los turnos deben alternar"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "3",
+          "etiqueta": "V"
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": "F"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "4",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": "V"
+        },
+        {
+          "de": "5",
+          "a": "4",
+          "etiqueta": "F"
+        },
+        {
+          "de": "6",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 10,
+        "N": 7,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, 3, (F)",
+          "entrada_simulada": "Historial que empieza con un mensaje del asistente.",
+          "salida_esperada": "El sistema rechaza la consulta con BadRequestException «La conversación debe empezar y terminar con un mensaje del usuario».",
+          "test": "CB-HU9-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, (F)",
+          "entrada_simulada": "Historial que termina con un mensaje del asistente.",
+          "salida_esperada": "El sistema rechaza la consulta con BadRequestException «La conversación debe empezar y terminar con un mensaje del usuario».",
+          "test": "CB-HU9-A-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 4, (F)",
+          "entrada_simulada": "Un solo mensaje del usuario.",
+          "salida_esperada": "El sistema acepta el historial; el ciclo no se repite.",
+          "test": "CB-HU9-A-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 4, 5, 4, 5, 4, (F)",
+          "entrada_simulada": "Usuario, asistente y usuario, alternados.",
+          "salida_esperada": "El sistema acepta el historial.",
+          "test": "CB-HU9-A-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 4, 5, 6, (F)",
+          "entrada_simulada": "Dos mensajes seguidos del usuario.",
+          "salida_esperada": "El sistema rechaza la consulta con BadRequestException «Los turnos deben alternar entre usuario y asistente».",
+          "test": "CB-HU9-A-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU9-B",
+      "hu": "HU9",
+      "titulo": "HU9. Asistente Virtual con IA - Responder una consulta",
+      "archivo": "backend/src/modules/chat/chat.service.ts",
+      "metodo": "ChatService.reply",
+      "codigo": "async reply(messages: ChatTurnDto[]): Promise<{ reply: string }> {\n    (1) const { enabled, model } = this.config.chat;\n    (2) if (!enabled) throw new ServiceUnavailableException(UNAVAILABLE);\n    (3) this.validate(messages);\n\n    const animals = await this.prisma.animal.findMany({\n        where: { deletedAt: null, status: 'DISPONIBLE_ADOPCION' },\n        select: {\n            name: true,\n            code: true,\n            species: true,\n            size: true,\n            ageMonths: true,\n            goodWithChildren: true,\n            goodWithAnimals: true,\n        },\n        orderBy: { code: 'asc' },\n        take: 40,\n    });\n\n    try {\n        (4) const response = await this.getClient().beta.messages.create({\n            model,\n            max_tokens: 16000,\n            output_config: { effort: 'low' },\n            (5) ...(FALLBACK_MODELS.has(model)\n                (6) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const }\n                (7) : {}),\n            (8) system: [\n                {\n                    type: 'text',\n                    text: stableSystemPrompt(this.config.institution),\n                    cache_control: { type: 'ephemeral' },\n                },\n                { type: 'text', text: adoptablesPrompt(animals) },\n            ],\n            messages: messages.map((m) => ({ role: m.role, content: m.content })),\n        });\n\n        (9) if (response.stop_reason === 'refusal') return { reply: REFUSAL_REPLY };\n\n        (10) const text = response.content\n            .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')\n            .map((b) => b.text)\n            .join('\\n')\n            .trim();\n        (11) return { reply: text ||\n            (12) REFUSAL_REPLY };\n    } catch (err) {\n        (13) if (err instanceof Anthropic.RateLimitError) {\n            (14) throw new ServiceUnavailableException(\n                'El asistente está muy ocupado. Intenta en unos segundos.',\n            );\n        }\n        (15) if (err instanceof Anthropic.AuthenticationError) {\n            (16) this.logger.error('ANTHROPIC_API_KEY inválida');\n            throw new ServiceUnavailableException(UNAVAILABLE);\n        }\n        (17) if (err instanceof Anthropic.APIError) {\n            (18) this.logger.error(`Error de la API de Claude (${err.status}): ${err.message}`);\n            throw new ServiceUnavailableException(UNAVAILABLE);\n        }\n        (19) throw err;\n    }\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Lee si el servicio de IA está configurado y el modelo"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El servicio de IA no está configurado?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Valida el historial (validate) y obtiene los animales disponibles para adopción"
+        },
+        {
+          "id": "4",
+          "descripcion": "Arma la consulta al modelo: límite de tokens y esfuerzo"
+        },
+        {
+          "id": "5",
+          "descripcion": "¿El modelo admite el respaldo automático de servidor?"
+        },
+        {
+          "id": "6",
+          "descripcion": "Agrega el respaldo automático"
+        },
+        {
+          "id": "7",
+          "descripcion": "Sin respaldo"
+        },
+        {
+          "id": "8",
+          "descripcion": "Agrega el contexto de la institución y de los animales disponibles, y envía la consulta. ¿La API lanza un error?"
+        },
+        {
+          "id": "9",
+          "descripcion": "¿El modelo se negó a responder? Si es así, devuelve la respuesta amable de rechazo"
+        },
+        {
+          "id": "10",
+          "descripcion": "Junta el texto de la respuesta"
+        },
+        {
+          "id": "11",
+          "descripcion": "¿La respuesta tiene texto? Si es así, lo devuelve"
+        },
+        {
+          "id": "12",
+          "descripcion": "Devuelve la respuesta amable de rechazo"
+        },
+        {
+          "id": "13",
+          "descripcion": "¿Es un error de límite de la API (429)?"
+        },
+        {
+          "id": "14",
+          "descripcion": "Lanza ServiceUnavailableException «El asistente está muy ocupado. Intenta en unos segundos.»"
+        },
+        {
+          "id": "15",
+          "descripcion": "¿Es un error de autenticación (clave inválida)?"
+        },
+        {
+          "id": "16",
+          "descripcion": "Registra el error y lanza ServiceUnavailableException con el mensaje amable"
+        },
+        {
+          "id": "17",
+          "descripcion": "¿Es otro error de la API?"
+        },
+        {
+          "id": "18",
+          "descripcion": "Registra el error y lanza ServiceUnavailableException con el mensaje amable"
+        },
+        {
+          "id": "19",
+          "descripcion": "Vuelve a lanzar el error original"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": ""
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": "V"
+        },
+        {
+          "de": "5",
+          "a": "7",
+          "etiqueta": "F"
+        },
+        {
+          "de": "6",
+          "a": "8",
+          "etiqueta": ""
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": ""
+        },
+        {
+          "de": "8",
+          "a": "13",
+          "etiqueta": "V"
+        },
+        {
+          "de": "8",
+          "a": "9",
+          "etiqueta": "F"
+        },
+        {
+          "de": "9",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "9",
+          "a": "10",
+          "etiqueta": "F"
+        },
+        {
+          "de": "10",
+          "a": "11",
+          "etiqueta": ""
+        },
+        {
+          "de": "11",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "11",
+          "a": "12",
+          "etiqueta": "F"
+        },
+        {
+          "de": "12",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "13",
+          "a": "14",
+          "etiqueta": "V"
+        },
+        {
+          "de": "13",
+          "a": "15",
+          "etiqueta": "F"
+        },
+        {
+          "de": "14",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "15",
+          "a": "16",
+          "etiqueta": "V"
+        },
+        {
+          "de": "15",
+          "a": "17",
+          "etiqueta": "F"
+        },
+        {
+          "de": "16",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "17",
+          "a": "18",
+          "etiqueta": "V"
+        },
+        {
+          "de": "17",
+          "a": "19",
+          "etiqueta": "F"
+        },
+        {
+          "de": "18",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "19",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 27,
+        "N": 20,
+        "P": 8,
+        "R": 9,
+        "VG": 9
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Servicio de IA sin clave configurada.",
+          "salida_esperada": "El sistema rechaza la consulta con ServiceUnavailableException y el mensaje «El asistente no está disponible en este momento. Escríbenos por el formulario de contacto.». No consulta la base de datos.",
+          "test": "CB-HU9-B-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 9, 10, 11, (F)",
+          "entrada_simulada": "Modelo sin respaldo de servidor; la API responde con texto.",
+          "salida_esperada": "El sistema devuelve el texto de la respuesta y no guarda la conversación.",
+          "test": "CB-HU9-B-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, (F)",
+          "entrada_simulada": "Modelo con respaldo de servidor (claude-opus-5-5); la API responde con texto.",
+          "salida_esperada": "El sistema pide el respaldo automático y devuelve el texto de la respuesta.",
+          "test": "CB-HU9-B-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 9, (F)",
+          "entrada_simulada": "La API responde con stop_reason «refusal».",
+          "salida_esperada": "El sistema devuelve la respuesta amable «Prefiero no responder a eso…».",
+          "test": "CB-HU9-B-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, (F)",
+          "entrada_simulada": "La API responde sin bloques de texto.",
+          "salida_esperada": "El sistema devuelve la respuesta amable «Prefiero no responder a eso…».",
+          "test": "CB-HU9-B-C5",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 14, (F)",
+          "entrada_simulada": "La API responde con el error 429 (límite).",
+          "salida_esperada": "El sistema lanza ServiceUnavailableException «El asistente está muy ocupado. Intenta en unos segundos.».",
+          "test": "CB-HU9-B-C6",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 15, 16, (F)",
+          "entrada_simulada": "La API responde con el error 401 (clave inválida).",
+          "salida_esperada": "El sistema lanza ServiceUnavailableException con el mensaje amable de servicio no disponible.",
+          "test": "CB-HU9-B-C7",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 15, 17, 18, (F)",
+          "entrada_simulada": "La API responde con el error 500.",
+          "salida_esperada": "El sistema lanza ServiceUnavailableException con el mensaje amable de servicio no disponible.",
+          "test": "CB-HU9-B-C8",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 15, 17, 19, (F)",
+          "entrada_simulada": "La consulta falla con un error que no es de la API (TypeError).",
+          "salida_esperada": "El sistema vuelve a lanzar el mismo error.",
+          "test": "CB-HU9-B-C9",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU12-A",
+      "hu": "HU12",
+      "titulo": "HU12. Seguimiento Post-adopción - Registrar un Seguimiento",
+      "archivo": "backend/src/modules/adoptions/adoptions.service.ts",
+      "metodo": "AdoptionsService.createFollowup",
+      "codigo": "async createFollowup(id: string, dto: CreateFollowupDto, user: AuthUser) {\n    (1) const req = await this.approvedOrThrow(id);\n    (6) if (req.deliveryDate &&\n        (7) new Date(dto.followupDate) < req.deliveryDate) {\n        (8) throw new BadRequestException('El seguimiento no puede ser anterior a la entrega del animal');\n    }\n    (9) return this.prisma.$transaction(async (tx) => {\n        const f = await tx.adoptionFollowup.create({\n            data: {\n                adoptionRequestId: id,\n                followupDate: new Date(dto.followupDate),\n                animalCondition: dto.animalCondition,\n                observations: dto.observations,\n                createdById: user.id,\n            },\n            include: { createdBy: userSelect },\n        });\n        return f;\n    });\n}\n\nprivate async approvedOrThrow(id: string) {\n    (2) const req = await this.prisma.adoptionRequest.findUnique({ where: { id } });\n    (3) if (!req) throw new NotFoundException('Solicitud no encontrada');\n    (4) if (req.status !== 'APROBADA') {\n        throw new ConflictException('Disponible solo para solicitudes aprobadas');\n    }\n    (5) return req;\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Verifica que la adopción esté aprobada (approvedOrThrow)"
+        },
+        {
+          "id": "2",
+          "descripcion": "Busca la solicitud"
+        },
+        {
+          "id": "3",
+          "descripcion": "¿La solicitud no existe?"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿La solicitud no está aprobada?"
+        },
+        {
+          "id": "5",
+          "descripcion": "Devuelve la solicitud aprobada"
+        },
+        {
+          "id": "6",
+          "descripcion": "¿La solicitud tiene fecha de entrega?"
+        },
+        {
+          "id": "7",
+          "descripcion": "¿El seguimiento es anterior a la entrega del animal?"
+        },
+        {
+          "id": "8",
+          "descripcion": "Lanza BadRequestException: el seguimiento no puede ser anterior a la entrega"
+        },
+        {
+          "id": "9",
+          "descripcion": "Crea el seguimiento con la fecha, el estado del animal, las observaciones y el autor, y lo devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": ""
+        },
+        {
+          "de": "3",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": "F"
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": "V"
+        },
+        {
+          "de": "6",
+          "a": "9",
+          "etiqueta": "F"
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": "V"
+        },
+        {
+          "de": "7",
+          "a": "9",
+          "etiqueta": "F"
+        },
+        {
+          "de": "8",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "9",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 13,
+        "N": 10,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, 3, (F)",
+          "entrada_simulada": "El identificador no corresponde a ninguna solicitud.",
+          "salida_esperada": "El sistema lanza NotFoundException «Solicitud no encontrada». No se crea ningún registro.",
+          "test": "CB-HU12-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, (F)",
+          "entrada_simulada": "Solicitud en estado En evaluación.",
+          "salida_esperada": "El sistema rechaza el seguimiento con ConflictException «Disponible solo para solicitudes aprobadas». No se crea ningún registro.",
+          "test": "CB-HU12-A-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 9, (F)",
+          "entrada_simulada": "Solicitud aprobada sin fecha de entrega registrada.",
+          "salida_esperada": "El sistema registra el seguimiento.",
+          "test": "CB-HU12-A-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 8, (F)",
+          "entrada_simulada": "Solicitud aprobada con entrega el 15/11/2026 y seguimiento del 14/11/2026.",
+          "salida_esperada": "El sistema rechaza el seguimiento con BadRequestException «El seguimiento no puede ser anterior a la entrega del animal».",
+          "test": "CB-HU12-A-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 9, (F)",
+          "entrada_simulada": "Solicitud aprobada con entrega el 15/11/2026 y seguimiento del 17/11/2026.",
+          "salida_esperada": "El sistema registra el seguimiento vinculado a la adopción, con su fecha y el usuario autenticado como autor.",
+          "test": "CB-HU12-A-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU12-B",
+      "hu": "HU12",
+      "titulo": "HU12. Seguimiento Post-adopción - Listar los Seguimientos de una Solicitud",
+      "archivo": "backend/src/modules/adoptions/adoptions.service.ts",
+      "metodo": "AdoptionsService.listFollowups",
+      "codigo": "async listFollowups(id: string) {\n    (1) const req = await this.prisma.adoptionRequest.findUnique({\n        where: { id },\n        select: { id: true },\n    });\n    (2) if (!req) throw new NotFoundException('Solicitud no encontrada');\n    (3) return this.prisma.adoptionFollowup.findMany({\n        where: { adoptionRequestId: id },\n        orderBy: { followupDate: 'desc' },\n        include: { createdBy: userSelect },\n    });\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Busca la solicitud"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿La solicitud no existe?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Devuelve sus seguimientos ordenados por fecha, con el autor"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 4,
+        "N": 4,
+        "P": 1,
+        "R": 2,
+        "VG": 2
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "El identificador no corresponde a ninguna solicitud.",
+          "salida_esperada": "El sistema lanza NotFoundException «Solicitud no encontrada».",
+          "test": "CB-HU12-B-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, (F)",
+          "entrada_simulada": "Solicitud existente con dos seguimientos.",
+          "salida_esperada": "El sistema devuelve los seguimientos de la solicitud.",
+          "test": "CB-HU12-B-C2",
+          "resultado": "Aprobado"
+        }
+      ]
+    }
+  ],
+  "defectos": [],
+  "pendientes": [
+    "HU9: el equipo no tiene una clave de la API de Anthropic, así que la caja negra probó el criterio 5 (mensaje amable cuando el servicio de inteligencia artificial no está disponible), como indica la guía. Con una clave real en .env.test, la misma prueba puede repetirse para ver la respuesta del asistente. Las respuestas con la IA se probaron en la caja blanca (CB-HU9-B) con el SDK simulado.",
+    "Por indicación del equipo, en HU7 no se probó la tendencia de la cobertura de vacunación: el sistema la muestra como una foto del momento («Sin periodo anterior para comparar»). La prueba de caja negra comprueba la tendencia de los otros cinco indicadores.",
+    "Por indicación del equipo, el criterio 4 de HU7 («si un indicador no se puede calcular, los demás se siguen mostrando») se probó en el panel (CB-HU7-A), donde cada indicador está aislado, y con indicadores sin datos en la pantalla de indicadores de gestión (PU-HU7-04). No se probó el caso de un indicador de gestión que lanza un error.",
+    "La pantalla de indicadores de gestión ofrece períodos de 3, 6 y 12 meses. La prueba usó «Últimos 3 meses»: el período actual son los 3 últimos meses y el anterior, los 3 meses previos. El seed carga datos en ambos, con fechas relativas a la fecha de ejecución.",
+    "En la captura inicial de HU7, el gráfico «Ingresos vs. adopciones» queda debajo del borde de la ventana de 1280 × 800; se ve su título. La prueba comprobó que los dos gráficos están en el panel.",
+    "ChatService.reply tiene más de 10 decisiones si se incluye la validación del historial. Por eso, como pide la guía, la validación se analizó aparte (CB-HU9-A, ChatService.validate) y en CB-HU9-B la llamada a validate es un solo nodo.",
+    "En CB-HU9-B, el nodo 8 se cuenta como decisión porque la consulta a la API puede terminar normalmente o lanzar una excepción que pasa al bloque catch. En CB-HU7-A pasa lo mismo con el nodo 1.",
+    "Los grafos de flujo no se dibujaron: se entregan los nodos y las aristas. El valor R se obtuvo con la fórmula de Euler (R = A − N + 2).",
+    "El sistema tiene un solo rol «Gestión Animal y Adopciones». Las pruebas usan la cuenta adopciones.prueba@zoonosis.test con ese rol."
+  ]
+}

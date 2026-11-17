@@ -1,0 +1,14 @@
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/modules/chat/[22m[1mhu9.sprint3.unit.spec.ts[22m
+  HU9 Asistente Virtual con IA — pruebas unitarias
+    [32m√[39m [2mPU-HU9-01 rechaza un mensaje de 2001 caracteres y acepta uno de 2000 (9 ms)[22m
+    [32m√[39m [2mPU-HU9-02 rechaza una conversación de 21 mensajes y acepta una de 20 (3 ms)[22m
+    [32m√[39m [2mPU-HU9-03 acepta 15 consultas por minuto, rechaza la 16 y vuelve a aceptar pasado el minuto (13 ms)[22m
+    [32m√[39m [2mPU-HU9-04 el contexto del asistente incluye los animales disponibles y ningún dato privado (1 ms)[22m
+    [32m√[39m [2mPU-HU9-05 el contexto del asistente incluye la información de la institución[22m
+    [32m√[39m [2mPU-HU9-06 la ruta del asistente es pública: no exige iniciar sesión (1 ms)[22m
+
+[1mTest Suites: [22m[1m[33m2 skipped[39m[22m, [1m[32m1 passed[39m[22m, 1 of 3 total
+[1mTests:       [22m[1m[33m12 skipped[39m[22m, [1m[32m6 passed[39m[22m, 18 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        2.077 s, estimated 3 s
+[2mRan all test suites[22m[2m matching [22m/sprint3.unit.spec/i[2m with tests matching [22m"PU-HU9-"[2m.[22m

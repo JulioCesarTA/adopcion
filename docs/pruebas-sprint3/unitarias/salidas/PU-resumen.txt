@@ -1,0 +1,9 @@
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/modules/dashboard/[22m[1mhu7.sprint3.unit.spec.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/modules/chat/[22m[1mhu9.sprint3.unit.spec.ts[22m
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/modules/adoptions/[22m[1mhu12.sprint3.unit.spec.ts[22m
+
+[1mTest Suites: [22m[1m[32m3 passed[39m[22m, 3 total
+[1mTests:       [22m[1m[32m18 passed[39m[22m, 18 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        2.011 s
+[2mRan all test suites[22m[2m matching [22m/sprint3.unit.spec/i[2m with tests matching [22m"PU-HU"[2m.[22m

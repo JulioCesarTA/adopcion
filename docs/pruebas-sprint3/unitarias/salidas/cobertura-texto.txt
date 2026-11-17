@@ -1,0 +1,30 @@
+PASS src/modules/chat/hu9.sprint3.unit.spec.ts
+PASS src/modules/dashboard/hu7.sprint3.unit.spec.ts
+PASS src/modules/adoptions/hu12.sprint3.unit.spec.ts
+-----------------------|---------|----------|---------|---------|-------------------------------
+File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s             
+-----------------------|---------|----------|---------|---------|-------------------------------
+All files              |   49.21 |    33.71 |   43.13 |    51.1 |                               
+ common/guards         |   94.11 |       70 |     100 |     100 |                               
+  roles.guard.ts       |   94.11 |       70 |     100 |     100 | 19-30                         
+ modules/adoptions     |   26.08 |    17.39 |    23.8 |   26.66 |                               
+  adoptions.service.ts |   26.08 |    17.39 |    23.8 |   26.66 | 44-46,75-299,307,330,350-366  
+ modules/adoptions/dto |     100 |     62.5 |     100 |     100 |                               
+  adoptions.dto.ts     |     100 |     62.5 |     100 |     100 | 17-115                        
+ modules/animals       |   17.14 |    13.59 |    6.66 |   17.18 |                               
+  animals.service.ts   |   17.14 |    13.59 |    6.66 |   17.18 | 29-41,76-126,175-434          
+ modules/chat          |      80 |     64.7 |      60 |      80 |                               
+  chat-prompt.ts       |      80 |     64.7 |      60 |      80 | 28-29,74                      
+ modules/chat/dto      |     100 |      100 |     100 |     100 |                               
+  chat.dto.ts          |     100 |      100 |     100 |     100 |                               
+ modules/dashboard     |   89.58 |    84.61 |   84.21 |   95.12 |                               
+  dashboard.service.ts |   89.58 |    84.61 |   84.21 |   95.12 | 49-50                         
+ modules/kpis          |   76.71 |       50 |   60.86 |   83.07 |                               
+  kpis.service.ts      |   76.71 |       50 |   60.86 |   83.07 | 89-91,136-140,237-239,277-279 
+-----------------------|---------|----------|---------|---------|-------------------------------
+
+Test Suites: 3 passed, 3 total
+Tests:       18 passed, 18 total
+Snapshots:   0 total
+Time:        3.013 s
+Ran all test suites matching /sprint3.unit.spec/i with tests matching "PU-HU".
