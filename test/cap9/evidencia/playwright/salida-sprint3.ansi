@@ -1,0 +1,10 @@
+◇ injected env (0) from ..\..\.env.test
+
+[2mRunning [22m3[2m tests using [22m1[2m worker[22m
+
+◇ injected env (0) from ..\..\.env.test
+  [32mok[39m [2m1 [22me2e\hu12.spec.ts:8:1 › HU12: registrar un seguimiento de una adopción aprobada[2m (2.4s)[22m
+  [32mok[39m [2m2 [22me2e\hu7.spec.ts:9:1 › HU7: revisar el panel y los indicadores de gestión[2m (2.9s)[22m
+  [32mok[39m [2m3 [22me2e\hu9.spec.ts:11:1 › HU9: un visitante consulta al asistente y el servicio de IA no está disponible[2m (2.1s)[22m
+
+[32m  3 passed[39m[2m (8.0s)[22m

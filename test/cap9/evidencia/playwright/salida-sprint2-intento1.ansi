@@ -1,0 +1,38 @@
+◇ injected env (0) from ..\..\.env.test
+
+[2mRunning [22m5[2m tests using [22m1[2m worker[22m
+
+◇ injected env (0) from ..\..\.env.test
+  [32mok[39m [2m1 [22me2e\00-modelo.spec.ts:12:1 › Preparación: el administrador entrena el modelo de recomendación[2m (7.2s)[22m
+  [32mok[39m [2m2 [22me2e\hu10.spec.ts:9:1 › HU10: abrir un período de cuarentena y registrar un control[2m (2.9s)[22m
+  [32mok[39m [2m3 [22me2e\hu11.spec.ts:9:1 › HU11: aprobar una solicitud en evaluación y generar el acta de entrega[2m (2.6s)[22m
+  [32mok[39m [2m4 [22me2e\hu5.spec.ts:9:1 › HU5: crear una solicitud de adopción[2m (2.6s)[22m
+  [31mx[39m  [2m5 [22m[31me2e\hu6.spec.ts:9:1 › HU6: consultar la compatibilidad de un adoptante con los animales disponibles[39m[2m (1.5m)[22m
+
+
+[31m  1) e2e\hu6.spec.ts:9:1 › HU6: consultar la compatibilidad de un adoptante con los animales disponibles [39m
+
+    [31mTest timeout of 90000ms exceeded.[39m
+
+    Error: page.waitForURL: Test timeout of 90000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/dashboard" until "load"
+    ============================================================
+
+    [90m   at [39mhelpers.ts:28
+
+     [90m 26 |[39m   [36mawait[39m page[33m.[39mgetByLabel([32m'Contraseña'[39m)[33m.[39mfill(pass)[33m;[39m
+     [90m 27 |[39m   [36mawait[39m page[33m.[39mgetByRole([32m'button'[39m[33m,[39m { name[33m:[39m [32m'Iniciar sesión'[39m })[33m.[39mclick()[33m;[39m
+    [31m[1m>[22m[39m[90m 28 |[39m   [36mawait[39m page[33m.[39mwaitForURL([32m'**/dashboard'[39m)[33m;[39m
+     [90m    |[39m              [31m[1m^[22m[39m
+     [90m 29 |[39m   [36mawait[39m expect(page[33m.[39mgetByRole([32m'link'[39m[33m,[39m { name[33m:[39m [32m'Animales'[39m }))[33m.[39mtoBeVisible()[33m;[39m
+     [90m 30 |[39m }
+     [90m 31 |[39m
+    [2m    at login (.\test\sprint2\e2e\helpers.ts:28:14)[22m
+    [2m    at .\test\sprint2\e2e\hu6.spec.ts:20:3[22m
+
+[2m    Error Context: test-results\hu6-HU6-consultar-la-compa-ce49d-on-los-animales-disponibles\error-context.md[22m
+
+[31m  1 failed[39m
+[31m    e2e\hu6.spec.ts:9:1 › HU6: consultar la compatibilidad de un adoptante con los animales disponibles [39m
+[32m  4 passed[39m[2m (1.8m)[22m

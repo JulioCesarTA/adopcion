@@ -1,0 +1,5142 @@
+{
+  "fecha": "2026-11-17",
+  "entorno": {
+    "sistema_operativo": "Microsoft Windows 11 Home 10.0.26200 (64 bits)",
+    "procesador": "AMD Ryzen 7 5700G with Radeon Graphics (8 núcleos, 16 hilos)",
+    "ram": "13,8 GB",
+    "docker": "Docker Desktop con Docker Engine 29.9.3 (máquina virtual de Docker con 16 CPU y 6,7 GB de memoria)",
+    "node": {
+      "equipo": "v26.13.1 (Jest, Playwright, Lighthouse y scripts)",
+      "contenedores": "v24.22.3 (imágenes node:24-slim del backend y del frontend)"
+    },
+    "k6": "v2.4.0 (imagen grafana/k6:latest)",
+    "zap": "2.17.0 (imagen ghcr.io/zaproxy/zaproxy:stable)",
+    "lighthouse": "13.6.0",
+    "playwright": "1.65.1",
+    "navegador": "Chromium 159.0.8154.6 (el de Playwright), ventana de 1280 × 800",
+    "axe_core": "4.14.1 (@axe-core/playwright 4.14.0)",
+    "jest": "29.7.0 con ts-jest",
+    "base_de_datos": "PostgreSQL 16.16 en Docker (contenedor zoonosis-db-test, puerto 5433, base zoonosis_test); la misma base de prueba de los sprints",
+    "sistema_bajo_prueba": {
+      "backend": "Imagen construida con backend/Dockerfile sin cambios (etapa runtime, NODE_ENV=production, node dist/main); al arrancar aplica las migraciones pendientes",
+      "frontend": "Imagen construida con frontend/Dockerfile sin cambios (compilación de producción de Next.js, salida standalone)",
+      "proxy": "nginx 1.29.8 con la plantilla deploy/nginx/templates-http (la que monta docker-compose.ec2.yml), publicado en http://localhost:3000",
+      "orquestacion": "test/cap9/docker-compose.cap9.yml, levantado con test/cap9/sistema.sh",
+      "variables": "Las de .env.test (sin versionar); sin clave de la API de Anthropic ni servidor SMTP"
+    },
+    "diferencias_con_produccion": [
+      "Sin TLS: se usa la plantilla HTTP de nginx; la de producción con HTTPS sobre la IP (templates-ip-tls) necesita un certificado real.",
+      "En local se anula el default.conf de la imagen nginx, porque declara server_name localhost y respondería en lugar de la plantilla del repositorio.",
+      "Las fotos se guardan en disco (STORAGE_DRIVER=local) en lugar de S3.",
+      "Sin clave de la API de Anthropic: el asistente responde 503, como en el Sprint 3.",
+      "Sin servidor SMTP: el formulario de contacto guarda el mensaje, pero no envía correo.",
+      "La base de datos es la de prueba, con los datos de los seeds de los sprints."
+    ]
+  },
+  "implementacion": {
+    "jest_unitarias": {
+      "configuracion": "backend/package.json → jest",
+      "rootDir": "src",
+      "testRegex": ".*\\.spec\\.ts$",
+      "transformacion": "ts-jest",
+      "entorno": "node",
+      "cobertura": "collectCoverageFrom [\"**/*.(t|j)s\"], coverageDirectory ../coverage",
+      "comando": "npm test (jest) · npm run test:cov (jest --coverage)",
+      "dependencias": "Prisma, servicios externos y SDK se reemplazan por dobles de prueba (jest.fn, jest.mock); la API de IA no se llama nunca."
+    },
+    "jest_integracion": {
+      "configuracion": "backend/test/jest-e2e.json",
+      "rootDir": ".",
+      "testRegex": ".e2e-spec.ts$",
+      "transformacion": "ts-jest",
+      "comando": "npm run db:setup && npm run test:e2e (jest --config ./test/jest-e2e.json --runInBand)",
+      "forma": "Cada archivo crea la aplicación completa en el proceso con @nestjs/testing y setupApp(), y la recorre con Supertest contra una base PostgreSQL real."
+    },
+    "jest_seguridad": {
+      "configuracion": "test/cap9/jest-seguridad.config.js (reutiliza las dependencias del backend)",
+      "comando": "cd backend && npx jest --config ../test/cap9/jest-seguridad.config.js --runInBand"
+    },
+    "playwright": {
+      "configuraciones": [
+        "test/sprint1/playwright.config.ts",
+        "test/sprint2/playwright.config.ts",
+        "test/sprint3/playwright.config.ts",
+        "test/cap9/playwright.config.ts"
+      ],
+      "navegador": "Chromium (perfil Desktop Chrome)",
+      "ventana": "1280 × 800",
+      "reintentos": 0,
+      "trabajadores": 1,
+      "tiempo_maximo": "90 s por prueba en los sprints; 300 s en el Capítulo IX (flujo completo de 600 s)",
+      "reportero": "list (en esta ejecución se agregaron json y blob por la línea de comandos)",
+      "regional": "locale es-BO, zona horaria America/La_Paz",
+      "url_base": "http://localhost:3000"
+    },
+    "datos_de_prueba": [
+      {
+        "archivo": "backend/prisma/seed.ts",
+        "uso": "npm run db:setup y CI",
+        "descripcion": "Idempotente: crea los usuarios de prueba, el catálogo de vacunas y la configuración del algoritmo; los datos de ejemplo solo si la base no tiene animales."
+      },
+      {
+        "archivo": "test/sprint1/seed-sprint1.ts",
+        "uso": "Caja negra del Sprint 1",
+        "descripcion": "Vacía las tablas y carga los datos propios; se niega a ejecutarse fuera de la base de prueba."
+      },
+      {
+        "archivo": "test/sprint2/seed-sprint2.ts",
+        "uso": "Caja negra del Sprint 2",
+        "descripcion": "Igual que el anterior, con los datos de las historias del Sprint 2."
+      },
+      {
+        "archivo": "test/sprint3/seed-sprint3.ts",
+        "uso": "Caja negra del Sprint 3 y pruebas del Capítulo IX",
+        "descripcion": "Igual que el anterior, con fechas relativas al día de ejecución."
+      }
+    ],
+    "github_actions": {
+      "ci.yml": {
+        "backend": [
+          "Lint",
+          "Verificar tipos",
+          "Compilar",
+          "Pruebas unitarias (npm test)",
+          "Migraciones y seed (npm run db:setup)",
+          "Pruebas de integración (npm run test:e2e) con postgres:16-alpine"
+        ],
+        "frontend": [
+          "Lint",
+          "Verificar tipos",
+          "Compilar"
+        ],
+        "docker": [
+          "Construir las imágenes del backend y del frontend (sin publicar)"
+        ]
+      },
+      "deploy.yml": "No ejecuta pruebas: publica las imágenes en ECR y despliega por SSM cuando el CI termina bien en main.",
+      "no_incluidas": [
+        "Playwright (caja negra, sistema, XSS y accesibilidad)",
+        "Pruebas de seguridad del Capítulo IX",
+        "k6, Lighthouse y OWASP ZAP"
+      ]
+    }
+  },
+  "inventario": [
+    {
+      "archivo": "backend/src/common/guards/roles.guard.spec.ts",
+      "tipo": "Unitaria (Jest)",
+      "cubre": "common/guards",
+      "pruebas": 4
+    },
+    {
+      "archivo": "backend/src/modules/adopters/adopters.sprint2.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU5 · módulo adopters",
+      "pruebas": 3
+    },
+    {
+      "archivo": "backend/src/modules/adopters/hu5.sprint2.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU5 · módulo adopters",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/adoptions/adoptions.sprint2.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU5, HU11 · módulo adoptions",
+      "pruebas": 17
+    },
+    {
+      "archivo": "backend/src/modules/adoptions/adoptions.sprint3.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU12 · módulo adoptions",
+      "pruebas": 7
+    },
+    {
+      "archivo": "backend/src/modules/adoptions/hu11.sprint2.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU11 · módulo adoptions",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/adoptions/hu12.sprint3.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU12 · módulo adoptions",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/animals/animal-status.spec.ts",
+      "tipo": "Unitaria (Jest)",
+      "cubre": "módulo animals",
+      "pruebas": 20
+    },
+    {
+      "archivo": "backend/src/modules/animals/animals.hu1.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU1 · módulo animals",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/animals/animals.sprint1.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU1 · módulo animals",
+      "pruebas": 12
+    },
+    {
+      "archivo": "backend/src/modules/animals/animals.sprint2.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU10 · módulo animals",
+      "pruebas": 3
+    },
+    {
+      "archivo": "backend/src/modules/auth/auth.service.spec.ts",
+      "tipo": "Unitaria (Jest)",
+      "cubre": "módulo auth",
+      "pruebas": 8
+    },
+    {
+      "archivo": "backend/src/modules/auth/auth.sprint1.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU8 · módulo auth",
+      "pruebas": 7
+    },
+    {
+      "archivo": "backend/src/modules/chat/chat.sprint3.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU9 · módulo chat",
+      "pruebas": 14
+    },
+    {
+      "archivo": "backend/src/modules/chat/hu9.sprint3.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU9 · módulo chat",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/clinical/clinical.sprint1.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU2, HU3, HU4 · módulo clinical",
+      "pruebas": 17
+    },
+    {
+      "archivo": "backend/src/modules/clinical/clinical.sprint2.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU10 · módulo clinical",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/clinical/consultas.hu2.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU2 · módulo clinical",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/clinical/historial.hu3.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU3 · módulo clinical",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/clinical/hu10.sprint2.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU10 · módulo clinical",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/clinical/vacunas.hu4.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU4 · módulo clinical",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/dashboard/dashboard.sprint3.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU7 · módulo dashboard",
+      "pruebas": 4
+    },
+    {
+      "archivo": "backend/src/modules/dashboard/hu7.sprint3.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU7 · módulo dashboard",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/kpis/kpis.sprint3.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU7 · módulo kpis",
+      "pruebas": 5
+    },
+    {
+      "archivo": "backend/src/modules/recommendation/engine.spec.ts",
+      "tipo": "Unitaria (Jest)",
+      "cubre": "módulo recommendation",
+      "pruebas": 22
+    },
+    {
+      "archivo": "backend/src/modules/recommendation/hu6.sprint2.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU6 · módulo recommendation",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/recommendation/ml/ml.spec.ts",
+      "tipo": "Unitaria (Jest)",
+      "cubre": "módulo recommendation",
+      "pruebas": 46
+    },
+    {
+      "archivo": "backend/src/modules/recommendation/recommendation.sprint2.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU6 · módulo recommendation",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/src/modules/users/users.sprint1.spec.ts",
+      "tipo": "Caja blanca (camino básico, Jest)",
+      "cubre": "HU8 · módulo users",
+      "pruebas": 7
+    },
+    {
+      "archivo": "backend/src/modules/users/usuarios.hu8.unit.spec.ts",
+      "tipo": "Unitaria por historia de usuario (Jest, AAA)",
+      "cubre": "HU8 · módulo users",
+      "pruebas": 6
+    },
+    {
+      "archivo": "backend/test/business-rules.e2e-spec.ts",
+      "tipo": "Integración (API + PostgreSQL, Supertest)",
+      "cubre": "Reglas de negocio RN-03 a RN-07, HCD, solicitudes, panel y KPI",
+      "pruebas": 14
+    },
+    {
+      "archivo": "backend/test/auth.e2e-spec.ts",
+      "tipo": "Integración (API + PostgreSQL, Supertest)",
+      "cubre": "Autenticación y usuarios (auth, users)",
+      "pruebas": 5
+    },
+    {
+      "archivo": "backend/test/public.e2e-spec.ts",
+      "tipo": "Integración (API + PostgreSQL, Supertest)",
+      "cubre": "Sitio público, rol CLIENTE, contacto y asistente",
+      "pruebas": 5
+    },
+    {
+      "archivo": "test/sprint1/e2e/hu1.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU1 (Sprint 1)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint1/e2e/hu2.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU2 (Sprint 1)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint1/e2e/hu3.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU3 (Sprint 1)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint1/e2e/hu4.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU4 (Sprint 1)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint1/e2e/hu8.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU8 (Sprint 1)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint2/e2e/00-modelo.spec.ts",
+      "tipo": "Preparación de caja negra (Playwright)",
+      "cubre": "Entrenamiento del modelo antes de HU6 (Sprint 2)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint2/e2e/hu10.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU10 (Sprint 2)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint2/e2e/hu11.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU11 (Sprint 2)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint2/e2e/hu5.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU5 (Sprint 2)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint2/e2e/hu6.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU6 (Sprint 2)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint3/e2e/hu12.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU12 (Sprint 3)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint3/e2e/hu7.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU7 (Sprint 3)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/sprint3/e2e/hu9.spec.ts",
+      "tipo": "Caja negra (Playwright)",
+      "cubre": "HU9 (Sprint 3)",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/cap9/flujo-completo.spec.ts",
+      "tipo": "Sistema (Playwright)",
+      "cubre": "Ciclo completo del animal: HU1, HU2, HU4, HU10, HU5, HU6, HU11, HU12, HU7 y sitio público",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/cap9/seguridad.e2e-spec.ts",
+      "tipo": "Seguridad (Supertest)",
+      "cubre": "SEG-01 a SEG-19, salvo SEG-08",
+      "pruebas": 18
+    },
+    {
+      "archivo": "test/cap9/seg08-xss.spec.ts",
+      "tipo": "Seguridad (Playwright)",
+      "cubre": "SEG-08 XSS almacenado",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/cap9/accesibilidad.spec.ts",
+      "tipo": "Accesibilidad (axe-core con Playwright)",
+      "cubre": "7 pantallas",
+      "pruebas": 1
+    },
+    {
+      "archivo": "test/cap9/k6/carga.js",
+      "tipo": "Rendimiento (k6)",
+      "cubre": "6 servicios del backend; escenarios de 10, 25 y 50 usuarios virtuales",
+      "pruebas": 3
+    },
+    {
+      "archivo": "test/cap9/lighthouse.js",
+      "tipo": "Rendimiento web (Lighthouse)",
+      "cubre": "3 páginas públicas en móvil y escritorio",
+      "pruebas": 6
+    },
+    {
+      "archivo": "test/cap9/zap.sh",
+      "tipo": "Seguridad (OWASP ZAP)",
+      "cubre": "Escaneo base del frontend y escaneo de la API con OpenAPI",
+      "pruebas": 2
+    }
+  ],
+  "unidad": {
+    "comando": "cd backend && npx jest --coverage",
+    "total": 280,
+    "aprobadas": 278,
+    "fallidas": 2,
+    "archivos": 30,
+    "tiempo_s": 11.916,
+    "cobertura_total": {
+      "sentencias": {
+        "cubiertas": 1721,
+        "total": 2864,
+        "porcentaje": 60.09
+      },
+      "ramas": {
+        "cubiertas": 689,
+        "total": 1375,
+        "porcentaje": 50.1
+      },
+      "funciones": {
+        "cubiertas": 280,
+        "total": 566,
+        "porcentaje": 49.46
+      },
+      "lineas": {
+        "cubiertas": 1504,
+        "total": 2474,
+        "porcentaje": 60.79
+      }
+    },
+    "cobertura_por_modulo": [
+      {
+        "modulo": "adopters",
+        "sentencias": 58.62,
+        "ramas": 31.75,
+        "funciones": 56,
+        "lineas": 63.11
+      },
+      {
+        "modulo": "adoptions",
+        "sentencias": 81.44,
+        "ramas": 74.71,
+        "funciones": 60,
+        "lineas": 82.22
+      },
+      {
+        "modulo": "animals",
+        "sentencias": 68.35,
+        "ramas": 54.82,
+        "funciones": 48.28,
+        "lineas": 69.14
+      },
+      {
+        "modulo": "auth",
+        "sentencias": 47.1,
+        "ramas": 38.18,
+        "funciones": 34.78,
+        "lineas": 48.36
+      },
+      {
+        "modulo": "catalogs",
+        "sentencias": 9.09,
+        "ramas": 8.33,
+        "funciones": 0,
+        "lineas": 7.02
+      },
+      {
+        "modulo": "chat",
+        "sentencias": 88.89,
+        "ramas": 80.43,
+        "funciones": 73.33,
+        "lineas": 90.12
+      },
+      {
+        "modulo": "clinical",
+        "sentencias": 67.75,
+        "ramas": 59.21,
+        "funciones": 43.33,
+        "lineas": 68.75
+      },
+      {
+        "modulo": "contact",
+        "sentencias": 0,
+        "ramas": 0,
+        "funciones": 0,
+        "lineas": 0
+      },
+      {
+        "modulo": "dashboard",
+        "sentencias": 69.23,
+        "ramas": 70.59,
+        "funciones": 76.19,
+        "lineas": 75.93
+      },
+      {
+        "modulo": "health",
+        "sentencias": 0,
+        "ramas": 0,
+        "funciones": 0,
+        "lineas": 0
+      },
+      {
+        "modulo": "kpis",
+        "sentencias": 76.84,
+        "ramas": 57.14,
+        "funciones": 57.69,
+        "lineas": 81.93
+      },
+      {
+        "modulo": "mail",
+        "sentencias": 0,
+        "ramas": 0,
+        "funciones": 0,
+        "lineas": 0
+      },
+      {
+        "modulo": "public",
+        "sentencias": 0,
+        "ramas": 0,
+        "funciones": 0,
+        "lineas": 0
+      },
+      {
+        "modulo": "recommendation",
+        "sentencias": 72.89,
+        "ramas": 63.59,
+        "funciones": 63.69,
+        "lineas": 73.08
+      },
+      {
+        "modulo": "storage",
+        "sentencias": 17.65,
+        "ramas": 15.79,
+        "funciones": 0,
+        "lineas": 16.67
+      },
+      {
+        "modulo": "users",
+        "sentencias": 61.9,
+        "ramas": 36.76,
+        "funciones": 54.17,
+        "lineas": 63.16
+      }
+    ],
+    "detalle_fallidas": [
+      {
+        "archivo": "backend/src/modules/clinical/consultas.hu2.unit.spec.ts",
+        "prueba": "PU-HU2-06 el administrador puede registrar una consulta",
+        "mensaje": "Error: expect(received).not.toThrow() Error name: \"ForbiddenException\" Error message: \"No tienes acceso a este recurso\""
+      },
+      {
+        "archivo": "backend/src/modules/animals/animals.hu1.unit.spec.ts",
+        "prueba": "PU-HU1-06 el listado de animales acepta el filtro por tamaño",
+        "mensaje": "Error: expect(received).resolves.toMatchObject() Received promise rejected instead of resolved Rejected to value: [BadRequestException: Datos inválidos]"
+      }
+    ]
+  },
+  "complejidad": {
+    "alcance": "Backend: backend/src sin los archivos *.spec.ts (código de la aplicación)",
+    "comando": "cd backend && npx eslint \"src/**/*.ts\" --ignore-pattern \"**/*.spec.ts\" --rule \"complexity: [warn, 0]\" -f json",
+    "criterio": "Con el máximo en 0, ESLint informa la complejidad ciclomática de todas las funciones; no se cambió eslint.config.mjs.",
+    "archivos": 89,
+    "funciones": 579,
+    "maximo": 25,
+    "promedio": 2.18,
+    "top10": [
+      {
+        "archivo": "backend/src/modules/recommendation/ml/synthetic.ts",
+        "linea": 186,
+        "funcion": "successPropensity",
+        "tipo": "Función",
+        "complejidad": 25
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/random-forest.ts",
+        "linea": 92,
+        "funcion": "train",
+        "tipo": "Método estático",
+        "complejidad": 22
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/engine.ts",
+        "linea": 115,
+        "funcion": "validateInputs",
+        "tipo": "Función",
+        "complejidad": 19
+      },
+      {
+        "archivo": "backend/src/modules/animals/animals.service.ts",
+        "linea": 345,
+        "funcion": "timeline",
+        "tipo": "Método asíncrono",
+        "complejidad": 16
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/logistic-regression.ts",
+        "linea": 48,
+        "funcion": "train",
+        "tipo": "Método estático",
+        "complejidad": 14
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/ml.service.ts",
+        "linea": 122,
+        "funcion": "train",
+        "tipo": "Método asíncrono",
+        "complejidad": 14
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/cart.ts",
+        "linea": 93,
+        "funcion": "findBestSplit",
+        "tipo": "Función",
+        "complejidad": 13
+      },
+      {
+        "archivo": "backend/src/common/filters/all-exceptions.filter.ts",
+        "linea": 33,
+        "funcion": "toBody",
+        "tipo": "Método",
+        "complejidad": 12
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/ml.service.ts",
+        "linea": 295,
+        "funcion": "status",
+        "tipo": "Método asíncrono",
+        "complejidad": 11
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/recommendation.service.ts",
+        "linea": 312,
+        "funcion": "pair",
+        "tipo": "Método asíncrono",
+        "complejidad": 11
+      }
+    ],
+    "mayores_a_10": [
+      {
+        "archivo": "backend/src/modules/recommendation/ml/synthetic.ts",
+        "linea": 186,
+        "funcion": "successPropensity",
+        "tipo": "Función",
+        "complejidad": 25
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/random-forest.ts",
+        "linea": 92,
+        "funcion": "train",
+        "tipo": "Método estático",
+        "complejidad": 22
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/engine.ts",
+        "linea": 115,
+        "funcion": "validateInputs",
+        "tipo": "Función",
+        "complejidad": 19
+      },
+      {
+        "archivo": "backend/src/modules/animals/animals.service.ts",
+        "linea": 345,
+        "funcion": "timeline",
+        "tipo": "Método asíncrono",
+        "complejidad": 16
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/logistic-regression.ts",
+        "linea": 48,
+        "funcion": "train",
+        "tipo": "Método estático",
+        "complejidad": 14
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/ml.service.ts",
+        "linea": 122,
+        "funcion": "train",
+        "tipo": "Método asíncrono",
+        "complejidad": 14
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/cart.ts",
+        "linea": 93,
+        "funcion": "findBestSplit",
+        "tipo": "Función",
+        "complejidad": 13
+      },
+      {
+        "archivo": "backend/src/common/filters/all-exceptions.filter.ts",
+        "linea": 33,
+        "funcion": "toBody",
+        "tipo": "Método",
+        "complejidad": 12
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/ml/ml.service.ts",
+        "linea": 295,
+        "funcion": "status",
+        "tipo": "Método asíncrono",
+        "complejidad": 11
+      },
+      {
+        "archivo": "backend/src/modules/recommendation/recommendation.service.ts",
+        "linea": 312,
+        "funcion": "pair",
+        "tipo": "Método asíncrono",
+        "complejidad": 11
+      }
+    ],
+    "frontend": {
+      "alcance": "frontend/src (componentes y páginas)",
+      "comando": "cd frontend && npx eslint \"src/**/*.ts\" \"src/**/*.tsx\" --rule \"complexity: [warn, 0]\" -f json",
+      "archivos": 103,
+      "funciones": 834,
+      "maximo": 42,
+      "promedio": 2.34,
+      "top10": [
+        {
+          "archivo": "frontend/src/components/animals/animal-form.tsx",
+          "linea": 137,
+          "funcion": "AnimalForm",
+          "tipo": "Función",
+          "complejidad": 42
+        },
+        {
+          "archivo": "frontend/src/app/(app)/dashboard/page.tsx",
+          "linea": 38,
+          "funcion": "DashboardPage",
+          "tipo": "Función",
+          "complejidad": 31
+        },
+        {
+          "archivo": "frontend/src/app/(app)/animales/[id]/consultas/[consultaId]/page.tsx",
+          "linea": 40,
+          "funcion": "ConsultationPage",
+          "tipo": "Función",
+          "complejidad": 29
+        },
+        {
+          "archivo": "frontend/src/app/(app)/solicitudes/[id]/page.tsx",
+          "linea": 36,
+          "funcion": "RequestDetailPage",
+          "tipo": "Función",
+          "complejidad": 26
+        },
+        {
+          "archivo": "frontend/src/app/(app)/adoptantes/[id]/page.tsx",
+          "linea": 21,
+          "funcion": "AdopterDetailPage",
+          "tipo": "Función",
+          "complejidad": 22
+        },
+        {
+          "archivo": "frontend/src/app/(app)/animales/[id]/page.tsx",
+          "linea": 92,
+          "funcion": "Header",
+          "tipo": "Función",
+          "complejidad": 22
+        },
+        {
+          "archivo": "frontend/src/components/adoptions/adopter-form.tsx",
+          "linea": 67,
+          "funcion": "AdopterForm",
+          "tipo": "Función",
+          "complejidad": 22
+        },
+        {
+          "archivo": "frontend/src/app/(app)/admin/modelo/page.tsx",
+          "linea": 140,
+          "funcion": "MlModelPage",
+          "tipo": "Función",
+          "complejidad": 17
+        },
+        {
+          "archivo": "frontend/src/app/(app)/admin/usuarios/page.tsx",
+          "linea": 22,
+          "funcion": "UsersPage",
+          "tipo": "Función",
+          "complejidad": 17
+        },
+        {
+          "archivo": "frontend/src/app/(app)/admin/usuarios/user-dialogs.tsx",
+          "linea": 32,
+          "funcion": "UserFormDialog",
+          "tipo": "Función",
+          "complejidad": 17
+        }
+      ],
+      "mayores_a_10": [
+        {
+          "archivo": "frontend/src/components/animals/animal-form.tsx",
+          "linea": 137,
+          "funcion": "AnimalForm",
+          "tipo": "Función",
+          "complejidad": 42
+        },
+        {
+          "archivo": "frontend/src/app/(app)/dashboard/page.tsx",
+          "linea": 38,
+          "funcion": "DashboardPage",
+          "tipo": "Función",
+          "complejidad": 31
+        },
+        {
+          "archivo": "frontend/src/app/(app)/animales/[id]/consultas/[consultaId]/page.tsx",
+          "linea": 40,
+          "funcion": "ConsultationPage",
+          "tipo": "Función",
+          "complejidad": 29
+        },
+        {
+          "archivo": "frontend/src/app/(app)/solicitudes/[id]/page.tsx",
+          "linea": 36,
+          "funcion": "RequestDetailPage",
+          "tipo": "Función",
+          "complejidad": 26
+        },
+        {
+          "archivo": "frontend/src/app/(app)/adoptantes/[id]/page.tsx",
+          "linea": 21,
+          "funcion": "AdopterDetailPage",
+          "tipo": "Función",
+          "complejidad": 22
+        },
+        {
+          "archivo": "frontend/src/app/(app)/animales/[id]/page.tsx",
+          "linea": 92,
+          "funcion": "Header",
+          "tipo": "Función",
+          "complejidad": 22
+        },
+        {
+          "archivo": "frontend/src/components/adoptions/adopter-form.tsx",
+          "linea": 67,
+          "funcion": "AdopterForm",
+          "tipo": "Función",
+          "complejidad": 22
+        },
+        {
+          "archivo": "frontend/src/app/(app)/admin/modelo/page.tsx",
+          "linea": 140,
+          "funcion": "MlModelPage",
+          "tipo": "Función",
+          "complejidad": 17
+        },
+        {
+          "archivo": "frontend/src/app/(app)/admin/usuarios/page.tsx",
+          "linea": 22,
+          "funcion": "UsersPage",
+          "tipo": "Función",
+          "complejidad": 17
+        },
+        {
+          "archivo": "frontend/src/app/(app)/admin/usuarios/user-dialogs.tsx",
+          "linea": 32,
+          "funcion": "UserFormDialog",
+          "tipo": "Función",
+          "complejidad": 17
+        },
+        {
+          "archivo": "frontend/src/app/(portal)/portal/page.tsx",
+          "linea": 20,
+          "funcion": "PortalHome",
+          "tipo": "Función",
+          "complejidad": 17
+        },
+        {
+          "archivo": "frontend/src/components/clinical/periods-panel.tsx",
+          "linea": 37,
+          "funcion": "(anónima)",
+          "tipo": "Función flecha",
+          "complejidad": 16
+        },
+        {
+          "archivo": "frontend/src/app/(public)/page.tsx",
+          "linea": 90,
+          "funcion": "LandingPage",
+          "tipo": "Función",
+          "complejidad": 14
+        },
+        {
+          "archivo": "frontend/src/components/data-table.tsx",
+          "linea": 35,
+          "funcion": "DataTable",
+          "tipo": "Función",
+          "complejidad": 14
+        },
+        {
+          "archivo": "frontend/src/app/(app)/animales/[id]/page.tsx",
+          "linea": 232,
+          "funcion": "Summary",
+          "tipo": "Función",
+          "complejidad": 13
+        },
+        {
+          "archivo": "frontend/src/components/clinical/vaccine-catalog.tsx",
+          "linea": 34,
+          "funcion": "VaccineDialog",
+          "tipo": "Función",
+          "complejidad": 13
+        },
+        {
+          "archivo": "frontend/src/app/(app)/animales/[id]/consultas/nueva/page.tsx",
+          "linea": 36,
+          "funcion": "NewConsultationPage",
+          "tipo": "Función",
+          "complejidad": 12
+        },
+        {
+          "archivo": "frontend/src/components/animals/animal-form.tsx",
+          "linea": 198,
+          "funcion": "(anónima)",
+          "tipo": "Función flecha asíncrona",
+          "complejidad": 12
+        },
+        {
+          "archivo": "frontend/src/components/clinical/medication-fields.tsx",
+          "linea": 49,
+          "funcion": "(anónima)",
+          "tipo": "Función flecha",
+          "complejidad": 12
+        },
+        {
+          "archivo": "frontend/src/app/(app)/animales/[id]/consultas/nueva/page.tsx",
+          "linea": 220,
+          "funcion": "(anónima)",
+          "tipo": "Función flecha",
+          "complejidad": 11
+        },
+        {
+          "archivo": "frontend/src/app/(app)/solicitudes/[id]/acta/page.tsx",
+          "linea": 14,
+          "funcion": "ActPage",
+          "tipo": "Función",
+          "complejidad": 11
+        },
+        {
+          "archivo": "frontend/src/components/adoptions/adopter-form.tsx",
+          "linea": 103,
+          "funcion": "(anónima)",
+          "tipo": "Función flecha asíncrona",
+          "complejidad": 11
+        },
+        {
+          "archivo": "frontend/src/components/clinical/vaccinations-panel.tsx",
+          "linea": 127,
+          "funcion": "VaccinationDialog",
+          "tipo": "Función",
+          "complejidad": 11
+        }
+      ]
+    }
+  },
+  "integracion": {
+    "comando": "cd backend && npm run db:setup && npm run test:e2e",
+    "base": "Base de prueba zoonosis_test (puerto 5433) con los datos del seed del Sprint 3; npm run db:setup aplicó las migraciones pendientes (ninguna) y el seed idempotente de prisma/seed.ts.",
+    "total": 24,
+    "aprobadas": 24,
+    "fallidas": 0,
+    "tiempo_s": 6.381,
+    "casos": [
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU03: GESTION registra un animal con código ZOO-AAAA-NNNN en estado INGRESADO",
+        "endpoints": [
+          "POST /api/v1/animals"
+        ],
+        "modulos": [
+          "animals",
+          "common (RolesGuard, ValidationPipe)",
+          "Prisma"
+        ],
+        "verifica": "Alta de animal con código correlativo, permisos por rol y validación por campo.",
+        "esperado": "Gestión crea el animal (201) con código ZOO-AAAA-NNNN y estado INGRESADO; el veterinario recibe 403; un cuerpo incompleto responde 400 con el detalle del campo size.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 38
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "RN-03: no se habilita para adopción sin consulta registrada",
+        "endpoints": [
+          "POST /api/v1/animals/:id/enable-adoption"
+        ],
+        "modulos": [
+          "animals (AnimalStatusService)",
+          "clinical"
+        ],
+        "verifica": "La regla RN-03 bloquea la habilitación sin consulta veterinaria.",
+        "esperado": "Responde 409 con «No tiene ninguna consulta veterinaria registrada».",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 22
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU06: consulta con validaciones (temperatura 30–45 °C, peso > 0)",
+        "endpoints": [
+          "POST /api/v1/animals/:id/consultations"
+        ],
+        "modulos": [
+          "clinical",
+          "animals",
+          "common (RolesGuard, ValidationPipe)"
+        ],
+        "verifica": "Validación de signos vitales y permiso exclusivo del veterinario.",
+        "esperado": "Temperatura 50 °C y peso 0 responden 400; Gestión recibe 403; la consulta válida responde 201.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 28
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU09: cuarentena activa bloquea RN-03; un solo periodo activo; cierre pide confirmación sin controles",
+        "endpoints": [
+          "POST /api/v1/animals/:id/periods",
+          "POST /api/v1/animals/:id/enable-adoption",
+          "POST /api/v1/periods/:id/close",
+          "GET /api/v1/animals/:id"
+        ],
+        "modulos": [
+          "clinical (periodos)",
+          "animals (máquina de estados)"
+        ],
+        "verifica": "Cuarentena, un solo periodo activo y cierre con confirmación cuando no hay controles.",
+        "esperado": "El animal pasa a EN_CUARENTENA; un segundo periodo responde 409; la habilitación responde 409 «Tiene cuarentena activa»; el cierre responde 403 para Gestión, 409 sin confirmar y 200 confirmando; el animal vuelve a INGRESADO.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 113
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU07: tratamiento activo → EN_TRATAMIENTO; al finalizarlo vuelve a INGRESADO",
+        "endpoints": [
+          "GET /api/v1/animals/:id/consultations",
+          "POST /api/v1/consultations/:id/treatments",
+          "POST /api/v1/animals/:id/enable-adoption",
+          "PATCH /api/v1/treatments/:id"
+        ],
+        "modulos": [
+          "clinical (tratamientos)",
+          "animals (máquina de estados)"
+        ],
+        "verifica": "Validaciones del tratamiento y su efecto en la situación del animal.",
+        "esperado": "Fin anterior al inicio y medicamento sin dosis responden 400; el tratamiento válido responde 201 y el animal pasa a EN_TRATAMIENTO; la habilitación responde 409; al finalizarlo (200) vuelve a INGRESADO.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 114
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU05: la línea de tiempo del HCD está en orden cronológico inverso",
+        "endpoints": [
+          "GET /api/v1/animals/:id/timeline"
+        ],
+        "modulos": [
+          "animals (timeline)",
+          "clinical"
+        ],
+        "verifica": "El historial clínico digital se ordena del más reciente al más antiguo.",
+        "esperado": "Responde 200 con al menos 2 registros en orden cronológico inverso.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 15
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU21: con RN-03 cumplida el veterinario habilita para adopción",
+        "endpoints": [
+          "POST /api/v1/animals/:id/enable-adoption"
+        ],
+        "modulos": [
+          "animals",
+          "common (RolesGuard)"
+        ],
+        "verifica": "Solo el veterinario habilita para adopción cuando se cumple RN-03.",
+        "esperado": "Gestión recibe 403; el veterinario recibe 200 y el animal queda DISPONIBLE_ADOPCION.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 26
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU10: adoptante con CI única y horas 0–24",
+        "endpoints": [
+          "POST /api/v1/adopters"
+        ],
+        "modulos": [
+          "adopters",
+          "common (ValidationPipe)",
+          "Prisma"
+        ],
+        "verifica": "Validación de horas disponibles y unicidad de la CI.",
+        "esperado": "30 horas responde 400; el adoptante válido responde 201; la CI repetida responde 409 con existingAdopterId.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 25
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU13: ranking y par incluyen puntaje, desglose y aviso RN-08",
+        "endpoints": [
+          "GET /api/v1/recommendations/adopter/:id",
+          "POST /api/v1/recommendations"
+        ],
+        "modulos": [
+          "recommendation (modelo o reglas)",
+          "adopters",
+          "animals"
+        ],
+        "verifica": "Ranking ordenado, aviso RN-08 y desglose de la compatibilidad de un par.",
+        "esperado": "El ranking trae el aviso «Resultado de apoyo…», puntajes de mayor a menor e incluye al animal; el par responde 201 con puntaje mayor que 0 y 5 criterios.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 39
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "RN-04/05/06/07 y máquina de estados de la solicitud",
+        "endpoints": [
+          "GET /api/v1/animals?status=EN_OBSERVACION",
+          "POST /api/v1/adoptions",
+          "PATCH /api/v1/adoptions/:id/status",
+          "POST /api/v1/adoptions/:id/decision",
+          "POST /api/v1/adoptions/:id/followups",
+          "GET /api/v1/adoptions/:id/act"
+        ],
+        "modulos": [
+          "adoptions",
+          "animals (máquina de estados)",
+          "adopters",
+          "Prisma (transacciones)"
+        ],
+        "verifica": "Reglas RN-04 a RN-07 y transiciones de la solicitud hasta el acta y el seguimiento.",
+        "esperado": "Animal no disponible 409; solicitud 201 en PENDIENTE y animal EN_PROCESO_ADOPCION; duplicada 409; seguimiento antes de aprobar 409; decisión fuera de evaluación 409; notas y fecha de entrega obligatorias 400; rechazo devuelve el animal a DISPONIBLE_ADOPCION; aprobación lo deja ADOPTADO; seguimiento 201 y acta 200.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 197
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU06/CU22: un animal adoptado no admite consultas; el reingreso lo vuelve a INGRESADO",
+        "endpoints": [
+          "POST /api/v1/animals/:id/consultations",
+          "POST /api/v1/animals/:id/exit",
+          "POST /api/v1/animals/:id/readmit",
+          "PATCH /api/v1/animals/:id"
+        ],
+        "modulos": [
+          "animals (salida y reingreso)",
+          "clinical"
+        ],
+        "verifica": "Estados finales, reingreso y salida del animal.",
+        "esperado": "La consulta de un adoptado responde 409; la salida de un adoptado 409; el reingreso 200 y el animal vuelve a INGRESADO; salida «OTRO» sin detalle 400; salida DEVUELTO 200; en estado final solo se editan notas (409 y 200).",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 81
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU17: el panel calcula cada indicador por separado",
+        "endpoints": [
+          "GET /api/v1/dashboard",
+          "GET /api/v1/alerts",
+          "GET /api/v1/audit",
+          "GET /api/v1/reports"
+        ],
+        "modulos": [
+          "dashboard",
+          "Prisma"
+        ],
+        "verifica": "Cada sección del panel se calcula aislada y las funciones retiradas no existen.",
+        "esperado": "El panel responde 200 con cards.ok y byStatus.ok, sin «alerts»; /alerts, /audit y /reports responden 404.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 43
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "KPIs: seis indicadores con comparación contra el periodo anterior",
+        "endpoints": [
+          "GET /api/v1/kpis?months=6",
+          "GET /api/v1/kpis?months=99"
+        ],
+        "modulos": [
+          "kpis",
+          "Prisma"
+        ],
+        "verifica": "Los seis indicadores de gestión con unidad, tendencia y dirección.",
+        "esperado": "Responde 200 con 6 indicadores válidos y periodMonths 6; months=99 responde 400.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 20
+      },
+      {
+        "archivo": "backend/test/business-rules.e2e-spec.ts",
+        "nombre": "CU13 inverso: ranking de adoptantes compatibles con un animal",
+        "endpoints": [
+          "GET /api/v1/recommendations/animal/:id"
+        ],
+        "modulos": [
+          "recommendation",
+          "adopters",
+          "animals"
+        ],
+        "verifica": "Ranking inverso sin exponer la CI del adoptante.",
+        "esperado": "Responde 200 con el animal, la lista de adoptantes con puntaje numérico, el aviso y sin la CI.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 20
+      },
+      {
+        "archivo": "backend/test/auth.e2e-spec.ts",
+        "nombre": "login correcto devuelve access token y cookie httpOnly",
+        "endpoints": [
+          "POST /api/v1/auth/login"
+        ],
+        "modulos": [
+          "auth",
+          "users (Prisma)",
+          "common (ValidationPipe)"
+        ],
+        "verifica": "El inicio de sesión con un usuario del seed emite el token de acceso y la cookie del refresh token.",
+        "esperado": "Responde 200 con el token de acceso, el rol ADMIN y la cookie refresh_token marcada HttpOnly.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 88
+      },
+      {
+        "archivo": "backend/test/auth.e2e-spec.ts",
+        "nombre": "credenciales inválidas → 401 con mensaje genérico",
+        "endpoints": [
+          "POST /api/v1/auth/login"
+        ],
+        "modulos": [
+          "auth",
+          "users (Prisma)"
+        ],
+        "verifica": "Una contraseña incorrecta no revela si el correo existe.",
+        "esperado": "Responde 401 con el mensaje genérico «Credenciales inválidas».",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 69
+      },
+      {
+        "archivo": "backend/test/auth.e2e-spec.ts",
+        "nombre": "sin token → 401; rol sin permiso → 403",
+        "endpoints": [
+          "GET /api/v1/users",
+          "POST /api/v1/auth/login"
+        ],
+        "modulos": [
+          "auth (JwtAuthGuard)",
+          "common (RolesGuard)",
+          "users"
+        ],
+        "verifica": "La administración de usuarios exige sesión y el rol ADMIN.",
+        "esperado": "Responde 401 sin token y 403 con el token de un veterinario.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 79
+      },
+      {
+        "archivo": "backend/test/auth.e2e-spec.ts",
+        "nombre": "ADMIN crea usuario, lo desactiva y el token del usuario deja de funcionar (RN-10)",
+        "endpoints": [
+          "POST /api/v1/users",
+          "POST /api/v1/auth/login",
+          "GET /api/v1/auth/me",
+          "PATCH /api/v1/users/:id/active"
+        ],
+        "modulos": [
+          "users",
+          "auth",
+          "common (JwtAuthGuard)",
+          "Prisma"
+        ],
+        "verifica": "Alta de usuario, correo único y efecto inmediato de la desactivación (RN-10).",
+        "esperado": "Crea el usuario (201); el correo repetido responde 409; tras desactivarlo, su token responde 401 y su inicio de sesión responde 403 «Cuenta desactivada, contacta al administrador».",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 290
+      },
+      {
+        "archivo": "backend/test/auth.e2e-spec.ts",
+        "nombre": "el admin no puede desactivarse a sí mismo",
+        "endpoints": [
+          "POST /api/v1/auth/login",
+          "PATCH /api/v1/users/:id/active"
+        ],
+        "modulos": [
+          "users",
+          "auth"
+        ],
+        "verifica": "El administrador no puede desactivar su propia cuenta.",
+        "esperado": "Responde 400.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 67
+      },
+      {
+        "archivo": "backend/test/public.e2e-spec.ts",
+        "nombre": "info y animales públicos sin sesión (sin datos internos)",
+        "endpoints": [
+          "GET /api/v1/public/info",
+          "GET /api/v1/public/animals"
+        ],
+        "modulos": [
+          "public",
+          "animals (Prisma)",
+          "config"
+        ],
+        "verifica": "El sitio público funciona sin sesión y no expone datos internos de los animales.",
+        "esperado": "Responde 200 sin sesión; los animales no incluyen entryReason, specialCareNotes ni createdById.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 30
+      },
+      {
+        "archivo": "backend/test/public.e2e-spec.ts",
+        "nombre": "registro exige aceptar los términos y guarda la fecha de aceptación",
+        "endpoints": [
+          "POST /api/v1/public/register"
+        ],
+        "modulos": [
+          "public",
+          "users (Prisma)",
+          "common (ValidationPipe)"
+        ],
+        "verifica": "El registro de clientes exige aceptar los Términos y guarda la fecha de aceptación.",
+        "esperado": "Sin aceptar los términos responde 400; aceptándolos responde 201 con el rol CLIENTE y guarda termsAcceptedAt; el correo repetido responde 409.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 85
+      },
+      {
+        "archivo": "backend/test/public.e2e-spec.ts",
+        "nombre": "el CLIENTE accede a su perfil pero no al sistema interno",
+        "endpoints": [
+          "POST /api/v1/auth/login",
+          "GET /api/v1/auth/me",
+          "GET /api/v1/animals",
+          "GET /api/v1/dashboard",
+          "GET /api/v1/adopters",
+          "GET /api/v1/kpis",
+          "GET /api/v1/users"
+        ],
+        "modulos": [
+          "auth",
+          "common (RolesGuard)",
+          "animals",
+          "dashboard",
+          "adopters",
+          "kpis",
+          "users"
+        ],
+        "verifica": "El rol CLIENTE solo accede a su perfil.",
+        "esperado": "Responde 200 en /auth/me y 403 en las cinco rutas internas.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 86
+      },
+      {
+        "archivo": "backend/test/public.e2e-spec.ts",
+        "nombre": "contacto exige aceptar el tratamiento de datos y guarda el mensaje",
+        "endpoints": [
+          "POST /api/v1/public/contact"
+        ],
+        "modulos": [
+          "public",
+          "contact (Prisma)",
+          "mail"
+        ],
+        "verifica": "El formulario de contacto exige aceptar la Política de Privacidad y guarda el mensaje.",
+        "esperado": "Sin aceptar responde 400; aceptando responde 200 { ok: true } y el mensaje queda guardado con privacyAcceptedAt y el estado NUEVO.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 13
+      },
+      {
+        "archivo": "backend/test/public.e2e-spec.ts",
+        "nombre": "el bot sin API key responde 503 y valida el historial",
+        "endpoints": [
+          "POST /api/v1/chat"
+        ],
+        "modulos": [
+          "chat",
+          "common (ValidationPipe)"
+        ],
+        "verifica": "El asistente sin clave de la API responde con un mensaje claro y valida el historial.",
+        "esperado": "Responde 503 «… no está disponible …» y 400 si el historial trae un rol no permitido.",
+        "obtenido": "Se cumplieron todas las aserciones de la prueba: los códigos HTTP, los mensajes y los estados fueron los esperados.",
+        "estado": "Aprobada",
+        "tiempo_ms": 6
+      }
+    ]
+  },
+  "playwright": {
+    "comando": "sh test/cap9/ejecutar-sprints.sh (seed del sprint + npx playwright test en test/sprint1, test/sprint2 y test/sprint3)",
+    "sistema": "Imágenes de producción detrás de nginx (http://localhost:3000)",
+    "total": 13,
+    "aprobadas": 13,
+    "fallidas": 0,
+    "casos": [
+      {
+        "sprint": 1,
+        "archivo": "test/sprint1/e2e/hu1.spec.ts",
+        "nombre": "HU1: registrar un animal nuevo con fotografía",
+        "hu": "HU1",
+        "estado": "Aprobada",
+        "tiempo_ms": 3054
+      },
+      {
+        "sprint": 1,
+        "archivo": "test/sprint1/e2e/hu2.spec.ts",
+        "nombre": "HU2: registrar una consulta clínica completa",
+        "hu": "HU2",
+        "estado": "Aprobada",
+        "tiempo_ms": 2345
+      },
+      {
+        "sprint": 1,
+        "archivo": "test/sprint1/e2e/hu3.spec.ts",
+        "nombre": "HU3: consultar el historial clínico de un animal",
+        "hu": "HU3",
+        "estado": "Aprobada",
+        "tiempo_ms": 2121
+      },
+      {
+        "sprint": 1,
+        "archivo": "test/sprint1/e2e/hu4.spec.ts",
+        "nombre": "HU4: registrar una vacuna y revisar el aviso de próximas dosis",
+        "hu": "HU4",
+        "estado": "Aprobada",
+        "tiempo_ms": 2306
+      },
+      {
+        "sprint": 1,
+        "archivo": "test/sprint1/e2e/hu8.spec.ts",
+        "nombre": "HU8: crear un usuario e iniciar sesión con la cuenta nueva",
+        "hu": "HU8",
+        "estado": "Aprobada",
+        "tiempo_ms": 3064
+      },
+      {
+        "sprint": 2,
+        "archivo": "test/sprint2/e2e/00-modelo.spec.ts",
+        "nombre": "Preparación: el administrador entrena el modelo de recomendación",
+        "hu": null,
+        "estado": "Aprobada",
+        "tiempo_ms": 6721,
+        "primer_intento": "Aprobada"
+      },
+      {
+        "sprint": 2,
+        "archivo": "test/sprint2/e2e/hu10.spec.ts",
+        "nombre": "HU10: abrir un período de cuarentena y registrar un control",
+        "hu": "HU10",
+        "estado": "Aprobada",
+        "tiempo_ms": 2536,
+        "primer_intento": "Aprobada"
+      },
+      {
+        "sprint": 2,
+        "archivo": "test/sprint2/e2e/hu11.spec.ts",
+        "nombre": "HU11: aprobar una solicitud en evaluación y generar el acta de entrega",
+        "hu": "HU11",
+        "estado": "Aprobada",
+        "tiempo_ms": 2306,
+        "primer_intento": "Aprobada"
+      },
+      {
+        "sprint": 2,
+        "archivo": "test/sprint2/e2e/hu5.spec.ts",
+        "nombre": "HU5: crear una solicitud de adopción",
+        "hu": "HU5",
+        "estado": "Aprobada",
+        "tiempo_ms": 2579,
+        "primer_intento": "Aprobada"
+      },
+      {
+        "sprint": 2,
+        "archivo": "test/sprint2/e2e/hu6.spec.ts",
+        "nombre": "HU6: consultar la compatibilidad de un adoptante con los animales disponibles",
+        "hu": "HU6",
+        "estado": "Aprobada",
+        "tiempo_ms": 2290,
+        "primer_intento": "Fallida",
+        "observacion": "En el primer intento falló porque el inicio de sesión recibió 429 «Demasiados intentos. Espera un momento e inténtalo de nuevo.»: los sprints 1 y 2 se ejecutaron seguidos desde la misma IP y fue el undécimo inicio de sesión dentro del mismo minuto (límite de 10 por minuto). Se repitió el Sprint 2 después de 65 s, sin cambiar código ni datos."
+      },
+      {
+        "sprint": 3,
+        "archivo": "test/sprint3/e2e/hu12.spec.ts",
+        "nombre": "HU12: registrar un seguimiento de una adopción aprobada",
+        "hu": "HU12",
+        "estado": "Aprobada",
+        "tiempo_ms": 2424
+      },
+      {
+        "sprint": 3,
+        "archivo": "test/sprint3/e2e/hu7.spec.ts",
+        "nombre": "HU7: revisar el panel y los indicadores de gestión",
+        "hu": "HU7",
+        "estado": "Aprobada",
+        "tiempo_ms": 2858
+      },
+      {
+        "sprint": 3,
+        "archivo": "test/sprint3/e2e/hu9.spec.ts",
+        "nombre": "HU9: un visitante consulta al asistente y el servicio de IA no está disponible",
+        "hu": "HU9",
+        "estado": "Aprobada",
+        "tiempo_ms": 2110
+      }
+    ],
+    "observaciones": [
+      "Las 13 pruebas son las 12 de caja negra de los sprints más la preparación del Sprint 2 (el administrador entrena el modelo de recomendación antes de HU6).",
+      "Primer intento del Sprint 2: 4 aprobadas y 1 fallida (HU6), por el límite de 10 inicios de sesión por minuto al ejecutar los sprints 1 y 2 seguidos. El límite está documentado y lo comprueba SEG-10; no es un defecto. El script espera ahora 65 s antes de cada sprint.",
+      "Las capturas y la evidencia que estas pruebas escriben en docs/pruebas-sprintN y test/sprintN/evidencia se restauraron desde git al terminar; lo observado en esta ejecución quedó en test/cap9/evidencia/playwright/observado-sprintN."
+    ]
+  },
+  "regresion": {
+    "criterio": "Cada prueba de los sprints se compara con su resultado registrado en docs/pruebas-sprintN (unitarias.json y resultados.json) y con su resultado en esta ejecución.",
+    "observaciones": [
+      "Lo que observaron las pruebas de caja negra fue idéntico a la evidencia original de su sprint en 8 de las 12 historias. En HU2, HU3 y HU12 solo cambió la hora de los registros, que es la del momento de la ejecución. En HU7, el indicador «Permanencia hasta la adopción» pasó de 42,5 a 42,6 días, porque el seed calcula las fechas en relación con el momento en que se ejecuta.",
+      "Las dos pruebas unitarias que fallan (PU-HU1-06 y PU-HU2-06) ya fallaban en el Sprint 1: son los defectos de ese sprint, todavía abiertos."
+    ],
+    "resumen": {
+      "Sprint 1 · Unitaria": {
+        "antes_aprobadas": 28,
+        "ahora_aprobadas": 28,
+        "total": 30
+      },
+      "Sprint 1 · Caja blanca (caminos)": {
+        "antes_aprobadas": 43,
+        "ahora_aprobadas": 43,
+        "total": 43
+      },
+      "Sprint 1 · Caja negra": {
+        "antes_aprobadas": 5,
+        "ahora_aprobadas": 5,
+        "total": 5
+      },
+      "Sprint 2 · Unitaria": {
+        "antes_aprobadas": 24,
+        "ahora_aprobadas": 24,
+        "total": 24
+      },
+      "Sprint 2 · Caja blanca (caminos)": {
+        "antes_aprobadas": 35,
+        "ahora_aprobadas": 35,
+        "total": 35
+      },
+      "Sprint 2 · Caja negra": {
+        "antes_aprobadas": 4,
+        "ahora_aprobadas": 4,
+        "total": 4
+      },
+      "Sprint 3 · Unitaria": {
+        "antes_aprobadas": 18,
+        "ahora_aprobadas": 18,
+        "total": 18
+      },
+      "Sprint 3 · Caja blanca (caminos)": {
+        "antes_aprobadas": 30,
+        "ahora_aprobadas": 30,
+        "total": 30
+      },
+      "Sprint 3 · Caja negra": {
+        "antes_aprobadas": 3,
+        "ahora_aprobadas": 3,
+        "total": 3
+      }
+    },
+    "comparacion": [
+      {
+        "prueba": "PU-HU1-01",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU1-02",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU1-03",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU1-04",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU1-05",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU1-06",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Fallida",
+        "ahora": "Fallida"
+      },
+      {
+        "prueba": "PU-HU2-01",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU2-02",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU2-03",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU2-04",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU2-05",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU2-06",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Fallida",
+        "ahora": "Fallida"
+      },
+      {
+        "prueba": "PU-HU3-01",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU3-02",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU3-03",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU3-04",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU3-05",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU3-06",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU4-01",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU4-02",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU4-03",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU4-04",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU4-05",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU4-06",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU8-01",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU8-02",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU8-03",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU8-04",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU8-05",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU8-06",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-A-C1",
+        "tipo": "Caja blanca (CB-HU1-A AnimalsService.create)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-A-C2",
+        "tipo": "Caja blanca (CB-HU1-A AnimalsService.create)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-B-C1",
+        "tipo": "Caja blanca (CB-HU1-B AnimalsService.update)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-B-C2",
+        "tipo": "Caja blanca (CB-HU1-B AnimalsService.update)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-B-C3",
+        "tipo": "Caja blanca (CB-HU1-B AnimalsService.update)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-B-C4",
+        "tipo": "Caja blanca (CB-HU1-B AnimalsService.update)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-B-C5",
+        "tipo": "Caja blanca (CB-HU1-B AnimalsService.update)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-C-C1",
+        "tipo": "Caja blanca (CB-HU1-C AnimalsService.savePhoto)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-C-C2",
+        "tipo": "Caja blanca (CB-HU1-C AnimalsService.savePhoto)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-C-C3",
+        "tipo": "Caja blanca (CB-HU1-C AnimalsService.savePhoto)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-C-C4",
+        "tipo": "Caja blanca (CB-HU1-C AnimalsService.savePhoto)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU1-C-C5",
+        "tipo": "Caja blanca (CB-HU1-C AnimalsService.savePhoto)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU2-A-C1",
+        "tipo": "Caja blanca (CB-HU2-A ClinicalService.createConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU2-A-C2",
+        "tipo": "Caja blanca (CB-HU2-A ClinicalService.createConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU2-A-C3",
+        "tipo": "Caja blanca (CB-HU2-A ClinicalService.createConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU3-A-C1",
+        "tipo": "Caja blanca (CB-HU3-A ClinicalService.updateConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU3-A-C2",
+        "tipo": "Caja blanca (CB-HU3-A ClinicalService.updateConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU3-A-C3",
+        "tipo": "Caja blanca (CB-HU3-A ClinicalService.updateConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU3-A-C4",
+        "tipo": "Caja blanca (CB-HU3-A ClinicalService.updateConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU3-A-C5",
+        "tipo": "Caja blanca (CB-HU3-A ClinicalService.updateConsultation)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C1",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C2",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C3",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C4",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C5",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C6",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C7",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C8",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU4-A-C9",
+        "tipo": "Caja blanca (CB-HU4-A ClinicalService.createVaccination)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-A-C1",
+        "tipo": "Caja blanca (CB-HU8-A AuthService.login)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-A-C2",
+        "tipo": "Caja blanca (CB-HU8-A AuthService.login)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-A-C3",
+        "tipo": "Caja blanca (CB-HU8-A AuthService.login)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-A-C4",
+        "tipo": "Caja blanca (CB-HU8-A AuthService.login)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-A-C5",
+        "tipo": "Caja blanca (CB-HU8-A AuthService.login)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-A-C6",
+        "tipo": "Caja blanca (CB-HU8-A AuthService.login)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-A-C7",
+        "tipo": "Caja blanca (CB-HU8-A AuthService.login)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-B-C1",
+        "tipo": "Caja blanca (CB-HU8-B UsersService.setActive)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-B-C2",
+        "tipo": "Caja blanca (CB-HU8-B UsersService.setActive)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-B-C3",
+        "tipo": "Caja blanca (CB-HU8-B UsersService.setActive)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-B-C4",
+        "tipo": "Caja blanca (CB-HU8-B UsersService.setActive)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-B-C5",
+        "tipo": "Caja blanca (CB-HU8-B UsersService.setActive)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-C-C1",
+        "tipo": "Caja blanca (CB-HU8-C UsersService.create)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU8-C-C2",
+        "tipo": "Caja blanca (CB-HU8-C UsersService.create)",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU1 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU2 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU3 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU4 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU8 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 1,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU5-01",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU5-02",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU5-03",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU5-04",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU5-05",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU5-06",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU6-01",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU6-02",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU6-03",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU6-04",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU6-05",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU6-06",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU10-01",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU10-02",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU10-03",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU10-04",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU10-05",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU10-06",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU11-01",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU11-02",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU11-03",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU11-04",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU11-05",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU11-06",
+        "tipo": "Unitaria",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-A-C1",
+        "tipo": "Caja blanca (CB-HU5-A AdoptersService.assertCiFree)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-A-C2",
+        "tipo": "Caja blanca (CB-HU5-A AdoptersService.assertCiFree)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-A-C3",
+        "tipo": "Caja blanca (CB-HU5-A AdoptersService.assertCiFree)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-B-C1",
+        "tipo": "Caja blanca (CB-HU5-B AdoptionsService.create)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-B-C2",
+        "tipo": "Caja blanca (CB-HU5-B AdoptionsService.create)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-B-C3",
+        "tipo": "Caja blanca (CB-HU5-B AdoptionsService.create)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-B-C4",
+        "tipo": "Caja blanca (CB-HU5-B AdoptionsService.create)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-B-C5",
+        "tipo": "Caja blanca (CB-HU5-B AdoptionsService.create)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-B-C6",
+        "tipo": "Caja blanca (CB-HU5-B AdoptionsService.create)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU5-B-C7",
+        "tipo": "Caja blanca (CB-HU5-B AdoptionsService.create)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU6-A-C1",
+        "tipo": "Caja blanca (CB-HU6-A RecommendationService.score)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU6-A-C2",
+        "tipo": "Caja blanca (CB-HU6-A RecommendationService.score)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU6-A-C3",
+        "tipo": "Caja blanca (CB-HU6-A RecommendationService.score)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU6-B-C1",
+        "tipo": "Caja blanca (CB-HU6-B levelFor)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU6-B-C2",
+        "tipo": "Caja blanca (CB-HU6-B levelFor)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU6-B-C3",
+        "tipo": "Caja blanca (CB-HU6-B levelFor)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-A-C1",
+        "tipo": "Caja blanca (CB-HU10-A ClinicalService.closePeriod)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-A-C2",
+        "tipo": "Caja blanca (CB-HU10-A ClinicalService.closePeriod)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-A-C3",
+        "tipo": "Caja blanca (CB-HU10-A ClinicalService.closePeriod)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-A-C4",
+        "tipo": "Caja blanca (CB-HU10-A ClinicalService.closePeriod)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-A-C5",
+        "tipo": "Caja blanca (CB-HU10-A ClinicalService.closePeriod)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-A-C6",
+        "tipo": "Caja blanca (CB-HU10-A ClinicalService.closePeriod)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-B-C1",
+        "tipo": "Caja blanca (CB-HU10-B AnimalsService.enableAdoption)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-B-C2",
+        "tipo": "Caja blanca (CB-HU10-B AnimalsService.enableAdoption)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU10-B-C3",
+        "tipo": "Caja blanca (CB-HU10-B AnimalsService.enableAdoption)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-A-C1",
+        "tipo": "Caja blanca (CB-HU11-A AdoptionsService.decide)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-A-C2",
+        "tipo": "Caja blanca (CB-HU11-A AdoptionsService.decide)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-A-C3",
+        "tipo": "Caja blanca (CB-HU11-A AdoptionsService.decide)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-A-C4",
+        "tipo": "Caja blanca (CB-HU11-A AdoptionsService.decide)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-A-C5",
+        "tipo": "Caja blanca (CB-HU11-A AdoptionsService.decide)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-A-C6",
+        "tipo": "Caja blanca (CB-HU11-A AdoptionsService.decide)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-A-C7",
+        "tipo": "Caja blanca (CB-HU11-A AdoptionsService.decide)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-B-C1",
+        "tipo": "Caja blanca (CB-HU11-B AdoptionsService.act)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-B-C2",
+        "tipo": "Caja blanca (CB-HU11-B AdoptionsService.act)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU11-B-C3",
+        "tipo": "Caja blanca (CB-HU11-B AdoptionsService.act)",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU5 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU6 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada",
+        "observacion": "En el primer intento falló por el límite de inicios de sesión (ver playwright.casos)."
+      },
+      {
+        "prueba": "HU10 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU11 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 2,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU7-01",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU7-02",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU7-03",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU7-04",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU7-05",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU7-06",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU9-01",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU9-02",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU9-03",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU9-04",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU9-05",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU9-06",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU12-01",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU12-02",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU12-03",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU12-04",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU12-05",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "PU-HU12-06",
+        "tipo": "Unitaria",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-A-C1",
+        "tipo": "Caja blanca (CB-HU7-A DashboardService.section)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-A-C2",
+        "tipo": "Caja blanca (CB-HU7-A DashboardService.section)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-B-C1",
+        "tipo": "Caja blanca (CB-HU7-B DashboardService.dashboard)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-B-C2",
+        "tipo": "Caja blanca (CB-HU7-B DashboardService.dashboard)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-C-C1",
+        "tipo": "Caja blanca (CB-HU7-C KpisService.build)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-C-C2",
+        "tipo": "Caja blanca (CB-HU7-C KpisService.build)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-C-C3",
+        "tipo": "Caja blanca (CB-HU7-C KpisService.build)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-C-C4",
+        "tipo": "Caja blanca (CB-HU7-C KpisService.build)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU7-C-C5",
+        "tipo": "Caja blanca (CB-HU7-C KpisService.build)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-A-C1",
+        "tipo": "Caja blanca (CB-HU9-A ChatService.validate)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-A-C2",
+        "tipo": "Caja blanca (CB-HU9-A ChatService.validate)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-A-C3",
+        "tipo": "Caja blanca (CB-HU9-A ChatService.validate)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-A-C4",
+        "tipo": "Caja blanca (CB-HU9-A ChatService.validate)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-A-C5",
+        "tipo": "Caja blanca (CB-HU9-A ChatService.validate)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C1",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C2",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C3",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C4",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C5",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C6",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C7",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C8",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU9-B-C9",
+        "tipo": "Caja blanca (CB-HU9-B ChatService.reply)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU12-A-C1",
+        "tipo": "Caja blanca (CB-HU12-A AdoptionsService.createFollowup)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU12-A-C2",
+        "tipo": "Caja blanca (CB-HU12-A AdoptionsService.createFollowup)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU12-A-C3",
+        "tipo": "Caja blanca (CB-HU12-A AdoptionsService.createFollowup)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU12-A-C4",
+        "tipo": "Caja blanca (CB-HU12-A AdoptionsService.createFollowup)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU12-A-C5",
+        "tipo": "Caja blanca (CB-HU12-A AdoptionsService.createFollowup)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU12-B-C1",
+        "tipo": "Caja blanca (CB-HU12-B AdoptionsService.listFollowups)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "CB-HU12-B-C2",
+        "tipo": "Caja blanca (CB-HU12-B AdoptionsService.listFollowups)",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU7 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU9 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      },
+      {
+        "prueba": "HU12 (caja negra)",
+        "tipo": "Caja negra",
+        "sprint": 3,
+        "antes": "Aprobada",
+        "ahora": "Aprobada"
+      }
+    ],
+    "nuevas_fallas": [],
+    "siguen_fallando": [
+      {
+        "prueba": "PU-HU1-06",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Fallida",
+        "ahora": "Fallida"
+      },
+      {
+        "prueba": "PU-HU2-06",
+        "tipo": "Unitaria",
+        "sprint": 1,
+        "antes": "Fallida",
+        "ahora": "Fallida"
+      }
+    ],
+    "corregidas": []
+  },
+  "sistema": {
+    "archivo": "test/cap9/flujo-completo.spec.ts",
+    "herramienta": "Playwright 1.65.1, Chromium, ventana de 1280 × 800",
+    "datos": "Seed del Sprint 3; el animal y el adoptante se crearon durante la prueba con datos ficticios.",
+    "tiempo_s": 14.28,
+    "flujo_real": [
+      "La vacuna, la cuarentena y la habilitación las registra el Personal Veterinario desde la ficha del animal; la cuarentena se cierra desde la pestaña «Cuarentena» después de registrar un control.",
+      "El adoptante no crea la solicitud desde el sitio público: la crea Gestión desde «Solicitudes → Nueva solicitud» (decisión 62 de DECISIONS.md).",
+      "La solicitud pasa por «Pendiente» y «En evaluación» antes de registrar el resultado; el acta se genera desde la solicitud aprobada.",
+      "El sistema no admite un seguimiento con fecha anterior a la entrega del animal; por eso la entrega se registró 5 minutos antes del seguimiento.",
+      "El Personal Directivo ve el «Panel» (descripción «Panel de indicadores») y la pantalla «Indicadores de gestión» del menú «KPIs»."
+    ],
+    "pasos": [
+      {
+        "paso": "01",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Registrar el animal desde «Animales → Registrar animal».",
+        "esperado": "El sistema guarda el animal, le asigna un código ZOO-AAAA-NNNN y lo deja en la situación «Ingresado».",
+        "captura": "SIS-paso-01.png",
+        "obtenido": "Se registró «Nube 40916» con el código ZOO-2026-0012 en la situación «Ingresado».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "02",
+        "rol": "Personal Veterinario",
+        "accion": "Registrar una consulta veterinaria del animal («Nueva consulta»).",
+        "esperado": "El sistema guarda la consulta con el veterinario autor y muestra sus datos.",
+        "captura": "SIS-paso-02.png",
+        "obtenido": "Se guardó la consulta «Control de ingreso» (14.2 kg, 38.6 °C) con el veterinario autor visible.",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "03",
+        "rol": "Personal Veterinario",
+        "accion": "Registrar una vacuna antirrábica con lote y próxima dosis (pestaña «Vacunas»).",
+        "esperado": "El sistema registra la vacuna y la muestra en la pestaña con su lote.",
+        "captura": null,
+        "obtenido": "Se registró la vacuna «Antirrabica (Perro, Gato)» con el lote CAP9-0001 y aparece en la pestaña «Vacunas».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "04",
+        "rol": "Personal Veterinario",
+        "accion": "Abrir un periodo de cuarentena («Iniciar cuarentena»).",
+        "esperado": "El sistema abre el periodo y el animal pasa a «En cuarentena».",
+        "captura": "SIS-paso-03.png",
+        "obtenido": "Se abrió el periodo de cuarentena y la situación del animal cambió a «En cuarentena».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "05",
+        "rol": "Personal Veterinario",
+        "accion": "Registrar un control y cerrar la cuarentena («Cerrar periodo»).",
+        "esperado": "El sistema cierra el periodo y el animal vuelve a «Ingresado».",
+        "captura": null,
+        "obtenido": "Se registró un control, se cerró la cuarentena y el animal volvió a «Ingresado».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "06",
+        "rol": "Personal Veterinario",
+        "accion": "Habilitar el animal para adopción.",
+        "esperado": "El sistema comprueba los requisitos (consulta registrada, sin cuarentena ni tratamiento activos) y el animal pasa a «Disponible para adopción».",
+        "captura": "SIS-paso-04.png",
+        "obtenido": "El sistema aceptó la habilitación y el animal quedó «Disponible para adopción».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "07",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Registrar al adoptante («Adoptantes → Nuevo adoptante»).",
+        "esperado": "El sistema guarda al adoptante y muestra su ficha con el perfil de evaluación.",
+        "captura": "SIS-paso-05.png",
+        "obtenido": "Se registró a Mariela Prueba Sistema (CI CAP9-40916, ficticia) y se mostró su ficha con el perfil de evaluación.",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "08",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Ver la recomendación («Ver animales recomendados»).",
+        "esperado": "El sistema muestra un ranking de animales disponibles con puntaje de 0 a 100, ordenado de mayor a menor, que incluye al animal habilitado.",
+        "captura": "SIS-paso-06.png",
+        "obtenido": "El ranking mostró 4 animales ordenados de mayor a menor (Kira: 91.63; Nube 40916: 91.63; Mishi: 81.65; Bruno: 77.98); «Nube 40916» quedó en la posición 2.",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "09",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Crear la solicitud de adopción del adoptante para el animal.",
+        "esperado": "El sistema crea la solicitud en «Pendiente» y el animal pasa a «En proceso de adopción».",
+        "captura": "SIS-paso-07.png",
+        "obtenido": "Se creó la solicitud en «Pendiente» y el animal pasó a «En proceso de adopción».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "10",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Evaluar la solicitud («Pasar a evaluación»).",
+        "esperado": "La solicitud pasa a «En evaluación».",
+        "captura": null,
+        "obtenido": "La solicitud pasó a «En evaluación».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "11",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Aprobar la solicitud con la fecha de entrega («Registrar resultado»).",
+        "esperado": "La solicitud queda «Aprobada» y el animal pasa a «Adoptado».",
+        "captura": "SIS-paso-08.png",
+        "obtenido": "La solicitud quedó «Aprobada» y el sistema informó que el animal pasó a «Adoptado».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "12",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Ver el acta de entrega («Generar acta»).",
+        "esperado": "El sistema muestra el acta de adopción responsable con los datos del animal (código) y del adoptante.",
+        "captura": "SIS-paso-09.png",
+        "obtenido": "Se mostró el acta de adopción responsable con el código ZOO-2026-0012 y los datos de Mariela Prueba Sistema.",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "13",
+        "rol": "Gestión Animal y Adopciones",
+        "accion": "Registrar un seguimiento post-adopción («Nuevo seguimiento»).",
+        "esperado": "El sistema guarda el seguimiento y lo muestra en la lista de la solicitud.",
+        "captura": "SIS-paso-10.png",
+        "obtenido": "Se guardó el seguimiento y la lista mostró: «Sano y adaptado a su nuevo hogar 17/11/2026, 07:54 · Gestion de Adopciones de Prueba Primera visita de seguimiento de la prueba de sistema.».",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "14",
+        "rol": "Personal Directivo",
+        "accion": "Ver el panel de indicadores («Panel») y los indicadores de gestión.",
+        "esperado": "El sistema muestra el panel con sus tarjetas y gráficos, y los seis indicadores de gestión.",
+        "captura": "SIS-paso-11.png",
+        "obtenido": "El panel se mostró con la descripción «Panel de indicadores · Personal Directivo» y sus gráficos; «Indicadores de gestión» mostró 6 indicadores: Adopciones concretadas; Permanencia hasta la adopción; Animales devueltos; Solicitudes recibidas; Tiempo de evaluación; Cobertura de vacunación.",
+        "estado": "Correcto"
+      },
+      {
+        "paso": "15",
+        "rol": "Visitante (sin iniciar sesión)",
+        "accion": "Ver el sitio público y enviar el formulario de contacto.",
+        "esperado": "El sitio público se muestra sin iniciar sesión y el formulario confirma «¡Gracias! Recibimos tu mensaje.».",
+        "captura": "SIS-paso-12.png",
+        "obtenido": "Se mostró el sitio público sin iniciar sesión y el formulario respondió «¡Gracias! Recibimos tu mensaje.».",
+        "estado": "Correcto"
+      }
+    ],
+    "estado": "Correcto"
+  },
+  "rendimiento": {
+    "limitador": "No hizo falta reemplazar el limitador. En el código, ThrottlerModule.forRoot (10 solicitudes por minuto) solo define la configuración: no está registrado como guardia global (APP_GUARD). ThrottlerGuard se aplica únicamente con @UseGuards en cuatro rutas: POST /auth/login (10 por minuto), POST /chat (15 por minuto) y POST /public/register y POST /public/contact (5 por minuto). Ninguno de los seis servicios de la prueba de carga tiene limitador, y el inicio de sesión se hace una sola vez por escenario en setup(). No se cambió ninguna variable ni se levantó una instancia con overrideGuard. Los resultados lo confirman: ninguna respuesta fue 429.",
+    "herramienta": "k6 v2.4.0 (grafana/k6), en un contenedor dentro de la red de Docker del sistema; destino http://backend:4000",
+    "usuario": "Gestión Animal y Adopciones (usuario del seed del Sprint 3), un inicio de sesión por escenario",
+    "datos": "Animal «Lola» (adoptada, con historial) y la adoptante «Rosa Quiroga Leon» del seed del Sprint 3",
+    "escenarios": [
+      {
+        "usuarios_virtuales": 10,
+        "configuracion": "ramping-vus: subida de 0 a N usuarios en 30 s y carga sostenida 1 min 30 s (2 minutos); cada iteración llama a los 6 servicios en orden y espera 1 s",
+        "duracion_s": 121.21,
+        "iteraciones": 977,
+        "solicitudes_totales": 5866,
+        "solicitudes_por_segundo": 48.4,
+        "errores_pct": 0,
+        "p95_global_ms": 19.96,
+        "reporte": "reportes/k6-10-usuarios.json",
+        "servicios": [
+          {
+            "servicio": "Listado de animales · GET /api/v1/animals?page=1&pageSize=20",
+            "solicitudes": 977,
+            "solicitudes_por_segundo": 8.06,
+            "p50_ms": 8.24,
+            "p95_ms": 11.42,
+            "p99_ms": 13.95,
+            "maximo_ms": 19.32,
+            "promedio_ms": 8.57,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 977
+            }
+          },
+          {
+            "servicio": "Ficha de un animal · GET /api/v1/animals/:id",
+            "solicitudes": 977,
+            "solicitudes_por_segundo": 8.06,
+            "p50_ms": 13.37,
+            "p95_ms": 19.86,
+            "p99_ms": 28.37,
+            "maximo_ms": 38.19,
+            "promedio_ms": 14.22,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 977
+            }
+          },
+          {
+            "servicio": "Historial clínico · GET /api/v1/animals/:id/timeline",
+            "solicitudes": 977,
+            "solicitudes_por_segundo": 8.06,
+            "p50_ms": 6.38,
+            "p95_ms": 9.3,
+            "p99_ms": 11.09,
+            "maximo_ms": 24.92,
+            "promedio_ms": 6.69,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 977
+            }
+          },
+          {
+            "servicio": "Panel de indicadores · GET /api/v1/dashboard",
+            "solicitudes": 977,
+            "solicitudes_por_segundo": 8.06,
+            "p50_ms": 8.68,
+            "p95_ms": 12.52,
+            "p99_ms": 16.27,
+            "maximo_ms": 73.9,
+            "promedio_ms": 9.29,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 977
+            }
+          },
+          {
+            "servicio": "Ranking de recomendación · GET /api/v1/recommendations/adopter/:id",
+            "solicitudes": 977,
+            "solicitudes_por_segundo": 8.06,
+            "p50_ms": 16.78,
+            "p95_ms": 57.79,
+            "p99_ms": 67.72,
+            "maximo_ms": 144.98,
+            "promedio_ms": 20.96,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 977
+            }
+          },
+          {
+            "servicio": "Servicio público · GET /api/v1/public/animals (sin sesión)",
+            "solicitudes": 977,
+            "solicitudes_por_segundo": 8.06,
+            "p50_ms": 5.69,
+            "p95_ms": 8.32,
+            "p99_ms": 10.59,
+            "maximo_ms": 19.38,
+            "promedio_ms": 6.02,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 977
+            }
+          }
+        ]
+      },
+      {
+        "usuarios_virtuales": 25,
+        "configuracion": "ramping-vus: subida de 0 a N usuarios en 30 s y carga sostenida 1 min 30 s (2 minutos); cada iteración llama a los 6 servicios en orden y espera 1 s",
+        "duracion_s": 121.16,
+        "iteraciones": 2440,
+        "solicitudes_totales": 14644,
+        "solicitudes_por_segundo": 120.87,
+        "errores_pct": 0,
+        "p95_global_ms": 20.93,
+        "reporte": "reportes/k6-25-usuarios.json",
+        "servicios": [
+          {
+            "servicio": "Listado de animales · GET /api/v1/animals?page=1&pageSize=20",
+            "solicitudes": 2440,
+            "solicitudes_por_segundo": 20.14,
+            "p50_ms": 7.52,
+            "p95_ms": 12.17,
+            "p99_ms": 22.31,
+            "maximo_ms": 115.15,
+            "promedio_ms": 8.29,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 2440
+            }
+          },
+          {
+            "servicio": "Ficha de un animal · GET /api/v1/animals/:id",
+            "solicitudes": 2440,
+            "solicitudes_por_segundo": 20.14,
+            "p50_ms": 12.47,
+            "p95_ms": 21.21,
+            "p99_ms": 37.11,
+            "maximo_ms": 64.95,
+            "promedio_ms": 13.92,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 2440
+            }
+          },
+          {
+            "servicio": "Historial clínico · GET /api/v1/animals/:id/timeline",
+            "solicitudes": 2440,
+            "solicitudes_por_segundo": 20.14,
+            "p50_ms": 5.81,
+            "p95_ms": 13.68,
+            "p99_ms": 27.45,
+            "maximo_ms": 58.7,
+            "promedio_ms": 6.92,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 2440
+            }
+          },
+          {
+            "servicio": "Panel de indicadores · GET /api/v1/dashboard",
+            "solicitudes": 2440,
+            "solicitudes_por_segundo": 20.14,
+            "p50_ms": 8.18,
+            "p95_ms": 15.86,
+            "p99_ms": 27.29,
+            "maximo_ms": 104.67,
+            "promedio_ms": 9.32,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 2440
+            }
+          },
+          {
+            "servicio": "Ranking de recomendación · GET /api/v1/recommendations/adopter/:id",
+            "solicitudes": 2440,
+            "solicitudes_por_segundo": 20.14,
+            "p50_ms": 15.39,
+            "p95_ms": 66.91,
+            "p99_ms": 347.5,
+            "maximo_ms": 732.62,
+            "promedio_ms": 28.38,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 2440
+            }
+          },
+          {
+            "servicio": "Servicio público · GET /api/v1/public/animals (sin sesión)",
+            "solicitudes": 2440,
+            "solicitudes_por_segundo": 20.14,
+            "p50_ms": 5.27,
+            "p95_ms": 11.88,
+            "p99_ms": 34.02,
+            "maximo_ms": 170.14,
+            "promedio_ms": 6.96,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 2440
+            }
+          }
+        ]
+      },
+      {
+        "usuarios_virtuales": 50,
+        "configuracion": "ramping-vus: subida de 0 a N usuarios en 30 s y carga sostenida 1 min 30 s (2 minutos); cada iteración llama a los 6 servicios en orden y espera 1 s",
+        "duracion_s": 121.14,
+        "iteraciones": 4881,
+        "solicitudes_totales": 29290,
+        "solicitudes_por_segundo": 241.78,
+        "errores_pct": 0,
+        "p95_global_ms": 25.8,
+        "reporte": "reportes/k6-50-usuarios.json",
+        "servicios": [
+          {
+            "servicio": "Listado de animales · GET /api/v1/animals?page=1&pageSize=20",
+            "solicitudes": 4881,
+            "solicitudes_por_segundo": 40.29,
+            "p50_ms": 8.63,
+            "p95_ms": 15.68,
+            "p99_ms": 22.06,
+            "maximo_ms": 43.35,
+            "promedio_ms": 9.59,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 4881
+            }
+          },
+          {
+            "servicio": "Ficha de un animal · GET /api/v1/animals/:id",
+            "solicitudes": 4881,
+            "solicitudes_por_segundo": 40.29,
+            "p50_ms": 14.89,
+            "p95_ms": 25.66,
+            "p99_ms": 33.96,
+            "maximo_ms": 75.1,
+            "promedio_ms": 16.16,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 4881
+            }
+          },
+          {
+            "servicio": "Historial clínico · GET /api/v1/animals/:id/timeline",
+            "solicitudes": 4881,
+            "solicitudes_por_segundo": 40.29,
+            "p50_ms": 7.08,
+            "p95_ms": 14.68,
+            "p99_ms": 22.25,
+            "maximo_ms": 41.83,
+            "promedio_ms": 8.14,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 4881
+            }
+          },
+          {
+            "servicio": "Panel de indicadores · GET /api/v1/dashboard",
+            "solicitudes": 4881,
+            "solicitudes_por_segundo": 40.29,
+            "p50_ms": 9.77,
+            "p95_ms": 17.61,
+            "p99_ms": 25.02,
+            "maximo_ms": 51.9,
+            "promedio_ms": 10.75,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 4881
+            }
+          },
+          {
+            "servicio": "Ranking de recomendación · GET /api/v1/recommendations/adopter/:id",
+            "solicitudes": 4881,
+            "solicitudes_por_segundo": 40.29,
+            "p50_ms": 19.01,
+            "p95_ms": 62.45,
+            "p99_ms": 74.18,
+            "maximo_ms": 121.23,
+            "promedio_ms": 24.65,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 4881
+            }
+          },
+          {
+            "servicio": "Servicio público · GET /api/v1/public/animals (sin sesión)",
+            "solicitudes": 4881,
+            "solicitudes_por_segundo": 40.29,
+            "p50_ms": 6.25,
+            "p95_ms": 12.45,
+            "p99_ms": 17.17,
+            "maximo_ms": 40.14,
+            "promedio_ms": 7.09,
+            "errores_pct": 0,
+            "codigos_estado": {
+              "200": 4881
+            }
+          }
+        ]
+      }
+    ],
+    "recursos": [
+      {
+        "usuarios_virtuales": 10,
+        "contenedor": "zoonosis-cap9-nginx-1",
+        "cpu_max_pct": 0,
+        "memoria_inicial_mb": 13.93,
+        "memoria_max_mb": 15.44,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 10,
+        "contenedor": "zoonosis-cap9-frontend-1",
+        "cpu_max_pct": 29.75,
+        "memoria_inicial_mb": 115.4,
+        "memoria_max_mb": 116.7,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 10,
+        "contenedor": "zoonosis-cap9-backend-1",
+        "cpu_max_pct": 75.12,
+        "memoria_inicial_mb": 850.9,
+        "memoria_max_mb": 851.2,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 10,
+        "contenedor": "zoonosis-db-test",
+        "cpu_max_pct": 13.06,
+        "memoria_inicial_mb": 56.43,
+        "memoria_max_mb": 100.1,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 10,
+        "contenedor": "k6 (generador de carga)",
+        "cpu_max_pct": 6.05,
+        "memoria_inicial_mb": 15.64,
+        "memoria_max_mb": 21.95,
+        "muestras": 60
+      },
+      {
+        "usuarios_virtuales": 25,
+        "contenedor": "zoonosis-cap9-nginx-1",
+        "cpu_max_pct": 0,
+        "memoria_inicial_mb": 14.43,
+        "memoria_max_mb": 14.43,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 25,
+        "contenedor": "zoonosis-cap9-frontend-1",
+        "cpu_max_pct": 16.16,
+        "memoria_inicial_mb": 117,
+        "memoria_max_mb": 117.1,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 25,
+        "contenedor": "zoonosis-cap9-backend-1",
+        "cpu_max_pct": 81.94,
+        "memoria_inicial_mb": 822.1,
+        "memoria_max_mb": 944.9,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 25,
+        "contenedor": "zoonosis-db-test",
+        "cpu_max_pct": 23.47,
+        "memoria_inicial_mb": 99.43,
+        "memoria_max_mb": 113.6,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 25,
+        "contenedor": "k6 (generador de carga)",
+        "cpu_max_pct": 8.63,
+        "memoria_inicial_mb": 19.75,
+        "memoria_max_mb": 31.95,
+        "muestras": 60
+      },
+      {
+        "usuarios_virtuales": 50,
+        "contenedor": "zoonosis-cap9-nginx-1",
+        "cpu_max_pct": 0,
+        "memoria_inicial_mb": 14.43,
+        "memoria_max_mb": 14.43,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 50,
+        "contenedor": "zoonosis-cap9-frontend-1",
+        "cpu_max_pct": 45.1,
+        "memoria_inicial_mb": 115.7,
+        "memoria_max_mb": 132.8,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 50,
+        "contenedor": "zoonosis-cap9-backend-1",
+        "cpu_max_pct": 206.61,
+        "memoria_inicial_mb": 945,
+        "memoria_max_mb": 957.1,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 50,
+        "contenedor": "zoonosis-db-test",
+        "cpu_max_pct": 64.13,
+        "memoria_inicial_mb": 113.2,
+        "memoria_max_mb": 141,
+        "muestras": 61
+      },
+      {
+        "usuarios_virtuales": 50,
+        "contenedor": "k6 (generador de carga)",
+        "cpu_max_pct": 19.8,
+        "memoria_inicial_mb": 26.68,
+        "memoria_max_mb": 47.7,
+        "muestras": 60
+      }
+    ],
+    "recursos_nota": "Valores de docker stats tomados cada 1 a 2 s mientras duró cada escenario: memoria_inicial_mb es la primera muestra (al empezar la subida) y los máximos son los mayores valores observados. CPU en porcentaje de un núcleo (100 % = un núcleo completo; el equipo tiene 16 hilos). zoonosis-db-test es la base de prueba. k6 llama directo al backend: el frontend y nginx no reciben solicitudes de la prueba de carga, así que sus valores no dependen de ella.",
+    "lighthouse": [
+      {
+        "pagina": "Inicio público",
+        "ruta": "/",
+        "modo": "Móvil",
+        "rendimiento": 97,
+        "accesibilidad": 96,
+        "buenas_practicas": 96,
+        "seo": 100,
+        "fcp_s": 0.76,
+        "lcp_s": 0.76,
+        "tbt_ms": 194,
+        "cls": 0,
+        "reporte": "reportes/lighthouse-inicio-movil.html"
+      },
+      {
+        "pagina": "Inicio público",
+        "ruta": "/",
+        "modo": "Escritorio",
+        "rendimiento": 100,
+        "accesibilidad": 96,
+        "buenas_practicas": 96,
+        "seo": 100,
+        "fcp_s": 0.21,
+        "lcp_s": 0.21,
+        "tbt_ms": 0,
+        "cls": 0,
+        "reporte": "reportes/lighthouse-inicio-escritorio.html"
+      },
+      {
+        "pagina": "Inicio de sesión",
+        "ruta": "/login",
+        "modo": "Móvil",
+        "rendimiento": 96,
+        "accesibilidad": 94,
+        "buenas_practicas": 96,
+        "seo": 100,
+        "fcp_s": 0.76,
+        "lcp_s": 0.76,
+        "tbt_ms": 111,
+        "cls": 0.108,
+        "reporte": "reportes/lighthouse-login-movil.html"
+      },
+      {
+        "pagina": "Inicio de sesión",
+        "ruta": "/login",
+        "modo": "Escritorio",
+        "rendimiento": 100,
+        "accesibilidad": 94,
+        "buenas_practicas": 96,
+        "seo": 100,
+        "fcp_s": 0.21,
+        "lcp_s": 0.6,
+        "tbt_ms": 0,
+        "cls": 0.018,
+        "reporte": "reportes/lighthouse-login-escritorio.html"
+      },
+      {
+        "pagina": "Registro de clientes (página pública)",
+        "ruta": "/registro",
+        "modo": "Móvil",
+        "rendimiento": 93,
+        "accesibilidad": 96,
+        "buenas_practicas": 96,
+        "seo": 100,
+        "fcp_s": 0.76,
+        "lcp_s": 2.86,
+        "tbt_ms": 162,
+        "cls": 0,
+        "reporte": "reportes/lighthouse-registro-movil.html"
+      },
+      {
+        "pagina": "Registro de clientes (página pública)",
+        "ruta": "/registro",
+        "modo": "Escritorio",
+        "rendimiento": 100,
+        "accesibilidad": 96,
+        "buenas_practicas": 96,
+        "seo": 100,
+        "fcp_s": 0.21,
+        "lcp_s": 0.67,
+        "tbt_ms": 9,
+        "cls": 0,
+        "reporte": "reportes/lighthouse-registro-escritorio.html"
+      }
+    ],
+    "lighthouse_nota": "Una ejecución por página y modo, contra la compilación de producción detrás de nginx en http://localhost:3000; móvil con la limitación simulada por defecto de Lighthouse y escritorio con --preset=desktop."
+  },
+  "seguridad": {
+    "zap": {
+      "frontend": [
+        {
+          "nombre": "Content Security Policy (CSP) Header Not Set",
+          "id_regla": 10038,
+          "riesgo": "Medio",
+          "confianza": "Alta",
+          "instancias": 5,
+          "cwe": "CWE-693",
+          "solucion": "Definir una Content-Security-Policy adecuada para el sitio.",
+          "ejemplos": [
+            "GET http://nginx/login",
+            "GET http://nginx/privacidad",
+            "GET http://nginx/registro"
+          ]
+        },
+        {
+          "nombre": "Missing Anti-clickjacking Header",
+          "id_regla": 10020,
+          "riesgo": "Medio",
+          "confianza": "Media",
+          "instancias": 5,
+          "cwe": "CWE-1021",
+          "solucion": "Enviar X-Frame-Options (DENY o SAMEORIGIN) o la directiva frame-ancestors de CSP en todas las páginas.",
+          "ejemplos": [
+            "GET http://nginx/",
+            "GET http://nginx/login",
+            "GET http://nginx/privacidad"
+          ]
+        },
+        {
+          "nombre": "Cross-Origin-Embedder-Policy Header Missing or Invalid",
+          "id_regla": 90004,
+          "riesgo": "Bajo",
+          "confianza": "Media",
+          "instancias": 4,
+          "cwe": "CWE-693",
+          "solucion": "Enviar Cross-Origin-Embedder-Policy, Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy adecuadas.",
+          "ejemplos": [
+            "GET http://nginx",
+            "GET http://nginx/",
+            "GET http://nginx/login"
+          ]
+        },
+        {
+          "nombre": "Cross-Origin-Opener-Policy Header Missing or Invalid",
+          "id_regla": 90004,
+          "riesgo": "Bajo",
+          "confianza": "Media",
+          "instancias": 4,
+          "cwe": "CWE-693",
+          "solucion": "Enviar Cross-Origin-Embedder-Policy, Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy adecuadas.",
+          "ejemplos": [
+            "GET http://nginx",
+            "GET http://nginx/",
+            "GET http://nginx/login"
+          ]
+        },
+        {
+          "nombre": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+          "id_regla": 90004,
+          "riesgo": "Bajo",
+          "confianza": "Media",
+          "instancias": 5,
+          "cwe": "CWE-693",
+          "solucion": "Enviar Cross-Origin-Embedder-Policy, Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy adecuadas.",
+          "ejemplos": [
+            "GET http://nginx/",
+            "GET http://nginx/_next/static/chunks/8720-10b2610d439b0921.js",
+            "GET http://nginx/_next/static/chunks/webpack-18e9977236f2b6b8.js"
+          ]
+        },
+        {
+          "nombre": "Permissions Policy Header Not Set",
+          "id_regla": 10063,
+          "riesgo": "Bajo",
+          "confianza": "Media",
+          "instancias": 5,
+          "cwe": "CWE-693",
+          "solucion": "Enviar la cabecera Permissions-Policy para restringir las funciones del navegador.",
+          "ejemplos": [
+            "GET http://nginx/",
+            "GET http://nginx/_next/static/chunks/8720-10b2610d439b0921.js",
+            "GET http://nginx/_next/static/chunks/webpack-18e9977236f2b6b8.js"
+          ]
+        },
+        {
+          "nombre": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+          "id_regla": 10036,
+          "riesgo": "Bajo",
+          "confianza": "Alta",
+          "instancias": 5,
+          "cwe": "CWE-497",
+          "solucion": "Ocultar la versión del servidor en la cabecera Server (en nginx, server_tokens off).",
+          "ejemplos": [
+            "GET http://nginx/_next/static/chunks/325-7e4cb22a83c84218.js",
+            "GET http://nginx/_next/static/chunks/webpack-18e9977236f2b6b8.js",
+            "GET http://nginx/_next/static/css/4bedd57f183faa46.css"
+          ]
+        },
+        {
+          "nombre": "X-Content-Type-Options Header Missing",
+          "id_regla": 10021,
+          "riesgo": "Bajo",
+          "confianza": "Media",
+          "instancias": 5,
+          "cwe": "CWE-693",
+          "solucion": "Enviar X-Content-Type-Options: nosniff en todas las respuestas.",
+          "ejemplos": [
+            "GET http://nginx/_next/static/chunks/325-7e4cb22a83c84218.js",
+            "GET http://nginx/_next/static/chunks/8720-10b2610d439b0921.js",
+            "GET http://nginx/_next/static/chunks/main-app-f3336e172256d2ab.js"
+          ]
+        },
+        {
+          "nombre": "Authentication Request Identified",
+          "id_regla": 10111,
+          "riesgo": "Informativo",
+          "confianza": "Baja",
+          "instancias": 1,
+          "cwe": null,
+          "solucion": "Alerta informativa: se identificó una solicitud de autenticación.",
+          "ejemplos": [
+            "GET http://nginx/registro?…"
+          ]
+        },
+        {
+          "nombre": "Information Disclosure - Sensitive Information in URL",
+          "id_regla": 10024,
+          "riesgo": "Informativo",
+          "confianza": "Media",
+          "instancias": 3,
+          "cwe": "CWE-598",
+          "solucion": "No enviar datos sensibles en la URL; usar el cuerpo de la solicitud.",
+          "ejemplos": [
+            "GET http://nginx/?acceptPrivacy=on&email=zaproxy%40example.com&message=Zaproxy+alias+impedit+expedita+quisquam+pariatur+exercitationem.+Nemo+rerum+eveniet+dolores+rem+quia+dignissimos.&name=ZAP&phone=9999999999&subject=Zaproxy+dolore+alias+impedit+expedita+quisquam.&website=ZAP",
+            "GET http://nginx/registro?…",
+            "GET http://nginx/registro?…"
+          ]
+        },
+        {
+          "nombre": "Modern Web Application",
+          "id_regla": 10109,
+          "riesgo": "Informativo",
+          "confianza": "Media",
+          "instancias": 3,
+          "cwe": null,
+          "solucion": "Alerta informativa: la aplicación es moderna (SPA); se recomienda el spider AJAX.",
+          "ejemplos": [
+            "GET http://nginx/login",
+            "GET http://nginx/robots.txt",
+            "GET http://nginx/sitemap.xml"
+          ]
+        },
+        {
+          "nombre": "Non-Storable Content",
+          "id_regla": 10049,
+          "riesgo": "Informativo",
+          "confianza": "Media",
+          "instancias": 2,
+          "cwe": "CWE-524",
+          "solucion": "Revisar que el contenido que se puede almacenar en caché no incluya datos privados.",
+          "ejemplos": [
+            "GET http://nginx/robots.txt",
+            "GET http://nginx/sitemap.xml"
+          ]
+        },
+        {
+          "nombre": "Storable and Cacheable Content",
+          "id_regla": 10049,
+          "riesgo": "Informativo",
+          "confianza": "Media",
+          "instancias": 5,
+          "cwe": "CWE-524",
+          "solucion": "Revisar que el contenido que se puede almacenar en caché no incluya datos privados.",
+          "ejemplos": [
+            "GET http://nginx/",
+            "GET http://nginx/_next/static/chunks/8720-10b2610d439b0921.js",
+            "GET http://nginx/_next/static/chunks/webpack-18e9977236f2b6b8.js"
+          ]
+        },
+        {
+          "nombre": "Storable but Non-Cacheable Content",
+          "id_regla": 10049,
+          "riesgo": "Informativo",
+          "confianza": "Media",
+          "instancias": 1,
+          "cwe": "CWE-524",
+          "solucion": "Revisar que el contenido que se puede almacenar en caché no incluya datos privados.",
+          "ejemplos": [
+            "GET http://nginx/favicon.ico"
+          ]
+        }
+      ],
+      "api": [
+        {
+          "nombre": "A Server Error response code was returned by the server",
+          "id_regla": 100000,
+          "riesgo": "Bajo",
+          "confianza": "Alta",
+          "instancias": 7,
+          "cwe": "CWE-388",
+          "solucion": "Revisar las respuestas de error del servidor (5xx) para que no expongan detalles internos.",
+          "ejemplos": [
+            "GET http://backend-zap:4000/api/v1/adopters?page=1&pageSize=20&q=%00",
+            "GET http://backend-zap:4000/api/v1/adoptions?page=1&pageSize=20&q=%00&status=PENDIENTE",
+            "GET http://backend-zap:4000/api/v1/animals?page=1&pageSize=20&q=%00&species=PERRO&status=INGRESADO&sex=MACHO"
+          ]
+        },
+        {
+          "nombre": "A Client Error response code was returned by the server",
+          "id_regla": 100000,
+          "riesgo": "Informativo",
+          "confianza": "Alta",
+          "instancias": 223,
+          "cwe": "CWE-388",
+          "solucion": "Revisar las respuestas de error del servidor (5xx) para que no expongan detalles internos.",
+          "ejemplos": [
+            "GET http://backend-zap:4000",
+            "GET http://backend-zap:4000/",
+            "GET http://backend-zap:4000/581061551157278559"
+          ]
+        },
+        {
+          "nombre": "Authentication Request Identified",
+          "id_regla": 10111,
+          "riesgo": "Informativo",
+          "confianza": "Baja",
+          "instancias": 2,
+          "cwe": null,
+          "solucion": "Alerta informativa: se identificó una solicitud de autenticación.",
+          "ejemplos": [
+            "POST http://backend-zap:4000/api/v1/users",
+            "POST http://backend-zap:4000/api/v1/auth/login"
+          ]
+        },
+        {
+          "nombre": "Non-Storable Content",
+          "id_regla": 10049,
+          "riesgo": "Informativo",
+          "confianza": "Media",
+          "instancias": 5,
+          "cwe": "CWE-524",
+          "solucion": "Revisar que el contenido que se puede almacenar en caché no incluya datos privados.",
+          "ejemplos": [
+            "GET http://backend-zap:4000/api/v1/users/id",
+            "PATCH http://backend-zap:4000/api/v1/users/id/active",
+            "POST http://backend-zap:4000/api/v1/auth/logout"
+          ]
+        }
+      ],
+      "resumen": {
+        "frontend": {
+          "Alto": 0,
+          "Medio": 2,
+          "Bajo": 6,
+          "Informativo": 6
+        },
+        "api": {
+          "Alto": 0,
+          "Medio": 0,
+          "Bajo": 1,
+          "Informativo": 3
+        },
+        "configuracion": {
+          "frontend": "zap-baseline.py -t http://nginx (escaneo pasivo con spider de 1 minuto)",
+          "api": "zap-api-scan.py -t http://backend-zap:4000/api/docs-json -f openapi, autenticado como Gestión Animal y Adopciones; duración máxima del escaneo activo 30 min y 3 min por regla"
+        },
+        "reportes": [
+          "reportes/zap-frontend.html",
+          "reportes/zap-api.html"
+        ]
+      }
+    },
+    "manuales": [
+      {
+        "id": "SEG-01",
+        "nombre": "Servicio protegido sin token",
+        "enviado": "GET /api/v1/animals sin la cabecera Authorization",
+        "esperado": "El sistema rechaza la solicitud con 401 y no devuelve datos.",
+        "codigo_http": "401",
+        "mensaje": "Sesión no válida",
+        "obtenido": "Respondió 401 «Sesión no válida» y sin la lista de animales.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-02",
+        "nombre": "Token con la firma alterada",
+        "enviado": "GET /api/v1/users con el token de un veterinario: (a) con los últimos caracteres de la firma cambiados; (b) con el rol del contenido cambiado a ADMIN y la firma original",
+        "esperado": "El sistema rechaza los dos tokens con 401.",
+        "codigo_http": "401 / 401",
+        "mensaje": "Sesión expirada o no válida / Sesión expirada o no válida",
+        "obtenido": "(a) respondió 401 «Sesión expirada o no válida»; (b) respondió 401 «Sesión expirada o no válida».",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-03",
+        "nombre": "Token vencido",
+        "enviado": "GET /api/v1/users con un token de administrador firmado con la clave del entorno de prueba y vencido hace 60 s",
+        "esperado": "El sistema rechaza el token vencido con 401.",
+        "codigo_http": "401",
+        "mensaje": "Sesión expirada o no válida",
+        "obtenido": "Respondió 401 «Sesión expirada o no válida».",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-04",
+        "nombre": "Veterinario en la administración de usuarios",
+        "enviado": "Con el token de un veterinario: GET /api/v1/users y POST /api/v1/users (rol ADMIN, contraseña válida)",
+        "esperado": "El sistema responde 403 en las dos operaciones y no crea el usuario.",
+        "codigo_http": "403 / 403",
+        "mensaje": "No tienes acceso a este recurso / No tienes acceso a este recurso",
+        "obtenido": "Listar respondió 403 y crear respondió 403 «No tienes acceso a este recurso»; usuarios creados: 0.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-05",
+        "nombre": "Veterinario que corrige la consulta de otro veterinario",
+        "enviado": "El veterinario A registra una consulta; el veterinario B envía PATCH /api/v1/consultations/:id con otro motivo",
+        "esperado": "El sistema responde 403 y la consulta conserva el motivo original (RN-02).",
+        "codigo_http": "403",
+        "mensaje": "Solo el veterinario autor o un administrador puede corregir este registro",
+        "obtenido": "Respondió 403 «Solo el veterinario autor o un administrador puede corregir este registro»; el motivo guardado siguió siendo «Control SEG-05».",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-06",
+        "nombre": "Inyección SQL en la búsqueda de animales",
+        "enviado": "GET /api/v1/animals?q=' OR '1'='1 (con el token de Gestión)",
+        "esperado": "El sistema trata el texto como un valor de búsqueda: responde 200 sin resultados y sin errores de base de datos.",
+        "codigo_http": "200",
+        "mensaje": "meta.total: 0",
+        "obtenido": "Respondió 200 con 0 animales (sin filtro hay 16); no apareció ningún error de SQL.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-07",
+        "nombre": "Campo no permitido en el cuerpo",
+        "enviado": "PATCH /api/v1/auth/me con { fullName, role: \"ADMIN\" } (token de veterinario)",
+        "esperado": "El sistema responde 400 por el campo no permitido y el rol no cambia.",
+        "codigo_http": "400",
+        "mensaje": "[{\"field\":\"role\",\"messages\":[\"property role should not exist\"]}]",
+        "obtenido": "Respondió 400 «Datos inválidos»; el rol siguió siendo VETERINARIO.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-08",
+        "nombre": "XSS almacenado en el nombre del animal",
+        "enviado": "Registro de un animal por la interfaz con el nombre <script>alert(1)</script> y el temperamento <img src=x onerror=alert(2)>; luego se abrió su ficha y el listado con la búsqueda «script» (Playwright, Chromium)",
+        "esperado": "El sistema guarda el texto, pero al mostrarlo no ejecuta código: no aparece ningún diálogo de JavaScript y el texto se ve literal.",
+        "codigo_http": "201",
+        "mensaje": "Título de la ficha: «<script>alert(1)</script>»",
+        "obtenido": "El registro respondió 201 y guardó el nombre y el temperamento tal como se escribieron (sí); diálogos de JavaScript: 0; el título mostró el texto literal: sí; elementos <script> o <img src=\"x\"> insertados en la página: 0.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-09",
+        "nombre": "Cinco contraseñas incorrectas seguidas",
+        "enviado": "Cinco POST /api/v1/auth/login con una contraseña incorrecta y luego uno con la contraseña válida",
+        "esperado": "Los cuatro primeros intentos responden 401; el quinto bloquea la cuenta por 10 minutos (429) y el intento con la contraseña válida también se rechaza mientras dure el bloqueo.",
+        "codigo_http": "401, 401, 401, 401, 429 / 429",
+        "mensaje": "Credenciales inválidas … Cuenta bloqueada por intentos fallidos. Intenta nuevamente en 10 min. / Cuenta bloqueada por intentos fallidos. Intenta nuevamente en 10 min.",
+        "obtenido": "Respondió 401, 401, 401, 401, 429; con la contraseña válida respondió 429 «Cuenta bloqueada por intentos fallidos. Intenta nuevamente en 10 min.»; bloqueo registrado por 10.0 min.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-10",
+        "nombre": "Once inicios de sesión en 60 s",
+        "enviado": "Once POST /api/v1/auth/login con la contraseña válida, desde la misma IP, en 0.7 s",
+        "esperado": "Los diez primeros se atienden (200) y el undécimo se rechaza con 429.",
+        "codigo_http": "200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 429",
+        "mensaje": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+        "obtenido": "Respondió 10 veces 200 y el undécimo 429 «Demasiados intentos. Espera un momento e inténtalo de nuevo.».",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-11",
+        "nombre": "PDF renombrado a .jpg como foto del animal",
+        "enviado": "POST /api/v1/animals/:id/photo con un PDF de 2 KB llamado foto-del-animal.jpg y tipo image/jpeg",
+        "esperado": "El sistema detecta que el contenido no es una imagen, responde 400 y no guarda la foto.",
+        "codigo_http": "400",
+        "mensaje": "Formato no permitido. Usa JPG, PNG o WEBP",
+        "obtenido": "Respondió 400 «Formato no permitido. Usa JPG, PNG o WEBP»; foto del animal: sin foto.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-12",
+        "nombre": "Foto de más de 5 MB",
+        "enviado": "POST /api/v1/animals/:id/photo con un JPG de 6 MB y con un JPG de 5 MB + 1 byte",
+        "esperado": "El sistema rechaza los dos archivos (400 o 413) con un mensaje claro y no guarda la foto.",
+        "codigo_http": "413 / 400",
+        "mensaje": "El archivo supera el tamaño máximo permitido (5 MB) / La foto supera los 5 MB",
+        "obtenido": "6 MB: 413 «El archivo supera el tamaño máximo permitido (5 MB)»; 5 MB + 1 byte: 400 «La foto supera los 5 MB»; foto del animal: sin foto.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-13",
+        "nombre": "Cabeceras de seguridad de la API y del frontend",
+        "enviado": "GET http://localhost:3000/api/v1/health (API) y GET http://localhost:3000/ (frontend), a través de nginx",
+        "esperado": "La API y el frontend envían X-Content-Type-Options: nosniff, Referrer-Policy y protección contra el encuadre (X-Frame-Options o CSP frame-ancestors), y no envían X-Powered-By.",
+        "codigo_http": "200 / 200",
+        "mensaje": "API → x-content-type-options: nosniff, nosniff; x-frame-options: SAMEORIGIN; content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: da; strict-transport-security: max-age=31536000; includeSubDomains; referrer-policy: no-referrer, strict-origin-when-cross-origin; cross-origin-opener-policy: same-origin; x-powered-by: (ausente) | Frontend → x-content-type-options: nosniff; x-frame-options: (ausente); content-security-policy: (ausente); strict-transport-security: (ausente); referrer-policy: strict-origin-when-cross-origin; cross-origin-opener-policy: (ausente); x-powered-by: (ausente)",
+        "obtenido": "API: cumple (anti-encuadre presente; X-Content-Type-Options y Referrer-Policy llegan duplicadas porque las ponen helmet y nginx); frontend: no cumple (anti-encuadre ausente, CSP ausente).",
+        "estado": "Fallida"
+      },
+      {
+        "id": "SEG-14",
+        "nombre": "CORS con un origen no permitido",
+        "enviado": "OPTIONS /api/v1/auth/login con Origin: https://origen-no-permitido.example y, para comparar, con el origen configurado del frontend",
+        "esperado": "El sistema no autoriza el origen ajeno: Access-Control-Allow-Origin no contiene ese origen ni «*»; el origen del frontend sí queda autorizado.",
+        "codigo_http": "204 / 204",
+        "mensaje": "Origen ajeno → Access-Control-Allow-Origin: http://localhost:3000 | Origen del frontend → http://localhost:3000",
+        "obtenido": "Con el origen ajeno respondió 204 y Access-Control-Allow-Origin fue http://localhost:3000; con el del frontend fue http://localhost:3000.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-15",
+        "nombre": "Error interno sin traza ni detalles",
+        "enviado": "GET /api/v1/dashboard en una instancia donde el servicio del panel lanza un error con detalles internos (proveedor reemplazado con overrideProvider)",
+        "esperado": "El sistema responde 500 con un mensaje genérico, sin la traza, rutas de archivos ni el texto del error interno.",
+        "codigo_http": "500",
+        "mensaje": "Error interno del servidor. Intenta nuevamente.",
+        "obtenido": "Respondió 500 con el cuerpo {\"statusCode\":500,\"message\":\"Error interno del servidor. Intenta nuevamente.\"}; no incluyó detalles internos.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-16",
+        "nombre": "Contraseña débil al crear un usuario",
+        "enviado": "POST /api/v1/users (administrador) con una contraseña de 5 caracteres y con otra de 15 letras sin números",
+        "esperado": "El sistema responde 400 con el mensaje de la política de contraseñas y no crea los usuarios.",
+        "codigo_http": "400 / 400",
+        "mensaje": "[{\"field\":\"password\",\"messages\":[\"La contraseña debe tener al menos 8 caracteres e incluir una letra y un número\"]}] / [{\"field\":\"password\",\"messages\":[\"La contraseña debe tener al menos 8 caracteres e incluir una letra y un número\"]}]",
+        "obtenido": "Respondió 400 y 400; usuarios creados: 0.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-17",
+        "nombre": "Refresh token de un usuario desactivado",
+        "enviado": "El usuario inicia sesión (recibe la cookie del refresh token); el administrador lo desactiva; se envía POST /api/v1/auth/refresh con esa cookie",
+        "esperado": "El sistema responde 401 y no emite un token nuevo (RN-10).",
+        "codigo_http": "401",
+        "mensaje": "Sesión expirada, inicia sesión nuevamente",
+        "obtenido": "Respondió 401 «Sesión expirada, inicia sesión nuevamente»; token nuevo: no.",
+        "estado": "Aprobada"
+      },
+      {
+        "id": "SEG-18",
+        "nombre": "Swagger con la configuración de producción",
+        "enviado": "GET http://localhost:3000/api/docs y GET http://localhost:3000/api/docs-json, con la imagen de producción del backend (NODE_ENV=production) detrás de nginx",
+        "esperado": "Con la configuración de producción, la documentación Swagger no está disponible públicamente (404 o acceso restringido).",
+        "codigo_http": "200 / 200",
+        "mensaje": "La especificación OpenAPI publicó 63 rutas",
+        "obtenido": "/api/docs respondió 200 y /api/docs-json respondió 200 con 63 rutas de la API.",
+        "estado": "Fallida"
+      },
+      {
+        "id": "SEG-19",
+        "nombre": "Seis solicitudes al portal público en 60 s",
+        "enviado": "Seis POST /api/v1/public/contact válidos desde la misma IP en 0.0 s",
+        "esperado": "Los cinco primeros se atienden (200) y el sexto se rechaza con 429; solo se guardan cinco mensajes.",
+        "codigo_http": "200, 200, 200, 200, 200, 429",
+        "mensaje": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+        "obtenido": "Respondió 200, 200, 200, 200, 200, 429; el sexto devolvió «Demasiados intentos. Espera un momento e inténtalo de nuevo.»; mensajes guardados: 5.",
+        "estado": "Aprobada"
+      }
+    ],
+    "manuales_resumen": {
+      "total": 19,
+      "aprobadas": 17,
+      "fallidas": 2,
+      "archivos": [
+        "test/cap9/seguridad.e2e-spec.ts (Supertest)",
+        "test/cap9/seg08-xss.spec.ts (Playwright)"
+      ]
+    },
+    "owasp_top10": [
+      {
+        "id": "A01:2021",
+        "nombre": "Pérdida de control de acceso",
+        "control": "JwtAuthGuard global (toda ruta exige token salvo @Public), RolesGuard que niega por defecto, regla RN-02 (solo el autor corrige un registro clínico) y ValidationPipe con whitelist y forbidNonWhitelisted.",
+        "comprobacion": "SEG-01, SEG-04, SEG-05 y SEG-07; pruebas de integración de permisos (401 y 403); escaneo de la API con ZAP.",
+        "estado": "Cumple"
+      },
+      {
+        "id": "A02:2021",
+        "nombre": "Fallas criptográficas",
+        "control": "Contraseñas con bcrypt (costo 10), tokens JWT firmados con claves del entorno, refresh token guardado como hash SHA-256 en cookie HttpOnly, HTTPS en producción con nginx (templates-ip-tls).",
+        "comprobacion": "SEG-02 y SEG-03; revisión del código (auth.service.ts, password-policy.ts, deploy/nginx). La plantilla de producción con HTTPS por IP no envía Strict-Transport-Security, y el TLS no se pudo reproducir en local.",
+        "estado": "Parcial"
+      },
+      {
+        "id": "A03:2021",
+        "nombre": "Inyección",
+        "control": "Prisma con consultas parametrizadas (las consultas SQL directas usan plantillas $queryRaw/$executeRaw, sin variantes Unsafe), validación de entrada con class-validator y React escapa el contenido al mostrarlo.",
+        "comprobacion": "SEG-06 (inyección SQL), SEG-08 (XSS almacenado), reglas activas de inyección del escaneo de la API con ZAP.",
+        "estado": "Cumple"
+      },
+      {
+        "id": "A04:2021",
+        "nombre": "Diseño inseguro",
+        "control": "Reglas de negocio validadas en el backend (máquina de estados del animal y de la solicitud, RN-03 a RN-07), bloqueo de cuenta tras 5 intentos y límites de solicitudes en el inicio de sesión y el portal público.",
+        "comprobacion": "Pruebas de integración de reglas de negocio, SEG-09, SEG-10 y SEG-19.",
+        "estado": "Cumple"
+      },
+      {
+        "id": "A05:2021",
+        "nombre": "Configuración de seguridad incorrecta",
+        "control": "helmet en la API, CORS limitado al origen del frontend, errores normalizados sin traza (AllExceptionsFilter) y cabeceras nosniff y Referrer-Policy en nginx.",
+        "comprobacion": "SEG-13 (Fallida), SEG-14 (Aprobada), SEG-15 (Aprobada), SEG-18 (Fallida) y escaneo base del frontend con ZAP.",
+        "estado": "Parcial"
+      },
+      {
+        "id": "A06:2021",
+        "nombre": "Componentes vulnerables y desactualizados",
+        "control": "Archivos package-lock.json y npm ci en el CI; no hay una revisión automática de vulnerabilidades (npm audit o Dependabot) en el CI.",
+        "comprobacion": "npm audit --omit=dev: backend 3 altas/críticas, frontend 2 altas/críticas.",
+        "estado": "No cumple"
+      },
+      {
+        "id": "A07:2021",
+        "nombre": "Fallas de identificación y autenticación",
+        "control": "Política de contraseñas (8 caracteres con letra y número), bloqueo de 10 minutos tras 5 intentos, limitador de inicio de sesión, token de acceso de 15 minutos, rotación del refresh token y efecto inmediato de la desactivación (RN-10).",
+        "comprobacion": "SEG-03, SEG-09, SEG-10, SEG-16 y SEG-17; pruebas de integración de autenticación.",
+        "estado": "Cumple"
+      },
+      {
+        "id": "A08:2021",
+        "nombre": "Fallas en la integridad del software y de los datos",
+        "control": "Instalación con npm ci y package-lock.json, despliegue por OIDC sin claves guardadas, imágenes etiquetadas con el SHA del commit y validación de las fotos por su contenido (magic bytes).",
+        "comprobacion": "SEG-11 y revisión de .github/workflows: las acciones se fijan por versión mayor (no por SHA) y las imágenes no se firman.",
+        "estado": "Parcial"
+      },
+      {
+        "id": "A09:2021",
+        "nombre": "Fallas en el registro y el monitoreo de seguridad",
+        "control": "Solo se registran en la salida estándar los errores no controlados (AllExceptionsFilter). La auditoría salió del alcance (/audit responde 404) y DEPLOY.md indica que no hay monitoreo ni alertas.",
+        "comprobacion": "Revisión del código y de DEPLOY.md; prueba de integración CU17 (/audit, /alerts y /reports responden 404).",
+        "estado": "No cumple"
+      },
+      {
+        "id": "A10:2021",
+        "nombre": "Falsificación de solicitudes del lado del servidor (SSRF)",
+        "control": "El backend no pide recursos a URL enviadas por el usuario: solo usa los SDK de S3 y de Anthropic con destinos fijos y SMTP configurado por variables.",
+        "comprobacion": "Revisión del código: no hay fetch, axios ni http.request en backend/src.",
+        "estado": "No aplica"
+      }
+    ],
+    "npm_audit": {
+      "backend": [
+        {
+          "paquete": "@prisma/config",
+          "severidad": "alta",
+          "identificador": null,
+          "titulo": "Vulnerable a través de deepmerge-ts",
+          "rango_afectado": "6.13.0-dev.1 - 7.10.0 || 8.1.0-dev.1 - 8.1.0-dev.4",
+          "dependencia_directa": false,
+          "version_corregida": "Sí: prisma 7.10.1 (cambio de versión mayor)"
+        },
+        {
+          "paquete": "deepmerge-ts",
+          "severidad": "alta",
+          "identificador": "GHSA-ggr8-5vv4-36mx",
+          "titulo": "DeepmergeTS has stack exhaustion when merging recursive object graphs",
+          "rango_afectado": "<8.0.0",
+          "dependencia_directa": false,
+          "version_corregida": "Sí: prisma 7.10.1 (cambio de versión mayor)"
+        },
+        {
+          "paquete": "prisma",
+          "severidad": "alta",
+          "identificador": null,
+          "titulo": "Vulnerable a través de @prisma/config",
+          "rango_afectado": "6.13.0-dev.1 - 7.10.0 || 8.0.0-rc.3 - 8.1.0-dev.4",
+          "dependencia_directa": true,
+          "version_corregida": "Sí: prisma 7.10.1 (cambio de versión mayor)"
+        }
+      ],
+      "frontend": [
+        {
+          "paquete": "next",
+          "severidad": "moderada",
+          "identificador": null,
+          "titulo": "Vulnerable a través de postcss",
+          "rango_afectado": "9.3.4-canary.0 - 16.3.0-preview.10",
+          "dependencia_directa": true,
+          "version_corregida": "Sí: next 16.4.6 (cambio de versión mayor)"
+        },
+        {
+          "paquete": "postcss",
+          "severidad": "moderada",
+          "identificador": "GHSA-qx2v-qp2m-jg93",
+          "titulo": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+          "rango_afectado": "<8.5.10",
+          "dependencia_directa": false,
+          "version_corregida": "Sí: next 16.4.6 (cambio de versión mayor)"
+        },
+        {
+          "paquete": "postcss",
+          "severidad": "alta",
+          "identificador": "GHSA-6g55-p6wh-862q",
+          "titulo": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+          "rango_afectado": "<=8.5.11",
+          "dependencia_directa": false,
+          "version_corregida": "Sí: next 16.4.6 (cambio de versión mayor)"
+        },
+        {
+          "paquete": "postcss",
+          "severidad": "moderada",
+          "identificador": "GHSA-fxqj-rqcc-2cmp",
+          "titulo": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+          "rango_afectado": "<=8.5.22",
+          "dependencia_directa": false,
+          "version_corregida": "Sí: next 16.4.6 (cambio de versión mayor)"
+        },
+        {
+          "paquete": "postcss",
+          "severidad": "alta",
+          "identificador": "GHSA-r28c-9q8g-f849",
+          "titulo": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+          "rango_afectado": "<=8.5.17",
+          "dependencia_directa": false,
+          "version_corregida": "Sí: next 16.4.6 (cambio de versión mayor)"
+        },
+        {
+          "paquete": "zod",
+          "severidad": "alta",
+          "identificador": "GHSA-mrhx-c7xc-m3w5",
+          "titulo": "Zod can exhaust memory while validating oversized constrained collections",
+          "rango_afectado": "<4.6.6",
+          "dependencia_directa": true,
+          "version_corregida": "Sí: zod 4.6.7 (cambio de versión mayor)"
+        }
+      ],
+      "resumen": {
+        "backend": {
+          "criticas": 0,
+          "altas": 3,
+          "moderadas": 0,
+          "bajas": 0,
+          "informativas": 0,
+          "total": 3
+        },
+        "frontend": {
+          "criticas": 0,
+          "altas": 2,
+          "moderadas": 1,
+          "bajas": 0,
+          "informativas": 0,
+          "total": 3
+        }
+      }
+    }
+  },
+  "accesibilidad": [
+    {
+      "pagina": "Inicio de sesión",
+      "ruta": "/login",
+      "rol": "Sin sesión",
+      "total_violaciones": 3,
+      "elementos_afectados": 8,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "grave",
+          "impacto_axe": "serious",
+          "elementos": 1,
+          "descripcion": "El contraste entre el texto y el fondo no alcanza la relación mínima de WCAG 2 AA.",
+          "criterios": [
+            "wcag2aa",
+            "wcag143"
+          ]
+        },
+        {
+          "regla": "landmark-one-main",
+          "impacto": "moderado",
+          "impacto_axe": "moderate",
+          "elementos": 1,
+          "descripcion": "La página no tiene una región principal (main).",
+          "criterios": [
+            "best-practice"
+          ]
+        },
+        {
+          "regla": "region",
+          "impacto": "moderado",
+          "impacto_axe": "moderate",
+          "elementos": 6,
+          "descripcion": "Hay contenido fuera de las regiones (landmarks) de la página.",
+          "criterios": [
+            "best-practice"
+          ]
+        }
+      ],
+      "reglas_aprobadas": 32
+    },
+    {
+      "pagina": "Inicio público",
+      "ruta": "/",
+      "rol": "Visitante",
+      "total_violaciones": 1,
+      "elementos_afectados": 14,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "grave",
+          "impacto_axe": "serious",
+          "elementos": 14,
+          "descripcion": "El contraste entre el texto y el fondo no alcanza la relación mínima de WCAG 2 AA.",
+          "criterios": [
+            "wcag2aa",
+            "wcag143"
+          ]
+        }
+      ],
+      "reglas_aprobadas": 46
+    },
+    {
+      "pagina": "Listado de animales",
+      "ruta": "/animales",
+      "rol": "Gestión Animal y Adopciones",
+      "total_violaciones": 2,
+      "elementos_afectados": 14,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "grave",
+          "impacto_axe": "serious",
+          "elementos": 1,
+          "descripcion": "El contraste entre el texto y el fondo no alcanza la relación mínima de WCAG 2 AA.",
+          "criterios": [
+            "wcag2aa",
+            "wcag143"
+          ]
+        },
+        {
+          "regla": "role-img-alt",
+          "impacto": "grave",
+          "impacto_axe": "serious",
+          "elementos": 13,
+          "descripcion": "Hay elementos con role=\"img\" sin texto alternativo.",
+          "criterios": [
+            "wcag2a",
+            "wcag111"
+          ]
+        }
+      ],
+      "reglas_aprobadas": 44
+    },
+    {
+      "pagina": "Registro de animal",
+      "ruta": "/animales/nuevo",
+      "rol": "Gestión Animal y Adopciones",
+      "total_violaciones": 1,
+      "elementos_afectados": 1,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "grave",
+          "impacto_axe": "serious",
+          "elementos": 1,
+          "descripcion": "El contraste entre el texto y el fondo no alcanza la relación mínima de WCAG 2 AA.",
+          "criterios": [
+            "wcag2aa",
+            "wcag143"
+          ]
+        }
+      ],
+      "reglas_aprobadas": 40
+    },
+    {
+      "pagina": "Nueva consulta",
+      "ruta": "/animales/:id/consultas/nueva",
+      "rol": "Personal Veterinario",
+      "total_violaciones": 1,
+      "elementos_afectados": 1,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "grave",
+          "impacto_axe": "serious",
+          "elementos": 1,
+          "descripcion": "El contraste entre el texto y el fondo no alcanza la relación mínima de WCAG 2 AA.",
+          "criterios": [
+            "wcag2aa",
+            "wcag143"
+          ]
+        }
+      ],
+      "reglas_aprobadas": 38
+    },
+    {
+      "pagina": "Vacunas",
+      "ruta": "/vacunas",
+      "rol": "Personal Veterinario",
+      "total_violaciones": 0,
+      "elementos_afectados": 0,
+      "violaciones": [],
+      "reglas_aprobadas": 46
+    },
+    {
+      "pagina": "Usuarios",
+      "ruta": "/admin/usuarios",
+      "rol": "Administrador",
+      "total_violaciones": 1,
+      "elementos_afectados": 1,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "grave",
+          "impacto_axe": "serious",
+          "elementos": 1,
+          "descripcion": "El contraste entre el texto y el fondo no alcanza la relación mínima de WCAG 2 AA.",
+          "criterios": [
+            "wcag2aa",
+            "wcag143"
+          ]
+        }
+      ],
+      "reglas_aprobadas": 43
+    }
+  ],
+  "grafos_sprint3": [
+    {
+      "id": "CB-HU9-B",
+      "hu": "HU9",
+      "titulo": "HU9. Asistente Virtual con IA - Responder una consulta",
+      "archivo": "backend/src/modules/chat/chat.service.ts",
+      "metodo": "ChatService.reply",
+      "codigo": "async reply(messages: ChatTurnDto[]): Promise<{ reply: string }> {\n    (1) const { enabled, model } = this.config.chat;\n    (2) if (!enabled) throw new ServiceUnavailableException(UNAVAILABLE);\n    (3) this.validate(messages);\n\n    const animals = await this.prisma.animal.findMany({\n        where: { deletedAt: null, status: 'DISPONIBLE_ADOPCION' },\n        select: {\n            name: true,\n            code: true,\n            species: true,\n            size: true,\n            ageMonths: true,\n            goodWithChildren: true,\n            goodWithAnimals: true,\n        },\n        orderBy: { code: 'asc' },\n        take: 40,\n    });\n\n    try {\n        (4) const response = await this.getClient().beta.messages.create({\n            model,\n            max_tokens: 16000,\n            output_config: { effort: 'low' },\n            (5) ...(FALLBACK_MODELS.has(model)\n                (6) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const }\n                (7) : {}),\n            (8) system: [\n                {\n                    type: 'text',\n                    text: stableSystemPrompt(this.config.institution),\n                    cache_control: { type: 'ephemeral' },\n                },\n                { type: 'text', text: adoptablesPrompt(animals) },\n            ],\n            messages: messages.map((m) => ({ role: m.role, content: m.content })),\n        });\n\n        (9) if (response.stop_reason === 'refusal') return { reply: REFUSAL_REPLY };\n\n        (10) const text = response.content\n            .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')\n            .map((b) => b.text)\n            .join('\\n')\n            .trim();\n        (11) return { reply: text ||\n            (12) REFUSAL_REPLY };\n    } catch (err) {\n        (13) if (err instanceof Anthropic.RateLimitError) {\n            (14) throw new ServiceUnavailableException(\n                'El asistente está muy ocupado. Intenta en unos segundos.',\n            );\n        }\n        (15) if (err instanceof Anthropic.AuthenticationError) {\n            (16) this.logger.error('ANTHROPIC_API_KEY inválida');\n            throw new ServiceUnavailableException(UNAVAILABLE);\n        }\n        (17) if (err instanceof Anthropic.APIError) {\n            (18) this.logger.error(`Error de la API de Claude (${err.status}): ${err.message}`);\n            throw new ServiceUnavailableException(UNAVAILABLE);\n        }\n        (19) throw err;\n    }\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Lee si el servicio de IA está configurado y el modelo"
+        },
+        {
+          "id": "2",
+          "descripcion": "¿El servicio de IA no está configurado?"
+        },
+        {
+          "id": "3",
+          "descripcion": "Valida el historial (validate) y obtiene los animales disponibles para adopción"
+        },
+        {
+          "id": "4",
+          "descripcion": "Arma la consulta al modelo: límite de tokens y esfuerzo"
+        },
+        {
+          "id": "5",
+          "descripcion": "¿El modelo admite el respaldo automático de servidor?"
+        },
+        {
+          "id": "6",
+          "descripcion": "Agrega el respaldo automático"
+        },
+        {
+          "id": "7",
+          "descripcion": "Sin respaldo"
+        },
+        {
+          "id": "8",
+          "descripcion": "Agrega el contexto de la institución y de los animales disponibles, y envía la consulta. ¿La API lanza un error?"
+        },
+        {
+          "id": "9",
+          "descripcion": "¿El modelo se negó a responder? Si es así, devuelve la respuesta amable de rechazo"
+        },
+        {
+          "id": "10",
+          "descripcion": "Junta el texto de la respuesta"
+        },
+        {
+          "id": "11",
+          "descripcion": "¿La respuesta tiene texto? Si es así, lo devuelve"
+        },
+        {
+          "id": "12",
+          "descripcion": "Devuelve la respuesta amable de rechazo"
+        },
+        {
+          "id": "13",
+          "descripcion": "¿Es un error de límite de la API (429)?"
+        },
+        {
+          "id": "14",
+          "descripcion": "Lanza ServiceUnavailableException «El asistente está muy ocupado. Intenta en unos segundos.»"
+        },
+        {
+          "id": "15",
+          "descripcion": "¿Es un error de autenticación (clave inválida)?"
+        },
+        {
+          "id": "16",
+          "descripcion": "Registra el error y lanza ServiceUnavailableException con el mensaje amable"
+        },
+        {
+          "id": "17",
+          "descripcion": "¿Es otro error de la API?"
+        },
+        {
+          "id": "18",
+          "descripcion": "Registra el error y lanza ServiceUnavailableException con el mensaje amable"
+        },
+        {
+          "id": "19",
+          "descripcion": "Vuelve a lanzar el error original"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": "F"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": ""
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": ""
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": "V"
+        },
+        {
+          "de": "5",
+          "a": "7",
+          "etiqueta": "F"
+        },
+        {
+          "de": "6",
+          "a": "8",
+          "etiqueta": ""
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": ""
+        },
+        {
+          "de": "8",
+          "a": "13",
+          "etiqueta": "V"
+        },
+        {
+          "de": "8",
+          "a": "9",
+          "etiqueta": "F"
+        },
+        {
+          "de": "9",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "9",
+          "a": "10",
+          "etiqueta": "F"
+        },
+        {
+          "de": "10",
+          "a": "11",
+          "etiqueta": ""
+        },
+        {
+          "de": "11",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "11",
+          "a": "12",
+          "etiqueta": "F"
+        },
+        {
+          "de": "12",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "13",
+          "a": "14",
+          "etiqueta": "V"
+        },
+        {
+          "de": "13",
+          "a": "15",
+          "etiqueta": "F"
+        },
+        {
+          "de": "14",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "15",
+          "a": "16",
+          "etiqueta": "V"
+        },
+        {
+          "de": "15",
+          "a": "17",
+          "etiqueta": "F"
+        },
+        {
+          "de": "16",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "17",
+          "a": "18",
+          "etiqueta": "V"
+        },
+        {
+          "de": "17",
+          "a": "19",
+          "etiqueta": "F"
+        },
+        {
+          "de": "18",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "19",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 27,
+        "N": 20,
+        "P": 8,
+        "R": 9,
+        "VG": 9
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, (F)",
+          "entrada_simulada": "Servicio de IA sin clave configurada.",
+          "salida_esperada": "El sistema rechaza la consulta con ServiceUnavailableException y el mensaje «El asistente no está disponible en este momento. Escríbenos por el formulario de contacto.». No consulta la base de datos.",
+          "test": "CB-HU9-B-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 9, 10, 11, (F)",
+          "entrada_simulada": "Modelo sin respaldo de servidor; la API responde con texto.",
+          "salida_esperada": "El sistema devuelve el texto de la respuesta y no guarda la conversación.",
+          "test": "CB-HU9-B-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 8, 9, 10, 11, (F)",
+          "entrada_simulada": "Modelo con respaldo de servidor (claude-opus-5-5); la API responde con texto.",
+          "salida_esperada": "El sistema pide el respaldo automático y devuelve el texto de la respuesta.",
+          "test": "CB-HU9-B-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 9, (F)",
+          "entrada_simulada": "La API responde con stop_reason «refusal».",
+          "salida_esperada": "El sistema devuelve la respuesta amable «Prefiero no responder a eso…».",
+          "test": "CB-HU9-B-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, (F)",
+          "entrada_simulada": "La API responde sin bloques de texto.",
+          "salida_esperada": "El sistema devuelve la respuesta amable «Prefiero no responder a eso…».",
+          "test": "CB-HU9-B-C5",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 14, (F)",
+          "entrada_simulada": "La API responde con el error 429 (límite).",
+          "salida_esperada": "El sistema lanza ServiceUnavailableException «El asistente está muy ocupado. Intenta en unos segundos.».",
+          "test": "CB-HU9-B-C6",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 15, 16, (F)",
+          "entrada_simulada": "La API responde con el error 401 (clave inválida).",
+          "salida_esperada": "El sistema lanza ServiceUnavailableException con el mensaje amable de servicio no disponible.",
+          "test": "CB-HU9-B-C7",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 15, 17, 18, (F)",
+          "entrada_simulada": "La API responde con el error 500.",
+          "salida_esperada": "El sistema lanza ServiceUnavailableException con el mensaje amable de servicio no disponible.",
+          "test": "CB-HU9-B-C8",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 7, 8, 13, 15, 17, 19, (F)",
+          "entrada_simulada": "La consulta falla con un error que no es de la API (TypeError).",
+          "salida_esperada": "El sistema vuelve a lanzar el mismo error.",
+          "test": "CB-HU9-B-C9",
+          "resultado": "Aprobado"
+        }
+      ]
+    },
+    {
+      "id": "CB-HU12-A",
+      "hu": "HU12",
+      "titulo": "HU12. Seguimiento Post-adopción - Registrar un Seguimiento",
+      "archivo": "backend/src/modules/adoptions/adoptions.service.ts",
+      "metodo": "AdoptionsService.createFollowup",
+      "codigo": "async createFollowup(id: string, dto: CreateFollowupDto, user: AuthUser) {\n    (1) const req = await this.approvedOrThrow(id);\n    (6) if (req.deliveryDate &&\n        (7) new Date(dto.followupDate) < req.deliveryDate) {\n        (8) throw new BadRequestException('El seguimiento no puede ser anterior a la entrega del animal');\n    }\n    (9) return this.prisma.$transaction(async (tx) => {\n        const f = await tx.adoptionFollowup.create({\n            data: {\n                adoptionRequestId: id,\n                followupDate: new Date(dto.followupDate),\n                animalCondition: dto.animalCondition,\n                observations: dto.observations,\n                createdById: user.id,\n            },\n            include: { createdBy: userSelect },\n        });\n        return f;\n    });\n}\n\nprivate async approvedOrThrow(id: string) {\n    (2) const req = await this.prisma.adoptionRequest.findUnique({ where: { id } });\n    (3) if (!req) throw new NotFoundException('Solicitud no encontrada');\n    (4) if (req.status !== 'APROBADA') {\n        throw new ConflictException('Disponible solo para solicitudes aprobadas');\n    }\n    (5) return req;\n}",
+      "nodos": [
+        {
+          "id": "Inicio"
+        },
+        {
+          "id": "1",
+          "descripcion": "Verifica que la adopción esté aprobada (approvedOrThrow)"
+        },
+        {
+          "id": "2",
+          "descripcion": "Busca la solicitud"
+        },
+        {
+          "id": "3",
+          "descripcion": "¿La solicitud no existe?"
+        },
+        {
+          "id": "4",
+          "descripcion": "¿La solicitud no está aprobada?"
+        },
+        {
+          "id": "5",
+          "descripcion": "Devuelve la solicitud aprobada"
+        },
+        {
+          "id": "6",
+          "descripcion": "¿La solicitud tiene fecha de entrega?"
+        },
+        {
+          "id": "7",
+          "descripcion": "¿El seguimiento es anterior a la entrega del animal?"
+        },
+        {
+          "id": "8",
+          "descripcion": "Lanza BadRequestException: el seguimiento no puede ser anterior a la entrega"
+        },
+        {
+          "id": "9",
+          "descripcion": "Crea el seguimiento con la fecha, el estado del animal, las observaciones y el autor, y lo devuelve"
+        },
+        {
+          "id": "F",
+          "descripcion": "Fin del método"
+        }
+      ],
+      "aristas": [
+        {
+          "de": "Inicio",
+          "a": "1",
+          "etiqueta": ""
+        },
+        {
+          "de": "1",
+          "a": "2",
+          "etiqueta": ""
+        },
+        {
+          "de": "2",
+          "a": "3",
+          "etiqueta": ""
+        },
+        {
+          "de": "3",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "3",
+          "a": "4",
+          "etiqueta": "F"
+        },
+        {
+          "de": "4",
+          "a": "F",
+          "etiqueta": "V"
+        },
+        {
+          "de": "4",
+          "a": "5",
+          "etiqueta": "F"
+        },
+        {
+          "de": "5",
+          "a": "6",
+          "etiqueta": ""
+        },
+        {
+          "de": "6",
+          "a": "7",
+          "etiqueta": "V"
+        },
+        {
+          "de": "6",
+          "a": "9",
+          "etiqueta": "F"
+        },
+        {
+          "de": "7",
+          "a": "8",
+          "etiqueta": "V"
+        },
+        {
+          "de": "7",
+          "a": "9",
+          "etiqueta": "F"
+        },
+        {
+          "de": "8",
+          "a": "F",
+          "etiqueta": ""
+        },
+        {
+          "de": "9",
+          "a": "F",
+          "etiqueta": ""
+        }
+      ],
+      "complejidad": {
+        "A": 13,
+        "N": 10,
+        "P": 4,
+        "R": 5,
+        "VG": 5
+      },
+      "caminos": [
+        {
+          "camino": "1, 2, 3, (F)",
+          "entrada_simulada": "El identificador no corresponde a ninguna solicitud.",
+          "salida_esperada": "El sistema lanza NotFoundException «Solicitud no encontrada». No se crea ningún registro.",
+          "test": "CB-HU12-A-C1",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, (F)",
+          "entrada_simulada": "Solicitud en estado En evaluación.",
+          "salida_esperada": "El sistema rechaza el seguimiento con ConflictException «Disponible solo para solicitudes aprobadas». No se crea ningún registro.",
+          "test": "CB-HU12-A-C2",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 9, (F)",
+          "entrada_simulada": "Solicitud aprobada sin fecha de entrega registrada.",
+          "salida_esperada": "El sistema registra el seguimiento.",
+          "test": "CB-HU12-A-C3",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 8, (F)",
+          "entrada_simulada": "Solicitud aprobada con entrega el 15/11/2026 y seguimiento del 14/11/2026.",
+          "salida_esperada": "El sistema rechaza el seguimiento con BadRequestException «El seguimiento no puede ser anterior a la entrega del animal».",
+          "test": "CB-HU12-A-C4",
+          "resultado": "Aprobado"
+        },
+        {
+          "camino": "1, 2, 3, 4, 5, 6, 7, 9, (F)",
+          "entrada_simulada": "Solicitud aprobada con entrega el 15/11/2026 y seguimiento del 17/11/2026.",
+          "salida_esperada": "El sistema registra el seguimiento vinculado a la adopción, con su fecha y el usuario autenticado como autor.",
+          "test": "CB-HU12-A-C5",
+          "resultado": "Aprobado"
+        }
+      ]
+    }
+  ],
+  "defectos_nuevos": [
+    {
+      "id": "DEF-CAP9-01",
+      "estado": "Abierto",
+      "titulo": "La documentación Swagger de la API es pública con la configuración de producción",
+      "severidad": "Media",
+      "origen": "SEG-18",
+      "descripcion": "/api/docs respondió 200 y /api/docs-json respondió 200 con 63 rutas de la API.",
+      "ubicacion": "backend/src/main.ts (SwaggerModule.setup se ejecuta siempre) y deploy/nginx (la ruta /api/ se envía completa al backend)",
+      "recomendacion": "Publicar Swagger solo fuera de producción (por ejemplo, con una variable de entorno) o protegerlo con autenticación."
+    },
+    {
+      "id": "DEF-CAP9-02",
+      "estado": "Abierto",
+      "titulo": "El frontend no envía protección contra el encuadre (clickjacking) ni Content-Security-Policy",
+      "severidad": "Media",
+      "origen": "SEG-13 y escaneo base de ZAP",
+      "descripcion": "API: cumple (anti-encuadre presente; X-Content-Type-Options y Referrer-Policy llegan duplicadas porque las ponen helmet y nginx); frontend: no cumple (anti-encuadre ausente, CSP ausente).",
+      "ubicacion": "frontend/next.config.ts (sin headers()) y deploy/nginx/templates-*/app.conf.template",
+      "recomendacion": "Agregar X-Frame-Options: DENY (o CSP frame-ancestors) y una Content-Security-Policy para las páginas del frontend."
+    },
+    {
+      "id": "DEF-CAP9-03",
+      "estado": "Abierto",
+      "titulo": "Accesibilidad: el contraste entre el texto y el fondo no alcanza la relación mínima de WCAG 2 AA (regla color-contrast)",
+      "severidad": "Media",
+      "origen": "axe-core",
+      "descripcion": "Impacto grave («serious» en axe) en 6 de 7 pantallas (Inicio de sesión, Inicio público, Listado de animales, Registro de animal, Nueva consulta, Usuarios); 19 elementos afectados.",
+      "ubicacion": "frontend/src (estilos y componentes de esas pantallas)",
+      "recomendacion": "Oscurecer los colores de texto afectados hasta alcanzar 4,5:1 (texto normal) o 3:1 (texto grande)."
+    },
+    {
+      "id": "DEF-CAP9-04",
+      "estado": "Abierto",
+      "titulo": "Accesibilidad: hay elementos con role=\"img\" sin texto alternativo (regla role-img-alt)",
+      "severidad": "Media",
+      "origen": "axe-core",
+      "descripcion": "Impacto grave («serious» en axe) en 1 de 7 pantallas (Listado de animales); 13 elementos afectados.",
+      "ubicacion": "frontend/src (estilos y componentes de esas pantallas)",
+      "recomendacion": "Agregar aria-label (o el texto alternativo que corresponda) a los elementos con role=\"img\"."
+    },
+    {
+      "id": "DEF-CAP9-05",
+      "estado": "Abierto",
+      "titulo": "Dependencias de producción con vulnerabilidades de severidad alta",
+      "severidad": "Alta",
+      "origen": "npm audit --omit=dev",
+      "descripcion": "Backend: 3 altas (prisma → @prisma/config → deepmerge-ts). Frontend: 2 altas y 1 moderada (postcss a través de next, y zod). Todas tienen versión corregida, con cambio de versión mayor.",
+      "ubicacion": "backend/package.json y frontend/package.json",
+      "recomendacion": "Planificar la actualización de prisma, next y zod a las versiones corregidas y volver a ejecutar las pruebas.",
+      "nota": "Ya figuraba en datos-sqap.json; se confirma con el detalle por aviso."
+    },
+    {
+      "id": "DEF-CAP9-06",
+      "estado": "Abierto",
+      "titulo": "Los archivos de /_next/static/ se sirven sin X-Content-Type-Options ni Referrer-Policy",
+      "severidad": "Baja",
+      "origen": "Escaneo base de ZAP (regla 10021)",
+      "descripcion": "5 respuestas de /_next/static/ sin X-Content-Type-Options. En nginx, el location /_next/static/ define su propio add_header (Cache-Control) y por eso no hereda los add_header del bloque server.",
+      "ubicacion": "deploy/nginx/templates*/app.conf.template (location /_next/static/)",
+      "recomendacion": "Repetir los add_header de seguridad dentro de ese location o moverlos a un archivo incluido en cada location."
+    },
+    {
+      "id": "DEF-CAP9-07",
+      "estado": "Abierto",
+      "titulo": "Entradas con el carácter nulo o identificadores fuera de rango provocan errores 500",
+      "severidad": "Baja",
+      "origen": "Escaneo de la API con ZAP (regla 100000)",
+      "descripcion": "El escaneo activo obtuvo 500 en GET /animals, /adopters, /adoptions y /contact-messages con q=%00, en PATCH /auth/me y en GET /ml/models/816432691334276512 (además del 503 esperado del asistente sin clave de la API). Se reprodujo a mano con test/cap9/reproducir-500.js (evidencia/zap/reproduccion-500.txt): las búsquedas normales responden 200 y una versión inexistente dentro del rango responde 404. El registro del backend muestra la causa: PostgreSQL rechaza el carácter nulo con el error 22021 «invalid byte sequence for encoding UTF8: 0x00». La respuesta es genérica y no expone detalles internos, pero el error no se controla como una validación (400 o 404).",
+      "ubicacion": "DTO de búsqueda y de perfil (el carácter nulo llega a PostgreSQL) y ml.controller.ts (ParseIntPipe acepta valores fuera del rango de Int)",
+      "recomendacion": "Rechazar el carácter nulo en la validación de texto y limitar los identificadores numéricos al rango de la base, respondiendo 400."
+    },
+    {
+      "id": "DEF-CAP9-08",
+      "estado": "Abierto",
+      "titulo": "Los formularios públicos no declaran method=\"post\": sin JavaScript, los datos viajan en la URL",
+      "severidad": "Baja",
+      "origen": "Escaneo base de ZAP (regla 10024)",
+      "descripcion": "El spider de ZAP envió los formularios de registro y de contacto sin ejecutar JavaScript y los datos quedaron en la URL, incluido el campo de contraseña del registro. Ocurre si el formulario se envía antes de que cargue la aplicación.",
+      "ubicacion": "frontend/src (formularios de /registro, /login y contacto)",
+      "recomendacion": "Declarar method=\"post\" en los formularios para que, sin JavaScript, los datos no vayan en la URL."
+    },
+    {
+      "id": "DEF-CAP9-09",
+      "estado": "Abierto",
+      "titulo": "nginx revela su versión y faltan cabeceras de endurecimiento",
+      "severidad": "Baja",
+      "origen": "Escaneo base de ZAP (reglas 10036, 10063 y 90004)",
+      "descripcion": "La cabecera Server muestra «nginx/1.29.8» y las páginas no envían Permissions-Policy ni Cross-Origin-Embedder-Policy.",
+      "ubicacion": "deploy/nginx/templates*/app.conf.template",
+      "recomendacion": "Agregar server_tokens off y las cabeceras Permissions-Policy y Cross-Origin-Embedder-Policy que correspondan."
+    }
+  ],
+  "capturas": [
+    {
+      "archivo": "capturas/SIS-paso-01.png",
+      "muestra": "Prueba de sistema, paso 1: ficha del animal recién registrado por Gestión, con su código y la situación «Ingresado».",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-02.png",
+      "muestra": "Paso 2: consulta veterinaria guardada, con el veterinario autor.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-03.png",
+      "muestra": "Paso 4: cuarentena abierta; el animal figura «En cuarentena».",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-04.png",
+      "muestra": "Paso 6: animal habilitado, «Disponible para adopción».",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-05.png",
+      "muestra": "Paso 7: ficha del adoptante registrado, con su perfil de evaluación.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-06.png",
+      "muestra": "Paso 8: ranking de animales recomendados con puntaje, nivel y aviso de apoyo.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-07.png",
+      "muestra": "Paso 9: solicitud creada en «Pendiente»; el animal pasa a «En proceso de adopción».",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-08.png",
+      "muestra": "Paso 11: solicitud aprobada; el animal pasa a «Adoptado».",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-09.png",
+      "muestra": "Paso 12: acta de adopción responsable con los datos del animal y del adoptante.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-10.png",
+      "muestra": "Paso 13: seguimiento post-adopción registrado en la solicitud.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-11.png",
+      "muestra": "Paso 14: panel de indicadores visto por el Personal Directivo.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/SIS-paso-12.png",
+      "muestra": "Paso 15: sitio público con la confirmación del formulario de contacto.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/jest-cobertura.png",
+      "muestra": "Terminal: resumen de las pruebas unitarias del backend y de la cobertura total (Jest).",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/playwright-resumen.png",
+      "muestra": "Informe HTML de Playwright con las pruebas de los sprints y del Capítulo IX.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/zap-resumen.png",
+      "muestra": "Resumen de alertas por riesgo de los reportes de ZAP (frontend y API).",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/k6-50-usuarios.png",
+      "muestra": "Terminal: resumen de k6 del escenario de 50 usuarios virtuales.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/lighthouse-inicio-movil.png",
+      "muestra": "Reporte de Lighthouse del inicio público en móvil: puntajes y métricas.",
+      "existe": true
+    },
+    {
+      "archivo": "capturas/axe-resumen.png",
+      "muestra": "Terminal: violaciones de accesibilidad por pantalla (axe-core).",
+      "existe": true
+    }
+  ],
+  "pendientes": [
+    "Prisma bloqueó «prisma migrate reset» por ser una acción destructiva iniciada por un agente sin autorización explícita; no se forzó. Las pruebas de integración se ejecutaron después de «npm run db:setup» sobre la base de prueba existente (con los datos del seed del Sprint 3), no sobre una base vacía como en el CI.",
+    "Prueba de usabilidad con personas (cuestionario SUS): no se automatiza; requiere al menos 5 participantes.",
+    "Aceptación del cliente (Zoonosis): requiere el cargo, la fecha, lo aprobado y las observaciones de la persona que revisó el sistema, o el acta firmada.",
+    "PageSpeed del sitio publicado: no se ejecutó, porque las reglas prohíben pruebas contra el servidor de AWS. Lo debe correr el equipo en pagespeed.web.dev.",
+    "HTTPS y HSTS de producción: la plantilla con TLS (templates-ip-tls) necesita un certificado real y no se reprodujo en local; se revisó solo el código.",
+    "Asistente con IA (HU9): sin clave de la API de Anthropic, solo se probó la respuesta 503 del servicio no disponible.",
+    "Envío de correo del formulario de contacto: sin servidor SMTP en el entorno de prueba; se comprobó que el mensaje se guarda, no que se envía.",
+    "Lighthouse se ejecutó una vez por página y modo; sus valores varían entre ejecuciones.",
+    "La prueba de carga se generó desde la misma máquina que aloja el sistema (k6 y los contenedores comparten CPU y memoria).",
+    "El escaneo activo de ZAP sobre la API se hizo con un usuario de Gestión: las rutas exclusivas de otros roles respondieron 403 y no se probaron a fondo. Tuvo un límite de 30 minutos.",
+    "Accesibilidad: axe-core revisa solo lo automatizable; no se hizo una revisión manual con lector de pantalla ni navegación completa con teclado.",
+    "Correcciones de las pruebas (no del sistema): la primera ejecución de SEG-08 escribió el nombre antes de que el formulario terminara de cargar, y en la de seguridad los correos de prueba tenían mayúsculas y SEG-13 exigía el valor exacto «nosniff». Se corrigieron las pruebas y se volvieron a ejecutar."
+  ]
+}

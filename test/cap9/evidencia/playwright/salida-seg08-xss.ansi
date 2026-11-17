@@ -1,0 +1,8 @@
+◇ injected env (10) from ..\..\.env.test
+
+[2mRunning [22m1[2m test using [22m1[2m worker[22m
+
+◇ injected env (0) from ..\..\.env.test
+  [32mok[39m [2m1 [22mseg08-xss.spec.ts:10:1 › SEG-08: el nombre <script>alert(1)</script> no se ejecuta al mostrarse[2m (2.5s)[22m
+
+[32m  1 passed[39m[2m (3.2s)[22m

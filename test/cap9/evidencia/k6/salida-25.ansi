@@ -1,0 +1,501 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: /carga.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 25 max VUs, 2m30s max duration (incl. graceful stop):
+              * carga: Up to 25 looping VUs for 2m0s over 2 stages (gracefulRampDown: 10s, gracefulStop: 30s)
+
+
+running (0m01.0s), 00/25 VUs, 0 complete and 0 interrupted iterations
+carga   [   1% ] 00/25 VUs  0m00.9s/2m00.0s
+
+running (0m02.0s), 01/25 VUs, 0 complete and 0 interrupted iterations
+carga   [   2% ] 01/25 VUs  0m01.9s/2m00.0s
+
+running (0m03.0s), 02/25 VUs, 1 complete and 0 interrupted iterations
+carga   [   2% ] 02/25 VUs  0m02.9s/2m00.0s
+
+running (0m04.0s), 03/25 VUs, 3 complete and 0 interrupted iterations
+carga   [   3% ] 03/25 VUs  0m03.9s/2m00.0s
+
+running (0m05.0s), 04/25 VUs, 6 complete and 0 interrupted iterations
+carga   [   4% ] 04/25 VUs  0m04.9s/2m00.0s
+
+running (0m06.0s), 04/25 VUs, 10 complete and 0 interrupted iterations
+carga   [   5% ] 04/25 VUs  0m05.9s/2m00.0s
+
+running (0m07.0s), 05/25 VUs, 13 complete and 0 interrupted iterations
+carga   [   6% ] 05/25 VUs  0m06.9s/2m00.0s
+
+running (0m08.0s), 06/25 VUs, 18 complete and 0 interrupted iterations
+carga   [   7% ] 06/25 VUs  0m07.9s/2m00.0s
+
+running (0m09.0s), 07/25 VUs, 23 complete and 0 interrupted iterations
+carga   [   7% ] 07/25 VUs  0m08.9s/2m00.0s
+
+running (0m10.0s), 08/25 VUs, 30 complete and 0 interrupted iterations
+carga   [   8% ] 08/25 VUs  0m09.9s/2m00.0s
+
+running (0m11.0s), 09/25 VUs, 36 complete and 0 interrupted iterations
+carga   [   9% ] 09/25 VUs  0m10.9s/2m00.0s
+
+running (0m12.0s), 09/25 VUs, 45 complete and 0 interrupted iterations
+carga   [  10% ] 09/25 VUs  0m11.9s/2m00.0s
+
+running (0m13.0s), 10/25 VUs, 53 complete and 0 interrupted iterations
+carga   [  11% ] 10/25 VUs  0m12.9s/2m00.0s
+
+running (0m14.0s), 11/25 VUs, 63 complete and 0 interrupted iterations
+carga   [  12% ] 11/25 VUs  0m13.9s/2m00.0s
+
+running (0m15.0s), 12/25 VUs, 74 complete and 0 interrupted iterations
+carga   [  12% ] 12/25 VUs  0m14.9s/2m00.0s
+
+running (0m16.0s), 13/25 VUs, 85 complete and 0 interrupted iterations
+carga   [  13% ] 13/25 VUs  0m15.9s/2m00.0s
+
+running (0m17.0s), 14/25 VUs, 97 complete and 0 interrupted iterations
+carga   [  14% ] 14/25 VUs  0m16.9s/2m00.0s
+
+running (0m18.0s), 14/25 VUs, 111 complete and 0 interrupted iterations
+carga   [  15% ] 14/25 VUs  0m17.9s/2m00.0s
+
+running (0m19.0s), 15/25 VUs, 122 complete and 0 interrupted iterations
+carga   [  16% ] 15/25 VUs  0m18.9s/2m00.0s
+
+running (0m20.0s), 16/25 VUs, 137 complete and 0 interrupted iterations
+carga   [  17% ] 16/25 VUs  0m19.9s/2m00.0s
+
+running (0m21.0s), 17/25 VUs, 152 complete and 0 interrupted iterations
+carga   [  17% ] 17/25 VUs  0m20.9s/2m00.0s
+
+running (0m22.0s), 18/25 VUs, 168 complete and 0 interrupted iterations
+carga   [  18% ] 18/25 VUs  0m21.9s/2m00.0s
+
+running (0m23.0s), 19/25 VUs, 185 complete and 0 interrupted iterations
+carga   [  19% ] 19/25 VUs  0m22.9s/2m00.0s
+
+running (0m24.0s), 19/25 VUs, 204 complete and 0 interrupted iterations
+carga   [  20% ] 19/25 VUs  0m23.9s/2m00.0s
+
+running (0m25.0s), 20/25 VUs, 221 complete and 0 interrupted iterations
+carga   [  21% ] 20/25 VUs  0m24.9s/2m00.0s
+
+running (0m26.0s), 21/25 VUs, 239 complete and 0 interrupted iterations
+carga   [  22% ] 21/25 VUs  0m25.9s/2m00.0s
+
+running (0m27.0s), 22/25 VUs, 259 complete and 0 interrupted iterations
+carga   [  22% ] 22/25 VUs  0m26.9s/2m00.0s
+
+running (0m28.0s), 23/25 VUs, 281 complete and 0 interrupted iterations
+carga   [  23% ] 23/25 VUs  0m27.9s/2m00.0s
+
+running (0m29.0s), 24/25 VUs, 301 complete and 0 interrupted iterations
+carga   [  24% ] 24/25 VUs  0m28.9s/2m00.0s
+
+running (0m30.0s), 24/25 VUs, 325 complete and 0 interrupted iterations
+carga   [  25% ] 24/25 VUs  0m29.9s/2m00.0s
+
+running (0m31.0s), 25/25 VUs, 333 complete and 0 interrupted iterations
+carga   [  26% ] 25/25 VUs  0m30.9s/2m00.0s
+
+running (0m32.0s), 25/25 VUs, 353 complete and 0 interrupted iterations
+carga   [  27% ] 25/25 VUs  0m31.9s/2m00.0s
+
+running (0m33.0s), 25/25 VUs, 378 complete and 0 interrupted iterations
+carga   [  27% ] 25/25 VUs  0m32.9s/2m00.0s
+
+running (0m34.0s), 25/25 VUs, 387 complete and 0 interrupted iterations
+carga   [  28% ] 25/25 VUs  0m33.9s/2m00.0s
+
+running (0m35.0s), 25/25 VUs, 412 complete and 0 interrupted iterations
+carga   [  29% ] 25/25 VUs  0m34.9s/2m00.0s
+
+running (0m36.0s), 25/25 VUs, 437 complete and 0 interrupted iterations
+carga   [  30% ] 25/25 VUs  0m35.9s/2m00.0s
+
+running (0m37.0s), 25/25 VUs, 462 complete and 0 interrupted iterations
+carga   [  31% ] 25/25 VUs  0m36.9s/2m00.0s
+
+running (0m38.0s), 25/25 VUs, 486 complete and 0 interrupted iterations
+carga   [  32% ] 25/25 VUs  0m37.9s/2m00.0s
+
+running (0m39.0s), 25/25 VUs, 508 complete and 0 interrupted iterations
+carga   [  32% ] 25/25 VUs  0m38.9s/2m00.0s
+
+running (0m40.0s), 25/25 VUs, 519 complete and 0 interrupted iterations
+carga   [  33% ] 25/25 VUs  0m39.9s/2m00.0s
+
+running (0m41.0s), 25/25 VUs, 544 complete and 0 interrupted iterations
+carga   [  34% ] 25/25 VUs  0m40.9s/2m00.0s
+
+running (0m42.0s), 25/25 VUs, 569 complete and 0 interrupted iterations
+carga   [  35% ] 25/25 VUs  0m41.9s/2m00.0s
+
+running (0m43.0s), 25/25 VUs, 593 complete and 0 interrupted iterations
+carga   [  36% ] 25/25 VUs  0m42.9s/2m00.0s
+
+running (0m44.0s), 25/25 VUs, 618 complete and 0 interrupted iterations
+carga   [  37% ] 25/25 VUs  0m43.9s/2m00.0s
+
+running (0m45.0s), 25/25 VUs, 643 complete and 0 interrupted iterations
+carga   [  37% ] 25/25 VUs  0m44.9s/2m00.0s
+
+running (0m46.0s), 25/25 VUs, 667 complete and 0 interrupted iterations
+carga   [  38% ] 25/25 VUs  0m45.9s/2m00.0s
+
+running (0m47.0s), 25/25 VUs, 689 complete and 0 interrupted iterations
+carga   [  39% ] 25/25 VUs  0m46.9s/2m00.0s
+
+running (0m48.0s), 25/25 VUs, 714 complete and 0 interrupted iterations
+carga   [  40% ] 25/25 VUs  0m47.9s/2m00.0s
+
+running (0m49.0s), 25/25 VUs, 738 complete and 0 interrupted iterations
+carga   [  41% ] 25/25 VUs  0m48.9s/2m00.0s
+
+running (0m50.0s), 25/25 VUs, 762 complete and 0 interrupted iterations
+carga   [  42% ] 25/25 VUs  0m49.9s/2m00.0s
+
+running (0m51.0s), 25/25 VUs, 782 complete and 0 interrupted iterations
+carga   [  42% ] 25/25 VUs  0m50.9s/2m00.0s
+
+running (0m52.0s), 25/25 VUs, 805 complete and 0 interrupted iterations
+carga   [  43% ] 25/25 VUs  0m51.9s/2m00.0s
+
+running (0m53.0s), 25/25 VUs, 827 complete and 0 interrupted iterations
+carga   [  44% ] 25/25 VUs  0m52.9s/2m00.0s
+
+running (0m54.0s), 25/25 VUs, 851 complete and 0 interrupted iterations
+carga   [  45% ] 25/25 VUs  0m53.9s/2m00.0s
+
+running (0m55.0s), 25/25 VUs, 873 complete and 0 interrupted iterations
+carga   [  46% ] 25/25 VUs  0m54.9s/2m00.0s
+
+running (0m56.0s), 25/25 VUs, 898 complete and 0 interrupted iterations
+carga   [  47% ] 25/25 VUs  0m55.9s/2m00.0s
+
+running (0m57.0s), 25/25 VUs, 921 complete and 0 interrupted iterations
+carga   [  47% ] 25/25 VUs  0m56.9s/2m00.0s
+
+running (0m58.0s), 25/25 VUs, 946 complete and 0 interrupted iterations
+carga   [  48% ] 25/25 VUs  0m57.9s/2m00.0s
+
+running (0m59.0s), 25/25 VUs, 969 complete and 0 interrupted iterations
+carga   [  49% ] 25/25 VUs  0m58.9s/2m00.0s
+
+running (1m00.0s), 25/25 VUs, 994 complete and 0 interrupted iterations
+carga   [  50% ] 25/25 VUs  0m59.9s/2m00.0s
+
+running (1m01.0s), 25/25 VUs, 1019 complete and 0 interrupted iterations
+carga   [  51% ] 25/25 VUs  1m00.9s/2m00.0s
+
+running (1m02.0s), 25/25 VUs, 1044 complete and 0 interrupted iterations
+carga   [  52% ] 25/25 VUs  1m01.9s/2m00.0s
+
+running (1m03.0s), 25/25 VUs, 1069 complete and 0 interrupted iterations
+carga   [  52% ] 25/25 VUs  1m02.9s/2m00.0s
+
+running (1m04.0s), 25/25 VUs, 1092 complete and 0 interrupted iterations
+carga   [  53% ] 25/25 VUs  1m03.9s/2m00.0s
+
+running (1m05.0s), 25/25 VUs, 1114 complete and 0 interrupted iterations
+carga   [  54% ] 25/25 VUs  1m04.9s/2m00.0s
+
+running (1m06.0s), 25/25 VUs, 1138 complete and 0 interrupted iterations
+carga   [  55% ] 25/25 VUs  1m05.9s/2m00.0s
+
+running (1m07.0s), 25/25 VUs, 1161 complete and 0 interrupted iterations
+carga   [  56% ] 25/25 VUs  1m06.9s/2m00.0s
+
+running (1m08.0s), 25/25 VUs, 1184 complete and 0 interrupted iterations
+carga   [  57% ] 25/25 VUs  1m07.9s/2m00.0s
+
+running (1m09.0s), 25/25 VUs, 1208 complete and 0 interrupted iterations
+carga   [  57% ] 25/25 VUs  1m08.9s/2m00.0s
+
+running (1m10.0s), 25/25 VUs, 1230 complete and 0 interrupted iterations
+carga   [  58% ] 25/25 VUs  1m09.9s/2m00.0s
+
+running (1m11.0s), 25/25 VUs, 1254 complete and 0 interrupted iterations
+carga   [  59% ] 25/25 VUs  1m10.9s/2m00.0s
+
+running (1m12.0s), 25/25 VUs, 1277 complete and 0 interrupted iterations
+carga   [  60% ] 25/25 VUs  1m11.9s/2m00.0s
+
+running (1m13.0s), 25/25 VUs, 1299 complete and 0 interrupted iterations
+carga   [  61% ] 25/25 VUs  1m12.9s/2m00.0s
+
+running (1m14.0s), 25/25 VUs, 1324 complete and 0 interrupted iterations
+carga   [  62% ] 25/25 VUs  1m13.9s/2m00.0s
+
+running (1m15.0s), 25/25 VUs, 1348 complete and 0 interrupted iterations
+carga   [  62% ] 25/25 VUs  1m14.9s/2m00.0s
+
+running (1m16.0s), 25/25 VUs, 1371 complete and 0 interrupted iterations
+carga   [  63% ] 25/25 VUs  1m15.9s/2m00.0s
+
+running (1m17.0s), 25/25 VUs, 1396 complete and 0 interrupted iterations
+carga   [  64% ] 25/25 VUs  1m16.9s/2m00.0s
+
+running (1m18.0s), 25/25 VUs, 1419 complete and 0 interrupted iterations
+carga   [  65% ] 25/25 VUs  1m17.9s/2m00.0s
+
+running (1m19.0s), 25/25 VUs, 1444 complete and 0 interrupted iterations
+carga   [  66% ] 25/25 VUs  1m18.9s/2m00.0s
+
+running (1m20.0s), 25/25 VUs, 1468 complete and 0 interrupted iterations
+carga   [  67% ] 25/25 VUs  1m19.9s/2m00.0s
+
+running (1m21.0s), 25/25 VUs, 1489 complete and 0 interrupted iterations
+carga   [  67% ] 25/25 VUs  1m20.9s/2m00.0s
+
+running (1m22.0s), 25/25 VUs, 1514 complete and 0 interrupted iterations
+carga   [  68% ] 25/25 VUs  1m21.9s/2m00.0s
+
+running (1m23.0s), 25/25 VUs, 1539 complete and 0 interrupted iterations
+carga   [  69% ] 25/25 VUs  1m22.9s/2m00.0s
+
+running (1m24.0s), 25/25 VUs, 1563 complete and 0 interrupted iterations
+carga   [  70% ] 25/25 VUs  1m23.9s/2m00.0s
+
+running (1m25.0s), 25/25 VUs, 1588 complete and 0 interrupted iterations
+carga   [  71% ] 25/25 VUs  1m24.9s/2m00.0s
+
+running (1m26.0s), 25/25 VUs, 1611 complete and 0 interrupted iterations
+carga   [  72% ] 25/25 VUs  1m25.9s/2m00.0s
+
+running (1m27.0s), 25/25 VUs, 1634 complete and 0 interrupted iterations
+carga   [  72% ] 25/25 VUs  1m26.9s/2m00.0s
+
+running (1m28.0s), 25/25 VUs, 1658 complete and 0 interrupted iterations
+carga   [  73% ] 25/25 VUs  1m27.9s/2m00.0s
+
+running (1m29.0s), 25/25 VUs, 1679 complete and 0 interrupted iterations
+carga   [  74% ] 25/25 VUs  1m28.9s/2m00.0s
+
+running (1m30.0s), 25/25 VUs, 1703 complete and 0 interrupted iterations
+carga   [  75% ] 25/25 VUs  1m29.9s/2m00.0s
+
+running (1m31.0s), 25/25 VUs, 1727 complete and 0 interrupted iterations
+carga   [  76% ] 25/25 VUs  1m30.9s/2m00.0s
+
+running (1m32.0s), 25/25 VUs, 1750 complete and 0 interrupted iterations
+carga   [  77% ] 25/25 VUs  1m31.9s/2m00.0s
+
+running (1m33.0s), 25/25 VUs, 1774 complete and 0 interrupted iterations
+carga   [  77% ] 25/25 VUs  1m32.9s/2m00.0s
+
+running (1m34.0s), 25/25 VUs, 1798 complete and 0 interrupted iterations
+carga   [  78% ] 25/25 VUs  1m33.9s/2m00.0s
+
+running (1m35.0s), 25/25 VUs, 1820 complete and 0 interrupted iterations
+carga   [  79% ] 25/25 VUs  1m34.9s/2m00.0s
+
+running (1m36.0s), 25/25 VUs, 1845 complete and 0 interrupted iterations
+carga   [  80% ] 25/25 VUs  1m35.9s/2m00.0s
+
+running (1m37.0s), 25/25 VUs, 1869 complete and 0 interrupted iterations
+carga   [  81% ] 25/25 VUs  1m36.9s/2m00.0s
+
+running (1m38.0s), 25/25 VUs, 1891 complete and 0 interrupted iterations
+carga   [  82% ] 25/25 VUs  1m37.9s/2m00.0s
+
+running (1m39.0s), 25/25 VUs, 1914 complete and 0 interrupted iterations
+carga   [  82% ] 25/25 VUs  1m38.9s/2m00.0s
+
+running (1m40.0s), 25/25 VUs, 1939 complete and 0 interrupted iterations
+carga   [  83% ] 25/25 VUs  1m39.9s/2m00.0s
+
+running (1m41.0s), 25/25 VUs, 1964 complete and 0 interrupted iterations
+carga   [  84% ] 25/25 VUs  1m40.9s/2m00.0s
+
+running (1m42.0s), 25/25 VUs, 1989 complete and 0 interrupted iterations
+carga   [  85% ] 25/25 VUs  1m41.9s/2m00.0s
+
+running (1m43.0s), 25/25 VUs, 2013 complete and 0 interrupted iterations
+carga   [  86% ] 25/25 VUs  1m42.9s/2m00.0s
+
+running (1m44.0s), 25/25 VUs, 2036 complete and 0 interrupted iterations
+carga   [  87% ] 25/25 VUs  1m43.9s/2m00.0s
+
+running (1m45.0s), 25/25 VUs, 2059 complete and 0 interrupted iterations
+carga   [  87% ] 25/25 VUs  1m44.9s/2m00.0s
+
+running (1m46.0s), 25/25 VUs, 2082 complete and 0 interrupted iterations
+carga   [  88% ] 25/25 VUs  1m45.9s/2m00.0s
+
+running (1m47.0s), 25/25 VUs, 2104 complete and 0 interrupted iterations
+carga   [  89% ] 25/25 VUs  1m46.9s/2m00.0s
+
+running (1m48.0s), 25/25 VUs, 2129 complete and 0 interrupted iterations
+carga   [  90% ] 25/25 VUs  1m47.9s/2m00.0s
+
+running (1m49.0s), 25/25 VUs, 2153 complete and 0 interrupted iterations
+carga   [  91% ] 25/25 VUs  1m48.9s/2m00.0s
+
+running (1m50.0s), 25/25 VUs, 2174 complete and 0 interrupted iterations
+carga   [  92% ] 25/25 VUs  1m49.9s/2m00.0s
+
+running (1m51.0s), 25/25 VUs, 2199 complete and 0 interrupted iterations
+carga   [  92% ] 25/25 VUs  1m50.9s/2m00.0s
+
+running (1m52.0s), 25/25 VUs, 2222 complete and 0 interrupted iterations
+carga   [  93% ] 25/25 VUs  1m51.9s/2m00.0s
+
+running (1m53.0s), 25/25 VUs, 2247 complete and 0 interrupted iterations
+carga   [  94% ] 25/25 VUs  1m52.9s/2m00.0s
+
+running (1m54.0s), 25/25 VUs, 2270 complete and 0 interrupted iterations
+carga   [  95% ] 25/25 VUs  1m53.9s/2m00.0s
+
+running (1m55.0s), 25/25 VUs, 2293 complete and 0 interrupted iterations
+carga   [  96% ] 25/25 VUs  1m54.9s/2m00.0s
+
+running (1m56.0s), 25/25 VUs, 2316 complete and 0 interrupted iterations
+carga   [  97% ] 25/25 VUs  1m55.9s/2m00.0s
+
+running (1m57.0s), 25/25 VUs, 2341 complete and 0 interrupted iterations
+carga   [  97% ] 25/25 VUs  1m56.9s/2m00.0s
+
+running (1m58.0s), 25/25 VUs, 2365 complete and 0 interrupted iterations
+carga   [  98% ] 25/25 VUs  1m57.9s/2m00.0s
+
+running (1m59.0s), 25/25 VUs, 2389 complete and 0 interrupted iterations
+carga   [  99% ] 25/25 VUs  1m58.9s/2m00.0s
+
+running (2m00.0s), 25/25 VUs, 2414 complete and 0 interrupted iterations
+carga   [ 100% ] 25/25 VUs  1m59.9s/2m00.0s
+
+running (2m01.0s), 01/25 VUs, 2439 complete and 0 interrupted iterations
+carga ↓ [ 100% ] 25/25 VUs  2m0s
+[32m     ✓ los seis servicios respondieron 200[0m
+
+     checks[2m............................................:[0m [36m100.00%[0m [36;2m✓ 2440[0m       [36;2m✗ 0[0m    
+     data_received[2m.....................................:[0m [36m69 MB[0m   [36;2m567 kB/s[0m
+     data_sent[2m.........................................:[0m [36m4.5 MB[0m  [36;2m37 kB/s[0m
+     http_req_blocked[2m..................................:[0m avg=[36m4.19µs[0m  min=[36m1.27µs[0m  med=[36m2.89µs[0m  max=[36m1.14ms[0m   p(90)=[36m5.3µs[0m    p(95)=[36m6.15µs[0m   p(99)=[36m11.28µs[0m  count=[36m14644[0m
+     http_req_connecting[2m...............................:[0m avg=[36m415ns[0m   min=[36m0s[0m      med=[36m0s[0m      max=[36m410.32µs[0m p(90)=[36m0s[0m       p(95)=[36m0s[0m       p(99)=[36m0s[0m       count=[36m14644[0m
+     http_req_duration[2m.................................:[0m avg=[36m12.3ms[0m  min=[36m3.98ms[0m  med=[36m8.16ms[0m  max=[36m732.62ms[0m p(90)=[36m16.53ms[0m  p(95)=[36m20.92ms[0m  p(99)=[36m64.57ms[0m  count=[36m14644[0m
+       { expected_response:true }[2m......................:[0m avg=[36m12.3ms[0m  min=[36m3.98ms[0m  med=[36m8.16ms[0m  max=[36m732.62ms[0m p(90)=[36m16.53ms[0m  p(95)=[36m20.92ms[0m  p(99)=[36m64.57ms[0m  count=[36m14644[0m
+     [32m✓[0m { servicio:catalogo_publico }[2m...................:[0m avg=[36m6.96ms[0m  min=[36m3.98ms[0m  med=[36m5.27ms[0m  max=[36m170.14ms[0m p(90)=[36m7.32ms[0m   p(95)=[36m11.88ms[0m  p(99)=[36m34.02ms[0m  count=[36m2440[0m 
+     [32m✓[0m { servicio:ficha_animal }[2m.......................:[0m avg=[36m13.91ms[0m min=[36m10.15ms[0m med=[36m12.47ms[0m max=[36m64.95ms[0m  p(90)=[36m16.8ms[0m   p(95)=[36m21.21ms[0m  p(99)=[36m37.11ms[0m  count=[36m2440[0m 
+     [32m✓[0m { servicio:historial_clinico }[2m..................:[0m avg=[36m6.91ms[0m  min=[36m4.46ms[0m  med=[36m5.8ms[0m   max=[36m58.69ms[0m  p(90)=[36m8.48ms[0m   p(95)=[36m13.67ms[0m  p(99)=[36m27.45ms[0m  count=[36m2440[0m 
+     [32m✓[0m { servicio:listado_animales }[2m...................:[0m avg=[36m8.28ms[0m  min=[36m5.55ms[0m  med=[36m7.52ms[0m  max=[36m115.15ms[0m p(90)=[36m9.89ms[0m   p(95)=[36m12.17ms[0m  p(99)=[36m22.31ms[0m  count=[36m2440[0m 
+     [32m✓[0m { servicio:panel_indicadores }[2m..................:[0m avg=[36m9.31ms[0m  min=[36m6.51ms[0m  med=[36m8.18ms[0m  max=[36m104.66ms[0m p(90)=[36m11.85ms[0m  p(95)=[36m15.85ms[0m  p(99)=[36m27.28ms[0m  count=[36m2440[0m 
+     [32m✓[0m { servicio:ranking_recomendacion }[2m..............:[0m avg=[36m28.37ms[0m min=[36m12.44ms[0m med=[36m15.39ms[0m max=[36m732.62ms[0m p(90)=[36m44.81ms[0m  p(95)=[36m66.9ms[0m   p(99)=[36m347.49ms[0m count=[36m2440[0m 
+     http_req_failed[2m...................................:[0m [36m0.00%[0m   [36;2m✓ 0[0m          [36;2m✗ 14644[0m
+     [32m✓[0m { servicio:catalogo_publico }[2m...................:[0m [36m0.00%[0m   [36;2m✓ 0[0m          [36;2m✗ 2440[0m 
+     [32m✓[0m { servicio:ficha_animal }[2m.......................:[0m [36m0.00%[0m   [36;2m✓ 0[0m          [36;2m✗ 2440[0m 
+     [32m✓[0m { servicio:historial_clinico }[2m..................:[0m [36m0.00%[0m   [36;2m✓ 0[0m          [36;2m✗ 2440[0m 
+     [32m✓[0m { servicio:listado_animales }[2m...................:[0m [36m0.00%[0m   [36;2m✓ 0[0m          [36;2m✗ 2440[0m 
+     [32m✓[0m { servicio:panel_indicadores }[2m..................:[0m [36m0.00%[0m   [36;2m✓ 0[0m          [36;2m✗ 2440[0m 
+     [32m✓[0m { servicio:ranking_recomendacion }[2m..............:[0m [36m0.00%[0m   [36;2m✓ 0[0m          [36;2m✗ 2440[0m 
+     http_req_receiving[2m................................:[0m avg=[36m88.16µs[0m min=[36m19.21µs[0m med=[36m85.68µs[0m max=[36m988.34µs[0m p(90)=[36m122.88µs[0m p(95)=[36m139.09µs[0m p(99)=[36m175.44µs[0m count=[36m14644[0m
+     http_req_sending[2m..................................:[0m avg=[36m12.53µs[0m min=[36m3.98µs[0m  med=[36m9.84µs[0m  max=[36m266.47µs[0m p(90)=[36m19.34µs[0m  p(95)=[36m30.59µs[0m  p(99)=[36m46.42µs[0m  count=[36m14644[0m
+     http_req_tls_handshaking[2m..........................:[0m avg=[36m0s[0m      min=[36m0s[0m      med=[36m0s[0m      max=[36m0s[0m       p(90)=[36m0s[0m       p(95)=[36m0s[0m       p(99)=[36m0s[0m       count=[36m14644[0m
+     http_req_waiting[2m..................................:[0m avg=[36m12.19ms[0m min=[36m3.92ms[0m  med=[36m8.04ms[0m  max=[36m732.54ms[0m p(90)=[36m16.43ms[0m  p(95)=[36m20.8ms[0m   p(99)=[36m64.51ms[0m  count=[36m14644[0m
+     http_reqs[2m.........................................:[0m [36m14644[0m   [36;2m120.868144/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:0 }[2m..........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:200 }[2m........:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:201 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:304 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:400 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:401 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:403 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:404 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:409 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:429 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:500 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:502 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:503 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico,status:504 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:catalogo_publico }[2m...................:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:0 }[2m..............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:200 }[2m............:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:201 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:304 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:400 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:401 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:403 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:404 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:409 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:429 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:500 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:502 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:503 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal,status:504 }[2m............:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ficha_animal }[2m.......................:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:0 }[2m.........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:200 }[2m.......:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:201 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:304 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:400 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:401 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:403 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:404 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:409 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:429 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:500 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:502 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:503 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico,status:504 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:historial_clinico }[2m..................:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:listado_animales,status:0 }[2m..........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:200 }[2m........:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:listado_animales,status:201 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:304 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:400 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:401 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:403 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:404 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:409 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:429 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:500 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:502 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:503 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales,status:504 }[2m........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:listado_animales }[2m...................:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:0 }[2m.........:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:200 }[2m.......:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:201 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:304 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:400 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:401 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:403 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:404 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:409 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:429 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:500 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:502 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:503 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores,status:504 }[2m.......:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:panel_indicadores }[2m..................:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:0 }[2m.....:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:200 }[2m...:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:201 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:304 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:400 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:401 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:403 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:404 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:409 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:429 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:500 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:502 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:503 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion,status:504 }[2m...:[0m [36m0[0m       [36;2m0/s[0m
+     [32m✓[0m { servicio:ranking_recomendacion }[2m..............:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     iteration_duration[2m................................:[0m avg=[36m1.07s[0m   min=[36m1.04s[0m   med=[36m1.05s[0m   max=[36m1.82s[0m    p(90)=[36m1.1s[0m     p(95)=[36m1.16s[0m    p(99)=[36m1.49s[0m    count=[36m2440[0m 
+     iterations[2m........................................:[0m [36m2440[0m    [36;2m20.139188/s[0m
+     vus[2m...............................................:[0m [36m1[0m       [36;2mmin=0[0m        [36;2mmax=25[0m 
+     vus_max[2m...........................................:[0m [36m25[0m      [36;2mmin=25[0m       [36;2mmax=25[0m 
+running (2m01.2s), 00/25 VUs, 2440 complete and 0 interrupted iterations
+carga ✓ [ 100% ] 00/25 VUs  2m0s

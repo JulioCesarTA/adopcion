@@ -1,0 +1,12 @@
+{
+  "extends": "../../backend/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "typeRoots": ["../../backend/node_modules/@types"],
+    "types": ["jest", "node"],
+    "paths": {
+      "*": ["../../backend/node_modules/*", "../../backend/node_modules/@types/*"]
+    }
+  },
+  "include": ["seguridad.e2e-spec.ts"]
+}

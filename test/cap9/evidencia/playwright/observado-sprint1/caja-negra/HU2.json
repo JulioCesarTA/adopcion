@@ -1,0 +1,68 @@
+{
+  "datos_entrada": [
+    {
+      "campo": "Animal",
+      "valor": "Toby (ZOO-2026-0001)"
+    },
+    {
+      "campo": "Motivo",
+      "valor": "Decaimiento y falta de apetito"
+    },
+    {
+      "campo": "Peso (kg)",
+      "valor": "12.5"
+    },
+    {
+      "campo": "Temperatura (°C)",
+      "valor": "39.2"
+    },
+    {
+      "campo": "Evaluación clínica",
+      "valor": "Mucosas rosadas, leve deshidratación, abdomen sin dolor."
+    },
+    {
+      "campo": "Diagnóstico — Descripción",
+      "valor": "Gastroenteritis leve"
+    },
+    {
+      "campo": "Tratamiento — Descripción",
+      "valor": "Hidratación y protector gástrico"
+    },
+    {
+      "campo": "Tratamiento — Inicio",
+      "valor": "2026-11-17"
+    },
+    {
+      "campo": "Tratamiento — Instrucciones",
+      "valor": "Dieta blanda por cinco días y agua a libre demanda."
+    },
+    {
+      "campo": "Medicamento — Nombre",
+      "valor": "Omeprazol"
+    },
+    {
+      "campo": "Medicamento — Dosis",
+      "valor": "1 mg/kg"
+    },
+    {
+      "campo": "Medicamento — Vía",
+      "valor": "Oral"
+    },
+    {
+      "campo": "Medicamento — Frecuencia",
+      "valor": "Cada 24 horas"
+    },
+    {
+      "campo": "Medicamento — Duración",
+      "valor": "5 días"
+    }
+  ],
+  "observado": {
+    "veterinario_visible": true,
+    "diagnostico_visible": true,
+    "tratamiento_visible": true,
+    "medicamento_visible": true,
+    "peso_visible": true,
+    "fecha_hora": "17/11/2026, 07:47"
+  }
+}
