@@ -1,6 +1,6 @@
 import {
   BarChart3,
-  Brain,
+
   ClipboardList,
   Heart,
   LayoutDashboard,
@@ -61,11 +61,12 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "KPIs", href: "/kpis", icon: BarChart3, roles: [A, V, G, D] },
   { label: "Mensajes web", href: "/mensajes", icon: Mail, roles: [A, G] },
   { label: "Usuarios", href: "/admin/usuarios", icon: UserCog, roles: [A] },
-  { label: "Modelo de recomendación", href: "/admin/modelo", icon: Brain, roles: [A, G, D] },
 ];
 
 /** Subrutas con permisos más restrictivos que su ítem del menú (sección 3). */
 const ROUTE_RULES: { pattern: RegExp; roles: UserRole[]; title: string }[] = [
+  // Las recomendaciones son solo para el adoptante, en su portal: el personal no las ve.
+  { pattern: /^\/admin\/modelo(\/|$)/, roles: [], title: "Modelo de recomendación" },
   { pattern: /^\/animales\/nuevo$/, roles: [A, G], title: "Registrar animal" },
   { pattern: /^\/animales\/[^/]+\/editar$/, roles: [A, G], title: "Editar animal" },
   { pattern: /^\/animales\/[^/]+\/consultas\/nueva$/, roles: [A, V], title: "Nueva consulta" },
@@ -74,9 +75,11 @@ const ROUTE_RULES: { pattern: RegExp; roles: UserRole[]; title: string }[] = [
     roles: [A, V, G, D],
     title: "Consulta veterinaria",
   },
-  { pattern: /^\/adoptantes\/nuevo$/, roles: [A, G], title: "Nuevo adoptante" },
-  { pattern: /^\/adoptantes\/[^/]+\/editar$/, roles: [A, G], title: "Editar adoptante" },
-  { pattern: /^\/solicitudes\/nueva$/, roles: [A, G], title: "Nueva solicitud" },
+  // Los adoptantes se registran solos desde /registro: el personal no los crea ni los edita.
+  { pattern: /^\/adoptantes\/nuevo$/, roles: [], title: "Nuevo adoptante" },
+  { pattern: /^\/adoptantes\/[^/]+\/editar$/, roles: [], title: "Editar adoptante" },
+  // Las solicitudes las crean los clientes y adoptantes desde su portal.
+  { pattern: /^\/solicitudes\/nueva$/, roles: [], title: "Nueva solicitud" },
   { pattern: /^\/solicitudes\/[^/]+\/acta$/, roles: [A, G], title: "Acta de adopción" },
 ];
 

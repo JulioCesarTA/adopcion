@@ -14,6 +14,13 @@ import { CreateRecommendationDto, RecommendationHistoryQueryDto } from './dto/re
 export class RecommendationController {
   constructor(private readonly recommendations: RecommendationService) {}
 
+  /** El cliente o adoptante ve los animales disponibles ordenados por compatibilidad con su hogar. */
+  @Roles(UserRole.ADOPTANTE, UserRole.CLIENTE)
+  @Get('mine')
+  mine(@CurrentUser() user: AuthUser) {
+    return this.recommendations.mine(user);
+  }
+
   @Get('adopter/:adopterId')
   ranking(@Param('adopterId', ParseUUIDPipe) adopterId: string, @CurrentUser() user: AuthUser) {
     return this.recommendations.ranking(adopterId, user);

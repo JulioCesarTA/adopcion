@@ -47,8 +47,8 @@ export class AdoptionsController {
     return this.adoptions.create(dto, user);
   }
 
-  /** El adoptante solicita la adopción desde su portal; la solicitud llega al personal. */
-  @Roles(UserRole.ADOPTANTE)
+  /** El cliente o adoptante solicita la adopción desde su portal; la solicitud llega al personal. */
+  @Roles(UserRole.ADOPTANTE, UserRole.CLIENTE)
   @Post('mine')
   requestMine(@Body() dto: RequestMineDto, @CurrentUser() user: AuthUser) {
     return this.adoptions.requestByClient(dto.animalId, user);

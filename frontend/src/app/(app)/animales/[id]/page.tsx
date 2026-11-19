@@ -26,7 +26,6 @@ import { VaccinationsPanel } from "@/components/clinical/vaccinations-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { TabPanel, Tabs } from "@/components/ui/tabs";
-import { AdopterRanking } from "@/components/adoptions/adopter-ranking";
 import { useAnimal, useAnimalMutations } from "@/hooks/use-animals";
 import { errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -55,7 +54,6 @@ export default function AnimalDetailPage({ params }: { params: Promise<{ id: str
     { id: "vacunas", label: "Vacunas", count: animal._count.vaccinations },
     { id: "cuarentena", label: "Cuarentena" },
     { id: "adopcion", label: "Adopción", count: animal.adoptionRequests.length },
-    { id: "compatibles", label: "Adoptantes compatibles" },
   ];
 
   return (
@@ -80,9 +78,6 @@ export default function AnimalDetailPage({ params }: { params: Promise<{ id: str
       </TabPanel>
       <TabPanel id="adopcion" active={tab === "adopcion"} idPrefix="animal">
         <AdoptionTab animal={animal} />
-      </TabPanel>
-      <TabPanel id="compatibles" active={tab === "compatibles"} idPrefix="animal">
-        <AdopterRanking animalId={animal.id} />
       </TabPanel>
     </>
   );
@@ -311,16 +306,6 @@ function AdoptionTab({ animal }: { animal: AnimalDetail }) {
   const canSee = hasRole("ADMIN", "GESTION", "DIRECTIVO");
   return (
     <div className="space-y-4">
-      {hasRole("GESTION", "ADMIN") && animal.status === "DISPONIBLE_ADOPCION" && (
-        <div className="flex justify-end">
-          <Link
-            href={`/solicitudes/nueva?animalId=${animal.id}`}
-            className={`${linkBtn} bg-teal-600 text-white hover:bg-teal-700`}
-          >
-            <Heart className="h-4 w-4" aria-hidden /> Solicitar adopción
-          </Link>
-        </div>
-      )}
       <Card>
         {animal.adoptionRequests.length === 0 ? (
           <EmptyState title="Sin solicitudes de adopción" />

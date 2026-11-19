@@ -1,13 +1,28 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthUser } from '../../common/types';
 import { AdoptersService } from './adopters.service';
-import { CreateAdopterDto, ListAdoptersQueryDto, UpdateAdopterDto } from './dto/adopters.dto';
+import {
+  CreateAdopterDto,
+  ListAdoptersQueryDto,
+  MyAdopterProfileDto,
+  UpdateAdopterDto,
+} from './dto/adopters.dto';
 
-const { ADMIN, GESTION, DIRECTIVO } = UserRole;
+const { ADMIN, GESTION, DIRECTIVO, ADOPTANTE, CLIENTE } = UserRole;
 
 @ApiTags('adopters')
 @ApiBearerAuth()
@@ -25,6 +40,20 @@ export class AdoptersController {
   @Post()
   create(@Body() dto: CreateAdopterDto) {
     return this.adopters.create(dto);
+  }
+
+  /** El cliente o adoptante consulta los datos de su hogar (null si todavía no los cargó). */
+  @Roles(ADOPTANTE, CLIENTE)
+  @Get('mine')
+  findMine(@CurrentUser() user: AuthUser) {
+    return this.adopters.findMine(user);
+  }
+
+  /** El cliente o adoptante crea o actualiza los datos de su hogar. */
+  @Roles(ADOPTANTE, CLIENTE)
+  @Put('mine')
+  saveMine(@Body() dto: MyAdopterProfileDto, @CurrentUser() user: AuthUser) {
+    return this.adopters.saveMine(dto, user);
   }
 
   @Roles(GESTION, ADMIN, DIRECTIVO)

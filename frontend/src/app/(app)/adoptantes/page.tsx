@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { DataTable, type Column } from "@/components/data-table";
 import { PageHeader } from "@/components/layout/page-header";
 import { Input } from "@/components/ui/input";
@@ -78,15 +78,7 @@ export default function AdoptersPage() {
     <>
       <PageHeader
         title="Adoptantes"
-        description="Personas interesadas en adoptar y su perfil de evaluación."
-        actions={
-          <Link
-            href="/adoptantes/nuevo"
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700"
-          >
-            <Plus className="h-4 w-4" aria-hidden /> Nuevo adoptante
-          </Link>
-        }
+        description="Personas que se registraron para adoptar y los datos de su hogar."
       />
       <DataTable
         columns={columns}

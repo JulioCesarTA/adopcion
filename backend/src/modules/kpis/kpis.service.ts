@@ -37,13 +37,30 @@ export interface Kpi {
   help: string;
 }
 
+/** Un mes del periodo, para los gráficos de evolución. */
+export interface KpiMonth {
+  /** AAAA-MM en hora de Bolivia. */
+  month: string;
+  approved: number;
+  rejected: number;
+  /** Aprobadas sobre resueltas en el mes (null si no hubo resoluciones). */
+  adoptionRate: number | null;
+  avgEvaluationDays: number | null;
+  avgStayDays: number | null;
+}
+
 export interface KpisResult {
   periodMonths: number;
   from: string;
   to: string;
   kpis: Kpi[];
+  monthly: KpiMonth[];
   generatedAt: Date;
 }
+
+/** AAAA-MM de una fecha en la zona de Bolivia (UTC-4, sin horario de verano). */
+const monthKey = (d: Date) => new Date(d.getTime() - 4 * 3_600_000).toISOString().slice(0, 7);
+const mean = (xs: number[]) => (xs.length ? r2(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -59,22 +76,72 @@ export class KpisService {
     const previousStart = startOfMonthLaPazMinus(periodMonths * 2 - 1);
     const now = new Date();
 
-    const [adoption, stay, returns, approval, evaluation, vaccination] = await Promise.all([
-      this.adoptionRate(start, previousStart),
-      this.averageStay(start, previousStart),
-      this.returnRate(start, previousStart),
-      this.approvalRate(start, previousStart),
-      this.evaluationTime(start, previousStart),
-      this.vaccinationCoverage(),
-    ]);
+    const [adoption, stay, returns, approval, evaluation, vaccination, monthly] = await Promise.all(
+      [
+        this.adoptionRate(start, previousStart),
+        this.averageStay(start, previousStart),
+        this.returnRate(start, previousStart),
+        this.approvalRate(start, previousStart),
+        this.evaluationTime(start, previousStart),
+        this.vaccinationCoverage(),
+        this.monthly(start, periodMonths),
+      ],
+    );
 
     return {
       periodMonths,
       from: start.toISOString().slice(0, 10),
       to: now.toISOString().slice(0, 10),
       kpis: [adoption, stay, returns, approval, evaluation, vaccination],
+      monthly,
       generatedAt: now,
     };
+  }
+
+  /** Evolución mes a mes de las solicitudes resueltas (mismas reglas que los indicadores). */
+  private async monthly(start: Date, periodMonths: number): Promise<KpiMonth[]> {
+    const rows = await this.prisma.adoptionRequest.findMany({
+      where: { status: { in: ['APROBADA', 'RECHAZADA'] }, decisionDate: { gte: start } },
+      select: {
+        status: true,
+        requestDate: true,
+        decisionDate: true,
+        deliveryDate: true,
+        animal: { select: { entryDate: true } },
+      },
+    });
+
+    const first = monthKey(new Date(start.getTime() + 5 * 86_400_000));
+    const [y0, m0] = first.split('-').map(Number);
+    const months = Array.from({ length: periodMonths }, (_, i) => {
+      const d = new Date(Date.UTC(y0, m0 - 1 + i, 1));
+      return d.toISOString().slice(0, 7);
+    });
+
+    return months.map((month) => {
+      const inMonth = rows.filter((r) => r.decisionDate && monthKey(r.decisionDate) === month);
+      const approved = inMonth.filter((r) => r.status === 'APROBADA');
+      const rejected = inMonth.length - approved.length;
+      const evalDays = inMonth
+        .map((r) => (r.decisionDate!.getTime() - r.requestDate.getTime()) / 86_400_000)
+        .filter((d) => d >= 0);
+      const stayDays = approved
+        .map((r) => {
+          const end = r.deliveryDate ?? r.decisionDate;
+          return end && r.animal?.entryDate
+            ? (end.getTime() - r.animal.entryDate.getTime()) / 86_400_000
+            : -1;
+        })
+        .filter((d) => d >= 0);
+      return {
+        month,
+        approved: approved.length,
+        rejected,
+        adoptionRate: inMonth.length ? r2((approved.length / inMonth.length) * 100) : null,
+        avgEvaluationDays: mean(evalDays),
+        avgStayDays: mean(stayDays),
+      };
+    });
   }
 
   /** Arma el indicador calculando tendencia y diferencia. */

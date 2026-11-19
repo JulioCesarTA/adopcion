@@ -2,8 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
-import { CheckCheck, FileText, PlayCircle, Plus, Sparkles, XCircle } from "lucide-react";
+import { CheckCheck, FileText, PlayCircle, Plus, XCircle } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState, InfoGrid, InfoItem, PageSkeleton, YesNo } from "@/components/info";
 import { AnimalPhoto } from "@/components/animals/animal-photo";
@@ -12,11 +11,10 @@ import {
   FollowupDialog,
   StatusChangeDialog,
 } from "@/components/adoptions/request-dialogs";
-import { BreakdownDetail, Disclaimer, ScoreBar } from "@/components/score-bar";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { useAdoption, usePairRecommendation } from "@/hooks/use-adoptions";
+import { useAdoption } from "@/hooks/use-adoptions";
 import { errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { animalName, EXPERIENCE, formatAge, HOUSING, SIZE, SPECIES } from "@/lib/labels";
@@ -29,7 +27,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
   const { hasRole } = useAuth();
   const isGestion = hasRole("GESTION", "ADMIN");
   const { data: r, isLoading, error, refetch } = useAdoption(id);
-  const pair = usePairRecommendation();
   const [dialog, setDialog] = useState<DialogKind>(null);
 
   if (isLoading) return <PageSkeleton />;
@@ -38,20 +35,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
 
   const person = r.adopterProfile.person;
   const active = r.status === "PENDIENTE" || r.status === "EN_EVALUACION";
-  const reco = r.latestRecommendation;
-
-  const recalc = async () => {
-    try {
-      await pair.mutateAsync({
-        adopterId: r.adopterProfileId,
-        animalId: r.animalId,
-        requestId: r.id,
-      });
-      toast.success("Recomendación calculada");
-    } catch (err) {
-      toast.error(errorMessage(err));
-    }
-  };
 
   return (
     <>
@@ -173,43 +156,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
           </CardBody>
         </Card>
       </div>
-
-      <Card className="mt-6">
-        <CardHeader
-          title="Recomendación de compatibilidad"
-          description={
-            reco
-              ? `Generada ${formatDateTime(reco.generatedAt)} · modelo v${reco.modelVersion}`
-              : undefined
-          }
-          actions={
-            isGestion &&
-            active && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void recalc()}
-                loading={pair.isPending}
-              >
-                <Sparkles className="h-4 w-4" aria-hidden /> {reco ? "Recalcular" : "Calcular"}
-              </Button>
-            )
-          }
-        />
-        <CardBody className="space-y-4">
-          {reco ? (
-            <>
-              <ScoreBar score={reco.score} level={reco.level} />
-              <BreakdownDetail breakdown={reco.breakdown} />
-            </>
-          ) : (
-            <p className="text-sm text-slate-500">
-              Aún no se calculó una recomendación para este par.
-            </p>
-          )}
-          <Disclaimer />
-        </CardBody>
-      </Card>
 
       {r.status === "APROBADA" && (
         <Card className="mt-6">

@@ -20,7 +20,7 @@ import {
   sortRanking,
 } from './engine';
 import { CreateRecommendationDto } from './dto/recommendation.dto';
-import { toAdopterInput, toAnimalInput } from './inputs';
+import { loadClinicalHistory, toAdopterInput, toAnimalInput } from './inputs';
 import { MlService } from './ml/ml.service';
 import { FEATURE_LABELS, toFeatures } from './ml/dataset';
 import type { FeatureName } from './ml/dataset';
@@ -136,7 +136,7 @@ export class RecommendationService {
   private async adopterOrThrow(id: string) {
     const adopter = await this.prisma.adopterProfile.findUnique({
       where: { id },
-      include: { person: { select: { firstName: true, lastName: true } } },
+      include: { person: { select: { firstName: true, lastName: true, email: true } } },
     });
     if (!adopter) throw new NotFoundException('Adoptante no encontrado');
     return adopter;
@@ -150,8 +150,9 @@ export class RecommendationService {
   }
 
   /** CU13 modo 1: ranking de todos los animales disponibles para un adoptante. */
-  async ranking(adopterId: string, user: AuthUser) {
+  async ranking(adopterId: string, user: AuthUser, persist = true) {
     const adopter = await this.adopterOrThrow(adopterId);
+    const history = await loadClinicalHistory(this.prisma, adopter.person.email);
     const settings = await this.catalogs.currentSettings();
     const animals = await this.prisma.animal.findMany({
       where: { status: 'DISPONIBLE_ADOPCION', deletedAt: null },
@@ -172,7 +173,11 @@ export class RecommendationService {
         computed.push({
           animal,
           code: animal.code,
-          result: await this.score(toAdopterInput(adopter), toAnimalInput(animal), settings),
+          result: await this.score(
+            toAdopterInput(adopter, history),
+            toAnimalInput(animal),
+            settings,
+          ),
         });
       } catch (err) {
         if (!(err instanceof IncompleteProfileError)) throw err;
@@ -183,7 +188,7 @@ export class RecommendationService {
     }
 
     const ranked = sortRanking(computed);
-    if (ranked.length) {
+    if (persist && ranked.length) {
       await this.prisma.compatibilityRecommendation.createMany({
         data: ranked.map((r) => ({
           adopterProfileId: adopterId,
@@ -216,6 +221,66 @@ export class RecommendationService {
   }
 
   /**
+   * Portal del adoptante: animales disponibles ordenados por compatibilidad con
+   * su propio perfil. No guarda historial (se consulta en cada visita) y solo
+   * expone el puntaje, el nivel y los motivos legibles.
+   */
+  async mine(user: AuthUser) {
+    const account = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { email: true },
+    });
+    const profile = account
+      ? await this.prisma.adopterProfile.findFirst({ where: { person: { email: account.email } } })
+      : null;
+    if (!profile) {
+      throw new NotFoundException('Completa los datos de tu hogar para ver tus recomendaciones');
+    }
+    const ranking = await this.ranking(profile.id, user, false);
+    // Los vetos de seguridad (p. ej. animal que no tolera niños) no se le ofrecen al adoptante.
+    const result = { ...ranking, data: ranking.data.filter((r) => r.level !== 'INCOMPATIBLE') };
+    const animals = await this.prisma.animal.findMany({
+      where: { id: { in: result.data.map((r) => r.animal.id) } },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        species: true,
+        breed: true,
+        sex: true,
+        ageMonths: true,
+        size: true,
+        energyLevel: true,
+        status: true,
+        photoUrl: true,
+        entryDate: true,
+        goodWithChildren: true,
+        goodWithAnimals: true,
+        needsYard: true,
+        specialCare: true,
+        requiredDailyHours: true,
+        temperament: true,
+        color: true,
+      },
+    });
+    const byId = new Map(animals.map((a) => [a.id, a]));
+    return {
+      method: result.data[0]?.breakdown.method ?? 'REGLAS',
+      disclaimer: result.disclaimer,
+      data: result.data.map((r) => ({
+        animal: byId.get(r.animal.id) ?? r.animal,
+        score: r.score,
+        level: r.level,
+        reasons:
+          r.breakdown.ml?.factors
+            .filter((f) => f.direction === 'favorece')
+            .slice(0, 3)
+            .map((f) => f.label) ?? [],
+      })),
+    };
+  }
+
+  /**
    * CU13 modo inverso: dado un animal, qué adoptantes registrados son los más
    * compatibles. Es el camino que usa el personal cuando el punto de partida es
    * el animal y no el adoptante ("¿a quién le ofrezco a Rocky?").
@@ -237,7 +302,9 @@ export class RecommendationService {
           none: { status: { in: ['PENDIENTE', 'EN_EVALUACION'] } },
         },
       },
-      include: { person: { select: { firstName: true, lastName: true, phone: true } } },
+      include: {
+        person: { select: { firstName: true, lastName: true, phone: true, email: true } },
+      },
     });
 
     // Si se evalúa un animal ya reservado, se mide como disponible: lo que
@@ -258,7 +325,11 @@ export class RecommendationService {
           adopter,
           // Desempate estable por nombre, equivalente al código en el otro modo.
           code: name.toLocaleLowerCase('es'),
-          result: await this.score(toAdopterInput(adopter), animalInput, settings),
+          result: await this.score(
+            toAdopterInput(adopter, await loadClinicalHistory(this.prisma, adopter.person.email)),
+            animalInput,
+            settings,
+          ),
         });
       } catch (err) {
         if (!(err instanceof IncompleteProfileError)) throw err;
@@ -334,7 +405,8 @@ export class RecommendationService {
 
     let result: ScoredResult;
     try {
-      result = await this.score(toAdopterInput(adopter), input, settings);
+      const history = await loadClinicalHistory(this.prisma, adopter.person.email);
+      result = await this.score(toAdopterInput(adopter, history), input, settings);
     } catch (err) {
       if (err instanceof IncompleteProfileError) throw this.incomplete(err);
       throw err;

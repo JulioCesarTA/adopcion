@@ -22,16 +22,6 @@ async function seedUsers() {
       fullName: 'Dra. Carla Veterinaria',
       role: UserRole.VETERINARIO,
     },
-    {
-      email: 'gestion@zoonosis.test',
-      fullName: 'Luis Gestión Animal',
-      role: UserRole.GESTION,
-    },
-    {
-      email: 'directivo@zoonosis.test',
-      fullName: 'Ana Directiva',
-      role: UserRole.DIRECTIVO,
-    },
   ];
   const result: Record<UserRole, string> = {} as Record<UserRole, string>;
   for (const u of users) {
@@ -364,7 +354,7 @@ async function seedDemoData(ids: Record<UserRole, string>) {
         code: `ZOO-${year}-${String(i + 1).padStart(4, '0')}`,
         entryDate: daysAgo(entryDaysAgo),
         status,
-        createdById: ids.GESTION,
+        createdById: ids.ADMIN,
         ...(status === 'FALLECIDO'
           ? { exitDate: daysAgo(15), exitReason: 'FALLECIDO', exitNotes: 'Complicación renal' }
           : {}),
@@ -459,7 +449,7 @@ async function seedDemoData(ids: Record<UserRole, string>) {
       reason: 'Tos leve al ingreso',
       startDate: daysAgo(9),
       expectedEndDate: daysAgo(2),
-      startedById: ids.GESTION,
+      startedById: ids.ADMIN,
     },
   });
   const pelusaConsult = await prisma.veterinaryConsultation.findFirstOrThrow({
@@ -586,7 +576,7 @@ async function seedDemoData(ids: Record<UserRole, string>) {
     data: {
       adopterProfileId: profileIds[2],
       animalId: created.Nala,
-      responsibleUserId: ids.GESTION,
+      responsibleUserId: ids.ADMIN,
       status: 'APROBADA',
       requestDate: daysAgo(50),
       decisionDate: daysAgo(40),
@@ -600,14 +590,14 @@ async function seedDemoData(ids: Record<UserRole, string>) {
       followupDate: daysAgo(10),
       animalCondition: 'Excelente, adaptada al hogar',
       observations: 'Se recomienda continuar con el calendario de vacunas.',
-      createdById: ids.GESTION,
+      createdById: ids.ADMIN,
     },
   });
   await prisma.adoptionRequest.create({
     data: {
       adopterProfileId: profileIds[4],
       animalId: created.Toby,
-      responsibleUserId: ids.GESTION,
+      responsibleUserId: ids.ADMIN,
       status: 'PENDIENTE',
       requestDate: daysAgo(3),
     },
@@ -616,7 +606,7 @@ async function seedDemoData(ids: Record<UserRole, string>) {
     data: {
       adopterProfileId: profileIds[1],
       animalId: created.Rocky,
-      responsibleUserId: ids.GESTION,
+      responsibleUserId: ids.ADMIN,
       status: 'RECHAZADA',
       requestDate: daysAgo(30),
       decisionDate: daysAgo(25),

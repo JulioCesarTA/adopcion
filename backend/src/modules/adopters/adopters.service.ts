@@ -3,7 +3,12 @@ import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { paginated } from '../../common/dto/pagination.dto';
 import type { AuthUser } from '../../common/types';
-import { CreateAdopterDto, ListAdoptersQueryDto, UpdateAdopterDto } from './dto/adopters.dto';
+import {
+  CreateAdopterDto,
+  ListAdoptersQueryDto,
+  MyAdopterProfileDto,
+  UpdateAdopterDto,
+} from './dto/adopters.dto';
 
 const PERSON_FIELDS = ['ci', 'firstName', 'lastName', 'phone', 'email', 'address'] as const;
 
@@ -137,6 +142,56 @@ export class AdoptersService {
         include,
       });
       return row;
+    });
+  }
+
+  /** Perfil de adoptante de la cuenta (se enlaza por el email de la persona). `null` si no lo completó. */
+  async findMine(user: AuthUser) {
+    const account = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { email: true },
+    });
+    if (!account) throw new NotFoundException('Usuario no encontrado');
+    const person = await this.prisma.person.findFirst({
+      where: { email: account.email },
+      include: { adopterProfile: true },
+    });
+    return person?.adopterProfile ? { ...person.adopterProfile, person } : null;
+  }
+
+  /** El adoptante crea o actualiza los datos de su hogar desde el portal. */
+  async saveMine(dto: MyAdopterProfileDto, user: AuthUser) {
+    const account = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { email: true, fullName: true, phone: true },
+    });
+    if (!account) throw new NotFoundException('Usuario no encontrado');
+    const data = {
+      ...dto,
+      preferredSpecies: dto.preferredSpecies ?? null,
+      preferredSize: dto.preferredSize ?? null,
+    };
+    return this.prisma.$transaction(async (tx) => {
+      let person = await tx.person.findFirst({
+        where: { email: account.email },
+        include: { adopterProfile: true },
+      });
+      if (!person) {
+        const [firstName, ...rest] = account.fullName.trim().split(/\s+/);
+        person = await tx.person.create({
+          data: {
+            ci: `CLI-${user.id.slice(0, 8)}`,
+            firstName,
+            lastName: rest.join(' ') || '-',
+            phone: account.phone ?? '-',
+            email: account.email,
+          },
+          include: { adopterProfile: true },
+        });
+      }
+      return person.adopterProfile
+        ? tx.adopterProfile.update({ where: { id: person.adopterProfile.id }, data, include })
+        : tx.adopterProfile.create({ data: { ...data, personId: person.id }, include });
     });
   }
 

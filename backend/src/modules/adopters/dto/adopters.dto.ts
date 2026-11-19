@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType, PickType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -130,3 +130,15 @@ export class ListAdoptersQueryDto extends PaginationQueryDto {
   @IsString()
   q?: string;
 }
+
+/** Perfil que el propio adoptante completa desde su portal (datos del hogar). */
+export class MyAdopterProfileDto extends PickType(CreateAdopterDto, [
+  'housingType',
+  'hasYard',
+  'hasChildren',
+  'hasOtherAnimals',
+  'availableHoursPerDay',
+  'experience',
+  'preferredSpecies',
+  'preferredSize',
+] as const) {}

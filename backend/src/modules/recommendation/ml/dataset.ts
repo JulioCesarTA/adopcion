@@ -9,7 +9,14 @@
  * `engine.ts` ANTES de llegar al modelo. Dentro del conjunto de pares que pasan
  * esos filtros, ambas variables quedan determinadas y no aportan información.
  */
-import type { AdopterInput, AnimalInput, Experience, HousingType, Size } from '../engine';
+import type {
+  AdopterInput,
+  AnimalInput,
+  ClinicalHistory,
+  Experience,
+  HousingType,
+  Size,
+} from '../engine';
 
 export const HOUSING_ORDINAL: Record<HousingType, number> = {
   DEPARTAMENTO: 0,
@@ -47,6 +54,11 @@ export const FEATURE_NAMES = [
   'razon_horas',
   'coincide_especie_preferida',
   'coincide_tamano_preferido',
+  'mascotas_en_clinica',
+  'citas_atendidas',
+  'citas_canceladas',
+  'consultas_mascotas',
+  'vacunas_al_dia',
 ] as const;
 
 export type FeatureName = (typeof FEATURE_NAMES)[number];
@@ -69,11 +81,25 @@ export const FEATURE_LABELS: Record<FeatureName, string> = {
   razon_horas: 'Razón horas disponibles / requeridas',
   coincide_especie_preferida: 'Coincide con la especie preferida',
   coincide_tamano_preferido: 'Coincide con el tamaño preferido',
+  mascotas_en_clinica: 'Mascotas propias atendidas en la clínica',
+  citas_atendidas: 'Citas a las que asistió',
+  citas_canceladas: 'Citas que canceló',
+  consultas_mascotas: 'Consultas veterinarias de sus mascotas',
+  vacunas_al_dia: 'Sus mascotas tienen las vacunas al día',
 };
 
 export const N_FEATURES = FEATURE_NAMES.length;
 
 const bin = (v: boolean) => (v ? 1 : 0);
+
+/** Quien no es cliente de la clínica (o no tiene cuenta) no tiene historial. */
+export const NO_HISTORY: ClinicalHistory = {
+  pets: 0,
+  attendedBookings: 0,
+  cancelledBookings: 0,
+  consultations: 0,
+  vaccinesUpToDate: 0,
+};
 
 /**
  * Convierte un par adoptante-animal en el vector de variables.
@@ -84,6 +110,7 @@ const bin = (v: boolean) => (v ? 1 : 0);
 export function toFeatures(adopter: AdopterInput, animal: AnimalInput): number[] {
   const required = animal.requiredDailyHours;
   const ratio = Math.min(adopter.availableHoursPerDay / Math.max(required, 0.5), 3);
+  const h = adopter.history ?? NO_HISTORY;
 
   return [
     HOUSING_ORDINAL[adopter.housingType],
@@ -103,6 +130,12 @@ export function toFeatures(adopter: AdopterInput, animal: AnimalInput): number[]
     // Sin preferencia declarada cuenta como coincidencia: no es una penalización.
     bin(!adopter.preferredSpecies || adopter.preferredSpecies === animal.species),
     bin(!adopter.preferredSize || adopter.preferredSize === animal.size),
+    // Historial como cliente de la clínica: lo registra el sistema, no el formulario.
+    h.pets,
+    h.attendedBookings,
+    h.cancelledBookings,
+    h.consultations,
+    h.vaccinesUpToDate,
   ];
 }
 

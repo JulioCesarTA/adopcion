@@ -21,6 +21,26 @@ export interface AdopterInput {
   experience: Experience;
   preferredSpecies?: Species | null;
   preferredSize?: Size | null;
+  /** Comportamiento real de la persona como cliente de la clínica (solo lo usa el modelo). */
+  history?: ClinicalHistory;
+}
+
+/**
+ * Historial de la persona como cliente de la clínica en los 12 meses previos.
+ * No sale del formulario: lo registra el sistema (citas, consultas y vacunas de
+ * sus mascotas). Quien no tiene cuenta de cliente tiene todo en cero.
+ */
+export interface ClinicalHistory {
+  /** Mascotas propias registradas en la clínica. */
+  pets: number;
+  /** Citas a las que asistió. */
+  attendedBookings: number;
+  /** Citas que canceló. */
+  cancelledBookings: number;
+  /** Consultas veterinarias de sus mascotas (diagnósticos y controles). */
+  consultations: number;
+  /** Proporción de sus mascotas con las vacunas al día (0 a 1). */
+  vaccinesUpToDate: number;
 }
 
 export interface AnimalInput {

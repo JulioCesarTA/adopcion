@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { MlModel, MlModelSource, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { AuthUser } from '../../../common/types';
-import { toAdopterInput, toAnimalInput } from '../inputs';
+import { loadClinicalHistory, toAdopterInput, toAnimalInput } from '../inputs';
 import { FEATURE_LABELS, FEATURE_NAMES, toFeatures, type Sample } from './dataset';
 import { crossValidate, evaluate, type Metrics } from './metrics';
 import { LogisticRegression } from './logistic-regression';
@@ -52,7 +52,10 @@ export class MlService {
   async realSamples(): Promise<Sample[]> {
     const requests = await this.prisma.adoptionRequest.findMany({
       where: { status: { in: ['APROBADA', 'RECHAZADA'] } },
-      include: { adopterProfile: true, animal: true },
+      include: {
+        adopterProfile: { include: { person: { select: { email: true } } } },
+        animal: true,
+      },
     });
 
     const samples: Sample[] = [];
@@ -60,7 +63,11 @@ export class MlService {
       if (!r.animal || r.animal.deletedAt) continue;
       try {
         const features = toFeatures(
-          toAdopterInput(r.adopterProfile),
+          // Historial como cliente hasta el día en que pidió la adopción.
+          toAdopterInput(
+            r.adopterProfile,
+            await loadClinicalHistory(this.prisma, r.adopterProfile.person.email, r.requestDate),
+          ),
           // El animal ya cambió de estado tras la decisión; para el modelo se
           // evalúa como estaba al momento de solicitarlo.
           { ...toAnimalInput(r.animal), status: 'DISPONIBLE_ADOPCION' },

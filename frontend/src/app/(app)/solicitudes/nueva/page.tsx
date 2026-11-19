@@ -5,12 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { AdoptableAnimalPicker, AdopterPicker } from "@/components/adoptions/pickers";
-import { BreakdownDetail, Disclaimer, ScoreBar } from "@/components/score-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/input";
-import { useAdopter, useAdoptionMutations, usePairRecommendation } from "@/hooks/use-adoptions";
+import { useAdopter, useAdoptionMutations } from "@/hooks/use-adoptions";
 import { useAnimal } from "@/hooks/use-animals";
 import { errorMessage } from "@/lib/api";
 import { animalName } from "@/lib/labels";
@@ -24,9 +23,8 @@ function NewRequest() {
   const [animal, setAnimal] = useState<AnimalListItem | null>(null);
   const [notes, setNotes] = useState("");
   const { create } = useAdoptionMutations();
-  const pair = usePairRecommendation();
 
-  // Preselección desde el ranking o desde el catálogo
+  // Preselección desde el catálogo
   const preAdopter = useAdopter(params.get("adopterId") ?? "");
   const preAnimal = useAnimal(params.get("animalId") ?? "");
   useEffect(() => {
@@ -36,12 +34,6 @@ function NewRequest() {
     if (preAnimal.data && !animal && preAnimal.data.status === "DISPONIBLE_ADOPCION")
       setAnimal(preAnimal.data);
   }, [preAnimal.data, animal]);
-
-  const { mutate: computePair, reset: resetPair } = pair;
-  useEffect(() => {
-    if (adopter && animal) computePair({ adopterId: adopter.id, animalId: animal.id });
-    else resetPair();
-  }, [adopter, animal, computePair, resetPair]);
 
   const submit = async () => {
     if (!adopter || !animal) return;
@@ -95,22 +87,6 @@ function NewRequest() {
         <Card className="mt-6">
           <CardHeader title="3. Revisión" />
           <CardBody className="space-y-4">
-            {pair.isPending && <p className="text-sm text-slate-500">Calculando compatibilidad…</p>}
-            {pair.error && <p className="text-sm text-red-600">{errorMessage(pair.error)}</p>}
-            {pair.data && (
-              <div className="space-y-3">
-                <ScoreBar score={pair.data.score} level={pair.data.level} />
-                <details className="rounded-lg border border-slate-200 p-3">
-                  <summary className="cursor-pointer text-sm font-medium text-slate-700">
-                    Ver desglose
-                  </summary>
-                  <div className="mt-3">
-                    <BreakdownDetail breakdown={pair.data.breakdown} />
-                  </div>
-                </details>
-                <Disclaimer />
-              </div>
-            )}
             <FormField label="Notas iniciales" hint="Opcional">
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
             </FormField>

@@ -1,0 +1,1264 @@
+{
+  "info": {
+    "name": "Adopet - Pruebas de la API",
+    "description": "Pruebas funcionales de la API de Adopet contra el sistema de prueba (base zoonosis_test).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Iniciar sesión como administrador",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/auth/login",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@zoonosis.test\",\n  \"password\": \"Zoo12345\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Devuelve el token y el rol ADMIN', () => { const b = pm.response.json(); pm.expect(b.user.role).to.eql('ADMIN'); pm.collectionVariables.set('adminToken', b.accessToken); });"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('stamp', Date.now().toString().slice(-7));",
+              "pm.collectionVariables.set('hoy', new Date().toISOString());",
+              "pm.collectionVariables.set('manana', new Date(Date.now() + 86400000).toISOString());"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Iniciar sesión como veterinario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/auth/login",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"vet@zoonosis.test\",\n  \"password\": \"Zoo12345\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('vetToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Credenciales inválidas",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/auth/login",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"vet@zoonosis.test\",\n  \"password\": \"incorrecta1\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+              "pm.test('Mensaje genérico', () => pm.expect(pm.response.json().message).to.eql('Credenciales inválidas'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Registrar una cuenta de cliente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/public/register",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "public",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Cliente Postman\",\n  \"email\": \"cliente{{stamp}}@example.com\",\n  \"password\": \"Prueba123\",\n  \"acceptTerms\": true,\n  \"accountType\": \"CLIENTE\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+              "pm.test('Rol CLIENTE', () => pm.expect(pm.response.json().role).to.eql('CLIENTE'));",
+              "pm.collectionVariables.set('clienteId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Registrar una cuenta de adoptante",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/public/register",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "public",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Adoptante Postman\",\n  \"email\": \"adoptante{{stamp}}@example.com\",\n  \"password\": \"Prueba123\",\n  \"acceptTerms\": true,\n  \"accountType\": \"ADOPTANTE\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+              "pm.test('Rol ADOPTANTE', () => pm.expect(pm.response.json().role).to.eql('ADOPTANTE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Iniciar sesión como cliente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/auth/login",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"cliente{{stamp}}@example.com\",\n  \"password\": \"Prueba123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('clienteToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Iniciar sesión como adoptante",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/auth/login",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"adoptante{{stamp}}@example.com\",\n  \"password\": \"Prueba123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('adoptanteToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Sin token, el sistema interno responde 401",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 El administrador registra un animal",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman {{stamp}}\",\n  \"species\": \"PERRO\",\n  \"sex\": \"MACHO\",\n  \"size\": \"MEDIANO\",\n  \"energyLevel\": 3,\n  \"goodWithChildren\": true,\n  \"goodWithAnimals\": true,\n  \"needsYard\": false,\n  \"specialCare\": false,\n  \"requiredDailyHours\": 2,\n  \"entryDate\": \"{{hoy}}\",\n  \"entryReason\": \"Prueba con Postman\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+              "pm.test('Código ZOO-AAAA-NNNN y estado Ingresado', () => { const b = pm.response.json(); pm.expect(b.code).to.match(/^ZOO-\\d{4}-\\d{4}$/); pm.expect(b.status).to.eql('INGRESADO'); pm.collectionVariables.set('animalId', b.id); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 El veterinario no puede registrar animales",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vetToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sin permiso\",\n  \"species\": \"PERRO\",\n  \"sex\": \"MACHO\",\n  \"size\": \"MEDIANO\",\n  \"energyLevel\": 3,\n  \"goodWithChildren\": true,\n  \"goodWithAnimals\": true,\n  \"needsYard\": false,\n  \"specialCare\": false,\n  \"requiredDailyHours\": 2,\n  \"entryDate\": \"{{hoy}}\",\n  \"entryReason\": \"Prueba con Postman\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 El administrador edita el estado del animal",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals/{{animalId}}",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals",
+            "{{animalId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"EN_OBSERVACION\",\n  \"color\": \"Negro\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Estado En observación', () => pm.expect(pm.response.json().status).to.eql('EN_OBSERVACION'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 El listado filtra por tamaño",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals?size=GRANDE&pageSize=100",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals?size=GRANDE&pageSize=100"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Solo animales grandes', () => pm.response.json().data.forEach((a) => pm.expect(a.size).to.eql('GRANDE')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 El veterinario registra una consulta",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vetToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals/{{animalId}}/consultations",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals",
+            "{{animalId}}",
+            "consultations"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"consultationDate\": \"{{hoy}}\",\n  \"reason\": \"Control\",\n  \"weightKg\": 12.5,\n  \"temperatureC\": 38.5,\n  \"animalStatus\": \"INGRESADO\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Historial clínico en orden cronológico inverso",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vetToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals/{{animalId}}/timeline",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals",
+            "{{animalId}}",
+            "timeline"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Del más reciente al más antiguo', () => { const d = pm.response.json().data.map((i) => new Date(i.date).getTime()); pm.expect(d).to.eql([...d].sort((a, b) => b - a)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 El veterinario habilita al animal para adopción",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vetToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals/{{animalId}}/enable-adoption",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals",
+            "{{animalId}}",
+            "enable-adoption"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Disponible para adopción', () => pm.expect(pm.response.json().status).to.eql('DISPONIBLE_ADOPCION'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 El cliente no puede solicitar adopciones",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clienteToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/adoptions/mine",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "adoptions",
+            "mine"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"animalId\": \"{{animalId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 El adoptante solicita la adopción desde el portal",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adoptanteToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/adoptions/mine",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "adoptions",
+            "mine"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"animalId\": \"{{animalId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+              "pm.test('Solicitud Pendiente', () => pm.expect(pm.response.json().status).to.eql('PENDIENTE'));",
+              "pm.collectionVariables.set('solicitudId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 Una segunda solicitud del mismo animal se rechaza",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adoptanteToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/adoptions/mine",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "adoptions",
+            "mine"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"animalId\": \"{{animalId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 El administrador pasa la solicitud a evaluación",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/adoptions/{{solicitudId}}/status",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "adoptions",
+            "{{solicitudId}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"EN_EVALUACION\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 El administrador aprueba la solicitud",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/adoptions/{{solicitudId}}/decision",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "adoptions",
+            "{{solicitudId}}",
+            "decision"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"result\": \"APROBADA\",\n  \"notes\": \"Cumple las condiciones\",\n  \"decisionDate\": \"{{hoy}}\",\n  \"deliveryDate\": \"{{hoy}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Solicitud Aprobada', () => pm.expect(pm.response.json().status).to.eql('APROBADA'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 Acta de adopción responsable",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/adoptions/{{solicitudId}}/act",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "adoptions",
+            "{{solicitudId}}",
+            "act"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Acta del animal', () => pm.expect(pm.response.json().animal.id).to.eql(pm.collectionVariables.get('animalId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 Seguimiento posterior a la adopción",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/adoptions/{{solicitudId}}/followups",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "adoptions",
+            "{{solicitudId}}",
+            "followups"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"followupDate\": \"{{manana}}\",\n  \"animalCondition\": \"Sano y adaptado\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 Panel de indicadores",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/dashboard",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "dashboard"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Tarjetas calculadas', () => pm.expect(pm.response.json().cards.ok).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 Seis indicadores de gestión",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/kpis?months=6",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "kpis?months=6"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Seis indicadores', () => pm.expect(pm.response.json().kpis).to.have.lengthOf(6));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 El administrador registra la mascota del cliente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/animals",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "animals"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Mascota {{stamp}}\",\n  \"species\": \"PERRO\",\n  \"sex\": \"MACHO\",\n  \"size\": \"MEDIANO\",\n  \"energyLevel\": 3,\n  \"goodWithChildren\": true,\n  \"goodWithAnimals\": true,\n  \"needsYard\": false,\n  \"specialCare\": false,\n  \"requiredDailyHours\": 2,\n  \"entryDate\": \"{{hoy}}\",\n  \"entryReason\": \"Prueba con Postman\",\n  \"ownerId\": \"{{clienteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('mascotaId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 El cliente reserva una consulta para su mascota",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clienteToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/bookings",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "bookings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"animalId\": \"{{mascotaId}}\",\n  \"scheduledAt\": \"{{manana}}\",\n  \"reason\": \"Vacuna anual\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+              "pm.test('Reserva Pendiente', () => pm.expect(pm.response.json().status).to.eql('PENDIENTE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 El cliente no puede reservar para un animal ajeno",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clienteToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/bookings",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "bookings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"scheduledAt\": \"{{manana}}\",\n  \"reason\": \"Ajeno\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "28 El cliente ve el historial de su mascota",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clienteToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/bookings/my-animals",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "bookings",
+            "my-animals"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Una mascota con su reserva', () => { const b = pm.response.json(); pm.expect(b).to.have.lengthOf(1); pm.expect(b[0].bookings).to.have.lengthOf(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "29 Animales del sitio público sin datos internos",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/public/animals",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "public",
+            "animals"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Sin datos internos', () => pm.response.json().data.forEach((a) => { pm.expect(a).to.not.have.property('entryReason'); pm.expect(a).to.not.have.property('createdById'); }));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:4000/api/v1"
+    }
+  ]
+}

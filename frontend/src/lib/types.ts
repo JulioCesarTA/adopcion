@@ -442,10 +442,20 @@ export interface Kpi {
   help: string;
 }
 
+export interface KpiMonth {
+  month: string;
+  approved: number;
+  rejected: number;
+  adoptionRate: number | null;
+  avgEvaluationDays: number | null;
+  avgStayDays: number | null;
+}
+
 export interface KpisResult {
   periodMonths: number;
   from: string;
   to: string;
   kpis: Kpi[];
+  monthly: KpiMonth[];
   generatedAt: string;
 }

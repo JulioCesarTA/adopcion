@@ -48,6 +48,18 @@ export default function PortalHome() {
     }
   };
 
+  const canRequest = user?.role === "ADOPTANTE" || user?.role === "CLIENTE";
+  const requestButton = (a: PublicAnimal) =>
+    a.status === "EN_PROCESO_ADOPCION" || !canRequest ? null : (
+      <Button
+        size="sm"
+        loading={solicitar.isPending && solicitar.variables === a.id}
+        onClick={() => void pedir(a)}
+      >
+        <Heart className="h-4 w-4" aria-hidden /> Solicitar adopción
+      </Button>
+    );
+
   return (
     <>
       <PageHeader
@@ -107,17 +119,7 @@ export default function PortalHome() {
                 key={a.id}
                 animal={a}
                 href={null}
-                actions={
-                  a.status === "EN_PROCESO_ADOPCION" || user?.role !== "ADOPTANTE" ? null : (
-                    <Button
-                      size="sm"
-                      loading={solicitar.isPending && solicitar.variables === a.id}
-                      onClick={() => void pedir(a)}
-                    >
-                      <Heart className="h-4 w-4" aria-hidden /> Solicitar adopción
-                    </Button>
-                  )
-                }
+                actions={requestButton(a)}
               />
             ))}
           </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bot, CalendarPlus, Heart, LogOut, Menu, PawPrint, User, X } from "lucide-react";
+import { Bot, CalendarPlus, Heart, LogOut, Menu, PawPrint, Sparkles, User, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { isPortalRole } from "@/lib/roles";
@@ -11,6 +11,12 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/portal", label: "Adopta", icon: Heart, roles: ["CLIENTE", "ADOPTANTE"] },
+  {
+    href: "/portal/recomendaciones",
+    label: "Recomendaciones",
+    icon: Sparkles,
+    roles: ["CLIENTE", "ADOPTANTE"],
+  },
   { href: "/portal/mis-animales", label: "Mis animales", icon: PawPrint, roles: ["CLIENTE"] },
   {
     href: "/portal/consultas",

@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { DataTable, type Column } from "@/components/data-table";
 import { PageHeader } from "@/components/layout/page-header";
-import { RoleGate } from "@/components/role-gate";
 import { StatusBadge } from "@/components/status-badge";
 import { Input, Select } from "@/components/ui/input";
 import { useAdoptions } from "@/hooks/use-adoptions";
@@ -78,16 +77,6 @@ export default function RequestsPage() {
     <>
       <PageHeader
         title="Solicitudes de adopción"
-        actions={
-          <RoleGate roles={["GESTION", "ADMIN"]}>
-            <Link
-              href="/solicitudes/nueva"
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700"
-            >
-              <Plus className="h-4 w-4" aria-hidden /> Nueva solicitud
-            </Link>
-          </RoleGate>
-        }
       />
       <DataTable
         columns={columns}
