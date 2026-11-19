@@ -133,7 +133,10 @@ describe('HU5 caja blanca — camino básico de Crear Solicitud de Adopción', (
     const animalId = await animal(`CB5 Con solicitud ${stamp}`, true);
     await api('admin').post('/adoptions', { adopterId, animalId }).expect(201);
     // Carrera de dos solicitudes: el animal todavía figura disponible, pero ya tiene una activa.
-    await prisma.animal.update({ where: { id: animalId }, data: { status: 'DISPONIBLE_ADOPCION' } });
+    await prisma.animal.update({
+      where: { id: animalId },
+      data: { status: 'DISPONIBLE_ADOPCION' },
+    });
     const res = await api('admin').post('/adoptions', { adopterId, animalId }).expect(409);
     expect((res.body as Body).message).toBe('El animal ya tiene una solicitud de adopción activa');
     const activas = await prisma.adoptionRequest.count({

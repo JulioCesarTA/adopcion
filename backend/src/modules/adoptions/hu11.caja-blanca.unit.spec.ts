@@ -13,7 +13,11 @@ const SOLICITUD = '44444444-4444-4444-4444-444444444444';
 const user = { id: 'a1', role: 'ADMIN', fullName: 'Admin de Prueba' } as AuthUser;
 
 function setup(solicitud: object | null) {
-  const update = jest.fn(({ data }: { data: object }) => ({ id: SOLICITUD, ...solicitud, ...data }));
+  const update = jest.fn(({ data }: { data: object }) => ({
+    id: SOLICITUD,
+    ...solicitud,
+    ...data,
+  }));
   const tx = { adoptionRequest: { findUnique: jest.fn().mockResolvedValue(solicitud), update } };
   const prisma = { $transaction: jest.fn((fn: (t: typeof tx) => unknown) => fn(tx)) };
   const service = new AdoptionsService(
