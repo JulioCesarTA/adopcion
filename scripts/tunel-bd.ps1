@@ -1,10 +1,10 @@
 # Túnel a la base de datos de producción por AWS Systems Manager (sin SSH ni puertos abiertos).
-# Deja PostgreSQL del servidor en localhost:5433 mientras esta ventana esté abierta.
+# Deja PostgreSQL del servidor en localhost:15432 mientras esta ventana esté abierta.
 #
 # Uso:   .\scripts\tunel-bd.ps1
 # Requiere: AWS CLI, Session Manager Plugin y el perfil "adopet-dev" en ~/.aws/credentials.
 param(
-    [int]$PuertoLocal = 5433,
+    [int]$PuertoLocal = 15432,
     [string]$Perfil = "adopet-dev"
 )
 
