@@ -22,7 +22,7 @@ export class KpisQueryDto {
 export class KpisController {
   constructor(private readonly kpis: KpisService) {}
 
-  @Roles(UserRole.ADMIN, UserRole.VETERINARIO, UserRole.GESTION, UserRole.DIRECTIVO)
+  @Roles(UserRole.ADMIN, UserRole.VETERINARIO)
   @Get()
   @ApiOperation({ summary: 'Indicadores de gestión del albergue con comparación de periodos' })
   get(@Query() q: KpisQueryDto) {

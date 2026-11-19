@@ -5,7 +5,7 @@ import { ROLES_KEY } from '../decorators/roles.decorator';
 import type { AuthenticatedRequest } from '../types';
 
 /** Roles del personal interno (sección 3). */
-export const STAFF_ROLES: UserRole[] = ['ADMIN', 'VETERINARIO', 'GESTION', 'DIRECTIVO'];
+export const STAFF_ROLES: UserRole[] = ['ADMIN', 'VETERINARIO'];
 /** Todos los roles, incluidos CLIENTE y ADOPTANTE (portal). */
 export const ALL_ROLES: UserRole[] = [...STAFF_ROLES, 'CLIENTE', 'ADOPTANTE'];
 

@@ -38,9 +38,6 @@ function Footer({
   );
 }
 
-const noteSchema = z.object({ notes: requiredText("La nota", 5000) });
-
-/** CU12: pasar a evaluación (nota opcional) o cancelar (nota obligatoria). */
 export function StatusChangeDialog({
   requestId,
   target,
@@ -113,43 +110,6 @@ export function StatusChangeDialog({
 }
 
 /** CU12: agregar nota de evaluación. */
-export function NoteDialog({ requestId, onClose }: { requestId: string; onClose: () => void }) {
-  const { addNote } = useAdoptionMutations(requestId);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<z.infer<typeof noteSchema>>({
-    resolver: zodResolver(noteSchema),
-    defaultValues: { notes: "" },
-  });
-  const onSubmit = handleSubmit(async (v) => {
-    try {
-      await addNote.mutateAsync(v.notes);
-      toast.success("Nota agregada");
-      onClose();
-    } catch (err) {
-      toast.error(errorMessage(err));
-    }
-  });
-  return (
-    <Dialog
-      open
-      onClose={onClose}
-      title="Agregar nota de evaluación"
-      footer={
-        <Footer formId="note-form" onClose={onClose} loading={isSubmitting} label="Agregar" />
-      }
-    >
-      <form id="note-form" onSubmit={onSubmit} noValidate>
-        <FormField label="Nota" required error={errors.notes?.message}>
-          <Textarea rows={4} {...register("notes")} />
-        </FormField>
-      </form>
-    </Dialog>
-  );
-}
-
 const decisionSchema = z
   .object({
     result: z.enum(["APROBADA", "RECHAZADA"]),

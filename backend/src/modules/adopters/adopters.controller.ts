@@ -22,7 +22,7 @@ import {
   UpdateAdopterDto,
 } from './dto/adopters.dto';
 
-const { ADMIN, GESTION, DIRECTIVO, ADOPTANTE, CLIENTE } = UserRole;
+const { ADMIN, ADOPTANTE, CLIENTE } = UserRole;
 
 @ApiTags('adopters')
 @ApiBearerAuth()
@@ -30,13 +30,13 @@ const { ADMIN, GESTION, DIRECTIVO, ADOPTANTE, CLIENTE } = UserRole;
 export class AdoptersController {
   constructor(private readonly adopters: AdoptersService) {}
 
-  @Roles(GESTION, ADMIN, DIRECTIVO)
+  @Roles(ADMIN)
   @Get()
   list(@Query() q: ListAdoptersQueryDto, @CurrentUser() user: AuthUser) {
     return this.adopters.list(q, user);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Post()
   create(@Body() dto: CreateAdopterDto) {
     return this.adopters.create(dto);
@@ -56,13 +56,13 @@ export class AdoptersController {
     return this.adopters.saveMine(dto, user);
   }
 
-  @Roles(GESTION, ADMIN, DIRECTIVO)
+  @Roles(ADMIN)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
     return this.adopters.findOne(id, user);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAdopterDto) {
     return this.adopters.update(id, dto);

@@ -19,7 +19,7 @@ const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? val
 const lower = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
 
-/** Roles que se pueden asignar. GESTION y DIRECTIVO quedan sin uso: sus funciones las asume el ADMIN. */
+/** Los cuatro roles del sistema; el administrador puede asignar cualquiera. */
 export const ASSIGNABLE_ROLES: UserRole[] = [
   UserRole.ADMIN,
   UserRole.VETERINARIO,

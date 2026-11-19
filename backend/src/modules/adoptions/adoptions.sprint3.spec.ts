@@ -10,7 +10,7 @@ import type { AuthUser } from '../../common/types';
 import { AdoptionsService } from './adoptions.service';
 
 const SOLICITUD = '33333333-3333-3333-3333-333333333333';
-const user = { id: 'g1', role: 'GESTION', fullName: 'Gestion de Prueba' } as AuthUser;
+const user = { id: 'g1', role: 'ADMIN', fullName: 'Gestion de Prueba' } as AuthUser;
 
 function setup(solicitud: object | null) {
   const create = jest.fn(({ data }: { data: object }) => ({ id: 'f1', ...data }));

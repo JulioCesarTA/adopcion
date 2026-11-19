@@ -16,7 +16,7 @@ import { AdoptionsService } from './adoptions.service';
 import { CreateFollowupDto } from './dto/adoptions.dto';
 
 const SOLICITUD = '33333333-3333-3333-3333-333333333333';
-const user = { id: 'g1', role: 'GESTION', fullName: 'Gestion de Prueba' } as AuthUser;
+const user = { id: 'g1', role: 'ADMIN', fullName: 'Gestion de Prueba' } as AuthUser;
 
 async function camposConError(body: object): Promise<string[]> {
   try {
@@ -127,12 +127,12 @@ describe('HU12 Seguimiento Post-adopción — pruebas unitarias', () => {
     });
   });
 
-  it('PU-HU12-06 solo el personal de Gestión registra seguimientos', () => {
+  it('PU-HU12-06 solo el administrador registra seguimientos', () => {
     // Arrange
     const guard = new RolesGuard(new Reflector());
     // Act
-    const gestion = guard.canActivate(contexto('GESTION'));
-    const directivo = () => guard.canActivate(contexto('DIRECTIVO'));
+    const gestion = guard.canActivate(contexto('ADMIN'));
+    const directivo = () => guard.canActivate(contexto('VETERINARIO'));
     // Assert
     expect(gestion).toBe(true);
     expect(directivo).toThrow(ForbiddenException);

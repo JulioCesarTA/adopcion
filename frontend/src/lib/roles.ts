@@ -18,20 +18,14 @@ import type { UserRole } from "./types";
 export const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: "Administrador",
   VETERINARIO: "Personal Veterinario",
-  GESTION: "Gestión Animal y Adopciones",
-  DIRECTIVO: "Personal Directivo",
   CLIENTE: "Cliente",
   ADOPTANTE: "Adoptante",
 };
 
-/** Roles del personal interno (el sistema de gestión). */
-export const STAFF_ROLES: UserRole[] = ["ADMIN", "VETERINARIO", "GESTION", "DIRECTIVO"];
-/** Todos los valores del enum (GESTION y DIRECTIVO ya no se asignan, pero pueden existir en la BD). */
-export const ALL_ROLES: UserRole[] = [...STAFF_ROLES, "CLIENTE", "ADOPTANTE"];
-/** Roles que el ADMIN puede asignar hoy. Las funciones de GESTION y DIRECTIVO las asume el ADMIN. */
-export const ASSIGNABLE_ROLES: UserRole[] = ["ADMIN", "VETERINARIO", "CLIENTE", "ADOPTANTE"];
+/** Los cuatro roles del sistema; el administrador puede asignar cualquiera. */
+export const ALL_ROLES: UserRole[] = ["ADMIN", "VETERINARIO", "CLIENTE", "ADOPTANTE"];
+export const ASSIGNABLE_ROLES = ALL_ROLES;
 
-/** Ruta de inicio según el rol. */
 /** Roles que usan el portal (no el sistema de gestión). */
 export const isPortalRole = (role: UserRole) => role === "CLIENTE" || role === "ADOPTANTE";
 export const homeForRole = (role: UserRole) => (isPortalRole(role) ? "/portal" : "/dashboard");
@@ -45,42 +39,33 @@ export interface NavItem {
 
 const A: UserRole = "ADMIN";
 const V: UserRole = "VETERINARIO";
-const G: UserRole = "GESTION";
-const D: UserRole = "DIRECTIVO";
 
 /** Ítems del sidebar por rol (sección 10.2). */
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Panel", href: "/dashboard", icon: LayoutDashboard, roles: [A, V, G, D] },
-  { label: "Animales", href: "/animales", icon: PawPrint, roles: [A, V, G, D] },
+  { label: "Panel", href: "/dashboard", icon: LayoutDashboard, roles: [A, V] },
+  { label: "Animales", href: "/animales", icon: PawPrint, roles: [A, V] },
   { label: "Registrar consulta", href: "/consultas", icon: Stethoscope, roles: [A, V] },
-  { label: "Cuarentena", href: "/cuarentena", icon: ShieldAlert, roles: [A, V, G] },
+  { label: "Cuarentena", href: "/cuarentena", icon: ShieldAlert, roles: [A, V] },
   { label: "Vacunas", href: "/vacunas", icon: Syringe, roles: [A, V] },
-  { label: "Adoptables", href: "/adoptables", icon: Heart, roles: [A, V, G, D] },
-  { label: "Adoptantes", href: "/adoptantes", icon: Users, roles: [A, G] },
-  { label: "Solicitudes", href: "/solicitudes", icon: ClipboardList, roles: [A, G, D] },
-  { label: "KPIs", href: "/kpis", icon: BarChart3, roles: [A, V, G, D] },
-  { label: "Mensajes web", href: "/mensajes", icon: Mail, roles: [A, G] },
+  { label: "Adoptables", href: "/adoptables", icon: Heart, roles: [A, V] },
+  { label: "Adoptantes", href: "/adoptantes", icon: Users, roles: [A] },
+  { label: "Solicitudes", href: "/solicitudes", icon: ClipboardList, roles: [A] },
+  { label: "KPIs", href: "/kpis", icon: BarChart3, roles: [A, V] },
+  { label: "Mensajes web", href: "/mensajes", icon: Mail, roles: [A] },
   { label: "Usuarios", href: "/admin/usuarios", icon: UserCog, roles: [A] },
 ];
 
 /** Subrutas con permisos más restrictivos que su ítem del menú (sección 3). */
 const ROUTE_RULES: { pattern: RegExp; roles: UserRole[]; title: string }[] = [
-  // Las recomendaciones son solo para el adoptante, en su portal: el personal no las ve.
-  { pattern: /^\/admin\/modelo(\/|$)/, roles: [], title: "Modelo de recomendación" },
-  { pattern: /^\/animales\/nuevo$/, roles: [A, G], title: "Registrar animal" },
-  { pattern: /^\/animales\/[^/]+\/editar$/, roles: [A, G], title: "Editar animal" },
+  { pattern: /^\/animales\/nuevo$/, roles: [A], title: "Registrar animal" },
+  { pattern: /^\/animales\/[^/]+\/editar$/, roles: [A], title: "Editar animal" },
   { pattern: /^\/animales\/[^/]+\/consultas\/nueva$/, roles: [A, V], title: "Nueva consulta" },
   {
     pattern: /^\/animales\/[^/]+\/consultas\/[^/]+$/,
-    roles: [A, V, G, D],
+    roles: [A, V],
     title: "Consulta veterinaria",
   },
-  // Los adoptantes se registran solos desde /registro: el personal no los crea ni los edita.
-  { pattern: /^\/adoptantes\/nuevo$/, roles: [], title: "Nuevo adoptante" },
-  { pattern: /^\/adoptantes\/[^/]+\/editar$/, roles: [], title: "Editar adoptante" },
-  // Las solicitudes las crean los clientes y adoptantes desde su portal.
-  { pattern: /^\/solicitudes\/nueva$/, roles: [], title: "Nueva solicitud" },
-  { pattern: /^\/solicitudes\/[^/]+\/acta$/, roles: [A, G], title: "Acta de adopción" },
+  { pattern: /^\/solicitudes\/[^/]+\/acta$/, roles: [A], title: "Acta de adopción" },
 ];
 
 const EXTRA_TITLES: Record<string, string> = { "/perfil": "Mi perfil" };

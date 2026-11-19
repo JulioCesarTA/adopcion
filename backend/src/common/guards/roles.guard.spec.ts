@@ -19,7 +19,7 @@ describe('RolesGuard (deny by default para CLIENTE)', () => {
 
   it('sin @Roles(): el personal entra, el CLIENTE no', () => {
     const guard = make(undefined);
-    for (const r of ['ADMIN', 'VETERINARIO', 'GESTION', 'DIRECTIVO'] as const) {
+    for (const r of ['ADMIN', 'VETERINARIO'] as const) {
       expect(guard.canActivate(ctx(r))).toBe(true);
     }
     expect(() => guard.canActivate(ctx('CLIENTE'))).toThrow(ForbiddenException);
@@ -32,7 +32,7 @@ describe('RolesGuard (deny by default para CLIENTE)', () => {
   it('con @Roles(ADMIN) solo ADMIN', () => {
     const guard = make(['ADMIN']);
     expect(guard.canActivate(ctx('ADMIN'))).toBe(true);
-    expect(() => guard.canActivate(ctx('GESTION'))).toThrow(ForbiddenException);
+    expect(() => guard.canActivate(ctx('VETERINARIO'))).toThrow(ForbiddenException);
   });
 
   it('endpoints @Public() sin usuario pasan (el JwtAuthGuard ya decidió)', () => {

@@ -263,28 +263,6 @@ export class AdoptionsService {
     });
   }
 
-  /** CU12: agregar notas de evaluación sin cambiar el estado. */
-  async addNote(id: string, notes: string, user: AuthUser) {
-    return this.prisma.$transaction(async (tx) => {
-      const req = await this.lockRequest(tx, id);
-      if (!['PENDIENTE', 'EN_EVALUACION'].includes(req.status)) {
-        throw new ConflictException('Solo se agregan notas a solicitudes activas');
-      }
-      const updated = await tx.adoptionRequest.update({
-        where: { id },
-        data: {
-          evaluationNotes: appendNote(
-            req.evaluationNotes,
-            notes,
-            user,
-            REQUEST_STATUS_LABELS[req.status],
-          ),
-        },
-      });
-      return updated;
-    });
-  }
-
   /** CU14: resultado de adopción (solo desde EN_EVALUACION). */
   async decide(id: string, dto: DecisionDto, user: AuthUser) {
     const decisionDate = new Date(dto.decisionDate);

@@ -110,7 +110,7 @@ describe('HU8 Gestión de Usuario — pruebas unitarias', () => {
     const { service, update } = usersSetup(usuario({ id: ADMIN, role: 'ADMIN' }));
     const actor = { id: ADMIN, role: 'ADMIN' } as AuthUser;
     // Act
-    const intento = service.update(ADMIN, { role: 'GESTION' }, actor);
+    const intento = service.update(ADMIN, { role: 'VETERINARIO' }, actor);
     // Assert
     await expect(intento).rejects.toThrow('No puedes cambiar tu propio rol');
     expect(update).not.toHaveBeenCalled();

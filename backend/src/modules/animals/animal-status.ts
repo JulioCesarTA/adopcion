@@ -24,7 +24,6 @@ export const CLINICAL_STATES: AnimalStatus[] = [
 ];
 
 /** Estados finales de salida (CU22). */
-export const EXIT_STATES: AnimalStatus[] = [S.FALLECIDO, S.DEVUELTO];
 
 /** Animales que ya no están en la institución. */
 export const OUTSIDE_STATES: AnimalStatus[] = [S.ADOPTADO, S.FALLECIDO, S.DEVUELTO];

@@ -13,21 +13,21 @@ import { TrainModelDto } from '../dto/ml.dto';
 export class MlController {
   constructor(private readonly ml: MlService) {}
 
-  @Roles(UserRole.ADMIN, UserRole.GESTION, UserRole.DIRECTIVO)
+  @Roles(UserRole.ADMIN)
   @Get('status')
   @ApiOperation({ summary: 'Modelo activo, su procedencia y sus métricas' })
   status() {
     return this.ml.status();
   }
 
-  @Roles(UserRole.ADMIN, UserRole.GESTION, UserRole.DIRECTIVO)
+  @Roles(UserRole.ADMIN)
   @Get('models')
   @ApiOperation({ summary: 'Historial de modelos entrenados' })
   list() {
     return this.ml.list();
   }
 
-  @Roles(UserRole.ADMIN, UserRole.GESTION, UserRole.DIRECTIVO)
+  @Roles(UserRole.ADMIN)
   @Get('models/:version')
   @ApiOperation({ summary: 'Métricas completas de un modelo' })
   detail(@Param('version', ParseIntPipe) version: number) {

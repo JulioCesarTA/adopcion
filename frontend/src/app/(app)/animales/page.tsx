@@ -111,7 +111,7 @@ function AnimalsList() {
         title="Animales"
         description="Registro de animales de la institución y su historial clínico."
         actions={
-          <RoleGate roles={["GESTION", "ADMIN"]}>
+          <RoleGate roles={["ADMIN"]}>
             <Link
               href="/animales/nuevo"
               className="inline-flex h-10 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700"

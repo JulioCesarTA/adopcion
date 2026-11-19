@@ -83,7 +83,7 @@ describe('HU7 Panel de KPI en Tiempo Real — pruebas unitarias', () => {
     const prisma = prismaVacio();
     const service = new DashboardService(prisma as unknown as PrismaService);
     // Act
-    await service.dashboard('DIRECTIVO');
+    await service.dashboard('ADMIN');
     // Assert
     expect(prisma.animal.count).toHaveBeenCalledWith({
       where: { deletedAt: null, status: { notIn: ['ADOPTADO', 'FALLECIDO', 'DEVUELTO'] } },
@@ -100,7 +100,7 @@ describe('HU7 Panel de KPI en Tiempo Real — pruebas unitarias', () => {
         switchToHttp: () => ({ getRequest: () => ({ user: { id: 'u', role } }) }),
       }) as unknown as ExecutionContext;
     // Act
-    const directivo = guard.canActivate(contexto('DIRECTIVO'));
+    const directivo = guard.canActivate(contexto('ADMIN'));
     const cliente = () => guard.canActivate(contexto('CLIENTE'));
     // Assert
     expect(directivo).toBe(true);

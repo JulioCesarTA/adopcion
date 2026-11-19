@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "VETERINARIO" | "GESTION" | "DIRECTIVO" | "CLIENTE" | "ADOPTANTE";
+export type UserRole = "ADMIN" | "VETERINARIO" | "CLIENTE" | "ADOPTANTE";
 export type Species = "PERRO" | "GATO" | "OTRO";
 export type Sex = "MACHO" | "HEMBRA" | "DESCONOCIDO";
 export type AnimalSize = "PEQUENO" | "MEDIANO" | "GRANDE";
@@ -345,61 +345,6 @@ export interface AdoptionRequestDetail extends AdoptionRequest {
   animal: Animal;
   followups: Followup[];
   latestRecommendation: Recommendation | null;
-}
-
-export interface RankingItem {
-  animal: Pick<
-    AnimalListItem,
-    | "id"
-    | "code"
-    | "name"
-    | "species"
-    | "size"
-    | "sex"
-    | "ageMonths"
-    | "energyLevel"
-    | "photoUrl"
-    | "status"
-  >;
-  score: number;
-  level: Level;
-  breakdown: Breakdown;
-}
-
-export interface Ranking {
-  adopter: { id: string; name: string };
-  modelVersion: number;
-  disclaimer: string;
-  generatedAt: string;
-  data: RankingItem[];
-  skipped: { animal: RankingItem["animal"]; missing: string[] }[];
-}
-
-/** Ranking inverso: dado un animal, qué adoptantes le convienen. */
-export interface AdopterRankingItem {
-  adopter: {
-    id: string;
-    name: string;
-    phone: string;
-    housingType: HousingType;
-    hasYard: boolean;
-    hasChildren: boolean;
-    hasOtherAnimals: boolean;
-    experience: ExperienceLevel;
-    availableHoursPerDay: number;
-  };
-  score: number;
-  level: Level;
-  breakdown: Breakdown;
-}
-
-export interface AdopterRanking {
-  animal: RankingItem["animal"];
-  modelVersion: number;
-  disclaimer: string;
-  generatedAt: string;
-  data: AdopterRankingItem[];
-  skipped: { adopter: { id: string; name: string }; missing: string[] }[];
 }
 
 // ---------- Panel e indicadores ----------

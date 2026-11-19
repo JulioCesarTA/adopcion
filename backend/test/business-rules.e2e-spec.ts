@@ -306,8 +306,6 @@ describe('Reglas de negocio (e2e)', () => {
   });
 
   it('INT-10: el adoptante solicita la adopción desde el portal y el animal queda en proceso', async () => {
-    await api('cliente').post('/adoptions/mine', { animalId: ids.animal }).expect(403);
-
     const res = await api('adoptante')
       .post('/adoptions/mine', { animalId: ids.animal })
       .expect(201);
@@ -316,6 +314,8 @@ describe('Reglas de negocio (e2e)', () => {
     expect(await animalStatus(ids.animal)).toBe('EN_PROCESO_ADOPCION');
 
     await api('adoptante').post('/adoptions/mine', { animalId: ids.animal }).expect(409);
+    // El cliente también puede solicitar, pero el animal ya tiene una solicitud activa.
+    await api('cliente').post('/adoptions/mine', { animalId: ids.animal }).expect(409);
 
     const list = (await api('admin').get('/adoptions?pageSize=100').expect(200)).body as Body;
     expect((list.data as Body[]).some((r) => r.id === ids.request)).toBe(true);

@@ -12,11 +12,9 @@ import { paginated } from '../../common/dto/pagination.dto';
 import { currentYearLaPaz } from '../../common/dates';
 import type { AuthUser, Paginated } from '../../common/types';
 import { AnimalStatusService } from './animal-status.service';
-import { EXIT_STATES, STATUS_LABELS } from './animal-status';
 import {
   AdoptableQueryDto,
   CreateAnimalDto,
-  ExitAnimalDto,
   ListAnimalsQueryDto,
   TimelineQueryDto,
   UpdateAnimalDto,
@@ -222,60 +220,6 @@ export class AnimalsService {
   async disableAdoption(id: string): Promise<Animal> {
     await this.getOrThrow(id);
     return this.prisma.animal.update({ where: { id }, data: { status: 'INGRESADO' } });
-  }
-
-  /** CU22: registrar salida o baja. */
-  async exit(id: string, dto: ExitAnimalDto, user: AuthUser): Promise<Animal> {
-    if (dto.type === 'OTRO' && !dto.detail) {
-      throw new BadRequestException('Indica el detalle del motivo de salida');
-    }
-    return this.prisma.$transaction(async (tx) => {
-      const animal = await this.status.getForUpdate(tx, id);
-      if (EXIT_STATES.includes(animal.status) || animal.status === 'ADOPTADO') {
-        throw new ConflictException(
-          `El animal ya está en un estado final (${STATUS_LABELS[animal.status]})`,
-        );
-      }
-      if (animal.status === 'EN_PROCESO_ADOPCION') {
-        throw new ConflictException(
-          'El animal tiene una solicitud de adopción activa. Cancélala antes de registrar la salida.',
-        );
-      }
-      const date = new Date(dto.date);
-
-      // Cierra registros clínicos abiertos (no se borran, RN-02)
-      const period = await tx.quarantinePeriod.findFirst({
-        where: { animalId: id, status: 'ACTIVO' },
-      });
-      if (period) {
-        await tx.quarantinePeriod.update({
-          where: { id: period.id },
-          data: {
-            status: 'FINALIZADO',
-            endDate: date,
-            closedById: user.id,
-            finalObservations: 'Cerrado automáticamente por salida del animal',
-          },
-        });
-      }
-      const treatments = await tx.treatment.findMany({
-        where: { status: 'ACTIVO', consultation: { animalId: id } },
-      });
-      for (const t of treatments) {
-        await tx.treatment.update({
-          where: { id: t.id },
-          data: { status: 'SUSPENDIDO' },
-        });
-      }
-
-      const target = dto.type === 'FALLECIDO' ? 'FALLECIDO' : 'DEVUELTO';
-      const reason = dto.type === 'OTRO' ? `OTRO: ${dto.detail}` : dto.type;
-      return this.status.changeStatus(tx, animal, target, {
-        exitDate: date,
-        exitReason: reason,
-        exitNotes: dto.notes ?? null,
-      });
-    });
   }
 
   /** CU22: reingreso de un animal adoptado que vuelve a la institución. */

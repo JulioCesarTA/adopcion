@@ -12,7 +12,7 @@ import { currentYearLaPaz } from '../../common/dates';
 import type { AuthUser } from '../../common/types';
 
 const ID = '11111111-1111-1111-1111-111111111111';
-const user = { id: '22222222-2222-2222-2222-222222222222', role: 'GESTION' } as AuthUser;
+const user = { id: '22222222-2222-2222-2222-222222222222', role: 'ADMIN' } as AuthUser;
 const JPG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
 
 function setup() {

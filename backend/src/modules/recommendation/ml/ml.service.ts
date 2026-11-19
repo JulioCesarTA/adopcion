@@ -7,7 +7,6 @@ import { FEATURE_LABELS, FEATURE_NAMES, toFeatures, type Sample } from './datase
 import { crossValidate, evaluate, type Metrics } from './metrics';
 import { LogisticRegression } from './logistic-regression';
 import { RandomForest, type SerializedForest } from './random-forest';
-import { generateSyntheticDataset } from './synthetic';
 import type { TrainModelDto } from '../dto/ml.dto';
 
 /** Mínimo de casos reales para entrenar sin recurrir a datos sintéticos. */
@@ -131,28 +130,16 @@ export class MlService {
     const folds = dto.folds ?? 5;
     const warnings: string[] = [];
 
-    const real = await this.realSamples();
-    let synthetic: Sample[] = [];
+    // Solo solicitudes reales resueltas: el sistema no entrena con casos inventados.
+    const samples = await this.realSamples();
 
-    const useSynthetic = dto.useSynthetic ?? real.length < MIN_REAL_SAMPLES;
-    if (useSynthetic) {
-      const size = dto.syntheticSize ?? Math.max(MIN_REAL_SAMPLES * 8, 1200);
-      synthetic = generateSyntheticDataset({ size, seed }).samples;
+    if (samples.length > 0 && samples.length < MIN_REAL_SAMPLES) {
       warnings.push(
-        `El conjunto incluye ${synthetic.length} casos SINTÉTICOS. Las métricas validan que el ` +
-          'canal de aprendizaje funciona, pero no son evidencia de capacidad predictiva sobre ' +
-          'adopciones reales. Hay que reentrenar cuando se acumulen datos reales.',
+        `Solo hay ${samples.length} solicitudes resueltas utilizables; se recomiendan al menos ` +
+          `${MIN_REAL_SAMPLES} para que las métricas sean estables.`,
       );
     }
 
-    if (real.length > 0 && real.length < MIN_REAL_SAMPLES) {
-      warnings.push(
-        `Solo hay ${real.length} solicitudes resueltas utilizables; se recomiendan al menos ` +
-          `${MIN_REAL_SAMPLES} para entrenar únicamente con datos reales.`,
-      );
-    }
-
-    const samples = [...real, ...synthetic];
     if (samples.length < 2 * folds) {
       throw new BadRequestException(
         `Hacen falta al menos ${2 * folds} casos para entrenar con ${folds} pliegues; hay ${samples.length}.`,
@@ -166,8 +153,7 @@ export class MlService {
       );
     }
 
-    const source: MlModelSource =
-      synthetic.length === 0 ? 'REAL' : real.length === 0 ? 'SINTETICO' : 'MIXTO';
+    const source: MlModelSource = 'REAL';
 
     // --- Validación cruzada: el bosque y la línea base logística ---
     const forestCv = crossValidate(
@@ -213,8 +199,8 @@ export class MlService {
       algorithm: 'random-forest',
       source,
       datasetSize: samples.length,
-      realSamples: real.length,
-      syntheticSamples: synthetic.length,
+      realSamples: samples.length,
+      syntheticSamples: 0,
       positiveRate: Math.round((positives / samples.length) * 10000) / 10000,
       seed,
       forest: forestCv,
@@ -245,8 +231,8 @@ export class MlService {
             model: forest.toJSON() as unknown as Prisma.InputJsonValue,
             metrics: { ...report, version } as unknown as Prisma.InputJsonValue,
             datasetSize: samples.length,
-            realSamples: real.length,
-            syntheticSamples: synthetic.length,
+            realSamples: samples.length,
+            syntheticSamples: 0,
             seed,
             notes: dto.notes ?? null,
             createdById: user.id,

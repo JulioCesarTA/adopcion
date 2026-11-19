@@ -22,7 +22,7 @@ import { MlController } from './ml/ml.controller';
 import type { MlService } from './ml/ml.service';
 import { RandomForest } from './ml/random-forest';
 import { FEATURE_NAMES } from './ml/dataset';
-import { generateSyntheticDataset } from './ml/synthetic';
+import { generateSyntheticDataset } from './ml/synthetic.fixture';
 import { RecommendationService } from './recommendation.service';
 
 const settings: AlgorithmSettings = {
@@ -141,7 +141,7 @@ describe('HU6 Recomendación de Compatibilidad — pruebas unitarias', () => {
       }) as unknown as ExecutionContext;
     // Act
     const admin = guard.canActivate(contexto('ADMIN'));
-    const gestion = () => guard.canActivate(contexto('GESTION'));
+    const gestion = () => guard.canActivate(contexto('VETERINARIO'));
     // Assert
     expect(admin).toBe(true);
     expect(gestion).toThrow(ForbiddenException);
@@ -160,7 +160,7 @@ describe('HU6 Recomendación de Compatibilidad — pruebas unitarias', () => {
       person: { firstName: 'Jorge', lastName: 'Vargas', phone: '70000002', ci: '9000002 LP' },
     });
     // Act
-    const r = await service.rankingForAnimal('n1', { id: 'g', role: 'GESTION' } as AuthUser);
+    const r = await service.rankingForAnimal('n1', { id: 'g', role: 'ADMIN' } as AuthUser);
     // Assert
     expect(r.data[0].adopter.name).toBe('Jorge Vargas');
     expect(r.data[0].adopter).not.toHaveProperty('ci');

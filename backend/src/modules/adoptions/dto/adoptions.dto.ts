@@ -48,15 +48,6 @@ export class ChangeRequestStatusDto {
   notes?: string;
 }
 
-export class AddNoteDto {
-  @ApiProperty()
-  @Transform(trim)
-  @IsString()
-  @IsNotEmpty({ message: 'La nota no puede estar vacía' })
-  @MaxLength(5000)
-  notes: string;
-}
-
 export class DecisionDto {
   @ApiProperty({ enum: ['APROBADA', 'RECHAZADA'] })
   @IsIn(['APROBADA', 'RECHAZADA'], {

@@ -32,8 +32,8 @@ import {
   UpdateVaccinationDto,
 } from './dto/clinical.dto';
 
-const { ADMIN, VETERINARIO, GESTION, DIRECTIVO } = UserRole;
-const HCD_READERS = [ADMIN, VETERINARIO, GESTION, DIRECTIVO];
+const { ADMIN, VETERINARIO } = UserRole;
+const HCD_READERS = [ADMIN, VETERINARIO];
 
 @ApiTags('clinical')
 @ApiBearerAuth()
@@ -139,7 +139,7 @@ export class ClinicalController {
 
   // ---------- Observación / cuarentena ----------
 
-  @Roles(ADMIN, VETERINARIO, GESTION)
+  @Roles(ADMIN, VETERINARIO)
   @Get('periods')
   listAllPeriods(@Query() q: PeriodsQueryDto) {
     return this.clinical.listAllPeriods(q.status);
@@ -151,7 +151,7 @@ export class ClinicalController {
     return this.clinical.listPeriods(id);
   }
 
-  @Roles(VETERINARIO, GESTION, ADMIN)
+  @Roles(VETERINARIO, ADMIN)
   @Post('animals/:id/periods')
   startPeriod(
     @Param('id', ParseUUIDPipe) id: string,

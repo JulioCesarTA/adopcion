@@ -90,7 +90,7 @@ function Header({ animal }: { animal: AnimalDetail }) {
   const name = animalName(animal);
   const s = animal.status;
   const isVet = hasRole("VETERINARIO");
-  const isGestion = hasRole("GESTION", "ADMIN");
+  const isGestion = hasRole("ADMIN");
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     try {
@@ -303,7 +303,7 @@ function Summary({ animal }: { animal: AnimalDetail }) {
 
 function AdoptionTab({ animal }: { animal: AnimalDetail }) {
   const { hasRole } = useAuth();
-  const canSee = hasRole("ADMIN", "GESTION", "DIRECTIVO");
+  const canSee = hasRole("ADMIN");
   return (
     <div className="space-y-4">
       <Card>

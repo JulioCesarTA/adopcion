@@ -8,20 +8,11 @@ import type {
   Animal,
   Followup,
   Paginated,
-  AdopterRanking,
-  Ranking,
-  Recommendation,
   RequestStatus,
 } from "@/lib/types";
 import { invalidateAnimal } from "./use-animals";
 
 // ---------- Adoptantes (CU10) ----------
-
-export type AdopterInput = Omit<
-  Adopter,
-  "id" | "personId" | "person" | "createdAt" | "updatedAt" | "_count" | "adoptionRequests"
-> &
-  Omit<Adopter["person"], "id">;
 
 export function useAdopters(filters: Query) {
   return useQuery({
@@ -37,26 +28,6 @@ export function useAdopter(id: string) {
     queryFn: () => api<Adopter>(`/adopters/${id}`),
     enabled: !!id,
   });
-}
-
-export function useAdopterMutations(id?: string) {
-  const qc = useQueryClient();
-  const done = () => {
-    void qc.invalidateQueries({ queryKey: ["adopters"] });
-    if (id) void qc.invalidateQueries({ queryKey: ["adopter", id] });
-  };
-  return {
-    create: useMutation({
-      mutationFn: (input: Partial<AdopterInput>) =>
-        api<Adopter>("/adopters", { method: "POST", body: input }),
-      onSuccess: done,
-    }),
-    update: useMutation({
-      mutationFn: (input: Partial<AdopterInput>) =>
-        api<Adopter>(`/adopters/${id}`, { method: "PATCH", body: input }),
-      onSuccess: done,
-    }),
-  };
 }
 
 // ---------- Solicitudes (CU11, 12, 14, 15) ----------
@@ -111,21 +82,11 @@ export function useAdoptionMutations(id?: string) {
     invalidateAnimal(qc, animalId);
   };
   return {
-    create: useMutation({
-      mutationFn: (input: { adopterId: string; animalId: string; notes?: string }) =>
-        api<AdoptionRequestBase>("/adoptions", { method: "POST", body: input }),
-      onSuccess: (r) => done(r.animalId),
-    }),
     changeStatus: useMutation({
       mutationFn: (input: {
         status: Extract<RequestStatus, "EN_EVALUACION" | "CANCELADA">;
         notes?: string;
       }) => api<AdoptionRequestBase>(`/adoptions/${id}/status`, { method: "PATCH", body: input }),
-      onSuccess: (r) => done(r.animalId),
-    }),
-    addNote: useMutation({
-      mutationFn: (notes: string) =>
-        api<AdoptionRequestBase>(`/adoptions/${id}/notes`, { method: "POST", body: { notes } }),
       onSuccess: (r) => done(r.animalId),
     }),
     decide: useMutation({
@@ -146,36 +107,4 @@ export function useAdoptionMutations(id?: string) {
       onSuccess: () => done(),
     }),
   };
-}
-
-// ---------- Recomendación (CU13) ----------
-
-export function useRanking(adopterId: string, enabled: boolean) {
-  return useQuery({
-    queryKey: ["ranking", adopterId],
-    queryFn: () => api<Ranking>(`/recommendations/adopter/${adopterId}`),
-    enabled,
-    staleTime: 0,
-  });
-}
-
-/** Ranking inverso: adoptantes más compatibles con un animal dado. */
-export function useAdopterRanking(animalId: string, enabled: boolean) {
-  return useQuery({
-    queryKey: ["adopter-ranking", animalId],
-    queryFn: () => api<AdopterRanking>(`/recommendations/animal/${animalId}`),
-    enabled,
-    staleTime: 0,
-  });
-}
-
-export function usePairRecommendation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { adopterId: string; animalId: string; requestId?: string }) =>
-      api<Recommendation & { animal: Animal }>("/recommendations", { method: "POST", body: input }),
-    onSuccess: (_r, v) => {
-      if (v.requestId) void qc.invalidateQueries({ queryKey: ["adoption", v.requestId] });
-    },
-  });
 }

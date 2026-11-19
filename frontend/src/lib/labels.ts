@@ -74,7 +74,6 @@ export const EXPERIENCE: Record<ExperienceLevel, string> = {
   AVANZADA: "Avanzada",
 };
 
-export const DISCLAIMER = "Resultado de apoyo. La decisión final es del personal responsable.";
 
 export function options<T extends string>(map: Record<T, string | { label: string }>) {
   return (Object.keys(map) as T[]).map((value) => {

@@ -12,9 +12,9 @@ import {
 
 const PERSON_FIELDS = ['ci', 'firstName', 'lastName', 'phone', 'email', 'address'] as const;
 
-/** CU10: la CI solo se muestra completa a GESTION y ADMIN. */
+/** CU10: la CI solo se muestra completa al administrador. */
 export function canSeeFullCi(role: UserRole): boolean {
-  return role === 'GESTION' || role === 'ADMIN';
+  return role === 'ADMIN';
 }
 
 export function maskCi(ci: string): string {

@@ -25,7 +25,7 @@ type DialogKind = null | "evaluate" | "cancel" | "decide" | "followup";
 export default function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { hasRole } = useAuth();
-  const isGestion = hasRole("GESTION", "ADMIN");
+  const isGestion = hasRole("ADMIN");
   const { data: r, isLoading, error, refetch } = useAdoption(id);
   const [dialog, setDialog] = useState<DialogKind>(null);
 

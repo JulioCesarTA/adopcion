@@ -12,7 +12,7 @@ import { DecisionDto } from './dto/adoptions.dto';
 import { animalStatusAfter, canRequestTransition } from './request-status';
 
 const SOLICITUD = '33333333-3333-3333-3333-333333333333';
-const user = { id: 'g1', role: 'GESTION', fullName: 'Gestion de Prueba' } as AuthUser;
+const user = { id: 'g1', role: 'ADMIN', fullName: 'Gestion de Prueba' } as AuthUser;
 
 function setup(solicitud: object, animal: object = {}) {
   const update = jest.fn(({ data }: { data: object }) => ({ id: SOLICITUD, ...data }));
@@ -83,16 +83,6 @@ describe('HU11 Gestionar Proceso de Adopción — pruebas unitarias', () => {
     expect(notas).toContain(
       '10:30 · Gestion de Prueba · En evaluación] Visita domiciliaria realizada',
     );
-  });
-
-  it('PU-HU11-05 no se agregan observaciones a una solicitud ya aprobada', async () => {
-    // Arrange
-    const { service, update } = setup({ id: SOLICITUD, status: 'APROBADA', evaluationNotes: null });
-    // Act
-    const intento = service.addNote(SOLICITUD, 'Nota tardía', user);
-    // Assert
-    await expect(intento).rejects.toThrow('Solo se agregan notas a solicitudes activas');
-    expect(update).not.toHaveBeenCalled();
   });
 
   it('PU-HU11-06 al cancelar la solicitud el animal vuelve a estar disponible para adopción', async () => {

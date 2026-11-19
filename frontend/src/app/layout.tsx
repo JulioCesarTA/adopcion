@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      {/* Algunas extensiones del navegador agregan atributos al <body> antes de hidratar. */}
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

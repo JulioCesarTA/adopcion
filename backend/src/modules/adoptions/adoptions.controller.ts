@@ -17,7 +17,6 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthUser } from '../../common/types';
 import { AdoptionsService } from './adoptions.service';
 import {
-  AddNoteDto,
   ChangeRequestStatusDto,
   CreateAdoptionDto,
   CreateFollowupDto,
@@ -26,8 +25,8 @@ import {
   RequestMineDto,
 } from './dto/adoptions.dto';
 
-const { ADMIN, GESTION, DIRECTIVO } = UserRole;
-const READERS = [ADMIN, GESTION, DIRECTIVO];
+const { ADMIN } = UserRole;
+const READERS = [ADMIN];
 
 @ApiTags('adoptions')
 @ApiBearerAuth()
@@ -41,7 +40,7 @@ export class AdoptionsController {
     return this.adoptions.list(q, user);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Post()
   create(@Body() dto: CreateAdoptionDto, @CurrentUser() user: AuthUser) {
     return this.adoptions.create(dto, user);
@@ -60,7 +59,7 @@ export class AdoptionsController {
     return this.adoptions.findOne(id, user);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Patch(':id/status')
   changeStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -70,18 +69,7 @@ export class AdoptionsController {
     return this.adoptions.changeStatus(id, dto, user);
   }
 
-  @Roles(GESTION, ADMIN)
-  @Post(':id/notes')
-  @HttpCode(HttpStatus.OK)
-  addNote(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: AddNoteDto,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.adoptions.addNote(id, dto.notes, user);
-  }
-
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Post(':id/decision')
   @HttpCode(HttpStatus.OK)
   decide(
@@ -98,7 +86,7 @@ export class AdoptionsController {
     return this.adoptions.listFollowups(id);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Post(':id/followups')
   createFollowup(
     @Param('id', ParseUUIDPipe) id: string,
@@ -108,7 +96,7 @@ export class AdoptionsController {
     return this.adoptions.createFollowup(id, dto, user);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Get(':id/act')
   act(@Param('id', ParseUUIDPipe) id: string) {
     return this.adoptions.act(id);

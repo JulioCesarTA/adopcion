@@ -209,35 +209,6 @@ export class AdoptableQueryDto extends PaginationQueryDto {
   maxEnergy?: number;
 }
 
-export const EXIT_TYPES = ['FALLECIDO', 'DEVUELTO', 'OTRO'] as const;
-export type ExitType = (typeof EXIT_TYPES)[number];
-
-export class ExitAnimalDto {
-  @ApiProperty({ enum: EXIT_TYPES })
-  @IsIn(EXIT_TYPES, { message: 'Motivo de salida inválido' })
-  type: ExitType;
-
-  @ApiPropertyOptional({
-    description: 'Detalle del motivo (obligatorio si es OTRO)',
-  })
-  @IsOptional()
-  @Transform(trim)
-  @IsString()
-  @MaxLength(80)
-  detail?: string;
-
-  @ApiProperty()
-  @IsDateString({}, { message: 'Fecha inválida' })
-  date: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @Transform(trim)
-  @IsString()
-  @MaxLength(2000)
-  notes?: string;
-}
-
 export const TIMELINE_TYPES = ['CONSULTA', 'VACUNA', 'PERIODO'] as const;
 export type TimelineType = (typeof TIMELINE_TYPES)[number];
 

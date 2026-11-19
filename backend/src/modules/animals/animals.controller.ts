@@ -23,13 +23,12 @@ import { AnimalsService, MAX_PHOTO_BYTES } from './animals.service';
 import {
   AdoptableQueryDto,
   CreateAnimalDto,
-  ExitAnimalDto,
   ListAnimalsQueryDto,
   TimelineQueryDto,
   UpdateAnimalDto,
 } from './dto/animals.dto';
 
-const { ADMIN, VETERINARIO, GESTION, DIRECTIVO } = UserRole;
+const { ADMIN, VETERINARIO } = UserRole;
 
 @ApiTags('animals')
 @ApiBearerAuth()
@@ -47,25 +46,25 @@ export class AnimalsController {
     return this.animals.adoptable(q);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Post()
   create(@Body() dto: CreateAnimalDto, @CurrentUser() user: AuthUser) {
     return this.animals.create(dto, user);
   }
 
-  @Roles(ADMIN, VETERINARIO, GESTION, DIRECTIVO)
+  @Roles(ADMIN, VETERINARIO)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.animals.findOne(id);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAnimalDto) {
     return this.animals.update(id, dto);
   }
 
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Post(':id/photo')
   @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
@@ -100,18 +99,7 @@ export class AnimalsController {
     return this.animals.disableAdoption(id);
   }
 
-  @Roles(GESTION, ADMIN)
-  @Post(':id/exit')
-  @HttpCode(HttpStatus.OK)
-  exit(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ExitAnimalDto,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.animals.exit(id, dto, user);
-  }
-
-  @Roles(GESTION, ADMIN)
+  @Roles(ADMIN)
   @Post(':id/readmit')
   @HttpCode(HttpStatus.OK)
   readmit(@Param('id', ParseUUIDPipe) id: string) {

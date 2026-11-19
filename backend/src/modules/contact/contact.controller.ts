@@ -27,7 +27,7 @@ class UpdateContactDto {
 /** Buzón de mensajes del formulario «Contáctame». */
 @ApiTags('contact')
 @ApiBearerAuth()
-@Roles(UserRole.ADMIN, UserRole.GESTION)
+@Roles(UserRole.ADMIN)
 @Controller('contact-messages')
 export class ContactController {
   constructor(private readonly prisma: PrismaService) {}

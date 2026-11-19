@@ -97,15 +97,6 @@ export function useAnimalMutations(id?: string) {
       mutationFn: () => post("/disable-adoption"),
       onSuccess: () => done(),
     }),
-    exit: useMutation({
-      mutationFn: (body: {
-        type: "FALLECIDO" | "DEVUELTO" | "OTRO";
-        detail?: string;
-        date: string;
-        notes?: string;
-      }) => post("/exit", body),
-      onSuccess: () => done(),
-    }),
     readmit: useMutation({
       mutationFn: (body: { date: string; reason: string }) => post("/readmit", body),
       onSuccess: () => done(),

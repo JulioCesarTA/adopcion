@@ -9,7 +9,7 @@ import { CreateRecommendationDto, RecommendationHistoryQueryDto } from './dto/re
 
 @ApiTags('recommendation')
 @ApiBearerAuth()
-@Roles(UserRole.GESTION, UserRole.ADMIN)
+@Roles(UserRole.ADMIN)
 @Controller('recommendations')
 export class RecommendationController {
   constructor(private readonly recommendations: RecommendationService) {}
@@ -39,7 +39,7 @@ export class RecommendationController {
     return this.recommendations.pair(dto, user);
   }
 
-  @Roles(UserRole.GESTION, UserRole.ADMIN, UserRole.DIRECTIVO)
+  @Roles(UserRole.ADMIN)
   @Get('history')
   history(@Query() q: RecommendationHistoryQueryDto) {
     return this.recommendations.history(q.adopterId, q.animalId);

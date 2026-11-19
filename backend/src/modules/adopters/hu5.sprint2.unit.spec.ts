@@ -69,16 +69,16 @@ describe('HU5 Creación de Solicitud de Adopción — pruebas unitarias', () => 
     expect(enmascarado).not.toContain('9000010');
   });
 
-  it('PU-HU5-04 canSeeFullCi permite el carnet completo solo a Gestión y al administrador', () => {
+  it('PU-HU5-04 canSeeFullCi permite el carnet completo solo al administrador', () => {
     // Arrange
-    const roles = ['GESTION', 'ADMIN', 'DIRECTIVO', 'VETERINARIO'] as const;
+    const roles = ['ADMIN', 'VETERINARIO', 'CLIENTE', 'ADOPTANTE'] as const;
     // Act
     const permisos = roles.map((r) => canSeeFullCi(r));
     // Assert
-    expect(permisos).toEqual([true, true, false, false]);
+    expect(permisos).toEqual([true, false, false, false]);
   });
 
-  it('PU-HU5-05 la ficha del adoptante muestra el carnet enmascarado al personal directivo', async () => {
+  it('PU-HU5-05 la ficha del adoptante muestra el carnet enmascarado al veterinario', async () => {
     // Arrange
     const fila = {
       id: 'a1',
@@ -87,9 +87,9 @@ describe('HU5 Creación de Solicitud de Adopción — pruebas unitarias', () => 
     };
     const prisma = { adopterProfile: { findUnique: jest.fn().mockResolvedValue(fila) } };
     const service = new AdoptersService(prisma as unknown as PrismaService);
-    const directivo = { id: 'd1', role: 'DIRECTIVO' } as AuthUser;
+    const veterinario = { id: 'd1', role: 'VETERINARIO' } as AuthUser;
     // Act
-    const ficha = await service.findOne('a1', directivo);
+    const ficha = await service.findOne('a1', veterinario);
     // Assert
     expect(ficha.person.ci).toBe('••••••• SC');
   });

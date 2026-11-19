@@ -3,7 +3,7 @@ import { RandomForest, type SerializedForest } from './random-forest';
 import { LogisticRegression } from './logistic-regression';
 import { confusionMatrix, crossValidate, evaluate, rocAuc } from './metrics';
 import { FEATURE_NAMES, N_FEATURES, stratifiedFolds, toFeatures, type Sample } from './dataset';
-import { generateSyntheticDataset } from './synthetic';
+import { generateSyntheticDataset } from './synthetic.fixture';
 import { Rng } from './rng';
 import type { AdopterInput, AnimalInput } from '../engine';
 
@@ -263,37 +263,6 @@ describe('Métricas', () => {
       // Cada pliegue debería tener ~10 positivos y ~5 negativos.
       expect(positives / fold.length).toBeCloseTo(2 / 3, 1);
     }
-  });
-});
-
-describe('Conjunto sintético', () => {
-  const ds = generateSyntheticDataset({ size: 600, seed: 2026 });
-
-  it('genera la cantidad pedida de casos', () => {
-    expect(ds.samples).toHaveLength(600);
-  });
-
-  it('cada caso tiene el vector completo de variables', () => {
-    expect(ds.samples.every((s) => s.features.length === N_FEATURES)).toBe(true);
-  });
-
-  it('descarta pares que no pasan los filtros duros', () => {
-    expect(ds.rejectedByHardFilters).toBeGreaterThan(0);
-  });
-
-  it('queda razonablemente equilibrado', () => {
-    expect(ds.positiveRate).toBeGreaterThan(0.35);
-    expect(ds.positiveRate).toBeLessThan(0.75);
-  });
-
-  it('es reproducible con la misma semilla', () => {
-    const a = generateSyntheticDataset({ size: 50, seed: 5 });
-    const b = generateSyntheticDataset({ size: 50, seed: 5 });
-    expect(a.samples).toEqual(b.samples);
-  });
-
-  it('no contiene valores no finitos', () => {
-    expect(ds.samples.every((s) => s.features.every((v) => Number.isFinite(v)))).toBe(true);
   });
 });
 

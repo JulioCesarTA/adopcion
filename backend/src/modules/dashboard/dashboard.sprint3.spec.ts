@@ -45,10 +45,10 @@ describe('CB-HU7-B DashboardService.dashboard (panel según el rol)', () => {
     expect(prisma.adoptionRequest.findMany).not.toHaveBeenCalled();
   });
 
-  it('CB-HU7-B-C2: rol Personal Directivo → incluye las últimas solicitudes', async () => {
+  it('CB-HU7-B-C2: rol Administrador → incluye las últimas solicitudes', async () => {
     const prisma = prismaSimulado();
     const service = new DashboardService(prisma as unknown as PrismaService);
-    const r = await service.dashboard('DIRECTIVO');
+    const r = await service.dashboard('ADMIN');
     expect(r.latestRequests).toEqual({ ok: true, data: [{ id: 's1' }] });
     expect(r.cards).toMatchObject({ ok: true, data: { available: 2, activeRequests: 1 } });
   });

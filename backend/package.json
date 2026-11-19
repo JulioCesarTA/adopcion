@@ -26,8 +26,7 @@
     "db:studio": "prisma studio",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint:fix": "eslint \"{src,test,prisma}/**/*.ts\" --fix",
-    "postinstall": "prisma generate",
-    "ml:benchmark": "tsx scripts/ml-benchmark.ts"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
