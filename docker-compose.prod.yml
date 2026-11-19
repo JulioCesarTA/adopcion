@@ -24,7 +24,10 @@ services:
       timeout: 5s
       retries: 10
     networks: [internal]
-    # Sin `ports`: la BD no se expone a Internet, solo a la red de Docker.
+    # Solo en el loopback de la instancia: no se expone a Internet (el security group
+    # tampoco abre 5432). Sirve para el túnel SSM de desarrollo (scripts/tunel-bd.ps1).
+    ports:
+      - "127.0.0.1:5432:5432"
     # Para usar Amazon RDS: comenta este servicio y apunta DATABASE_URL al endpoint.
 
   backend:
