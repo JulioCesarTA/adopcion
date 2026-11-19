@@ -14,7 +14,7 @@ set -euo pipefail
 
 APP_DIR=/opt/zoonosis
 REGION=sa-east-1
-REGISTRY=006419716393.dkr.ecr.sa-east-1.amazonaws.com
+REGISTRY=012875038716.dkr.ecr.sa-east-1.amazonaws.com
 
 if [[ $EUID -ne 0 ]]; then
   echo "ERROR: hay que ejecutarlo con sudo (Docker y /opt/zoonosis son de root)."

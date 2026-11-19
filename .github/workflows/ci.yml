@@ -119,7 +119,7 @@ jobs:
           push: false
           tags: zoonosis-backend:ci
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Construir imagen del frontend
         uses: docker/build-push-action@v6
@@ -128,4 +128,4 @@ jobs:
           push: false
           tags: zoonosis-frontend:ci
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
