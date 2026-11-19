@@ -69,6 +69,10 @@ for i in $(seq 1 24); do
   fi
 done
 
+if [[ -x deploy/cargar-datos.sh ]]; then
+  ./deploy/cargar-datos.sh
+fi
+
 echo "==> Limpiando imágenes sin usar"
 docker image prune -f >/dev/null
 

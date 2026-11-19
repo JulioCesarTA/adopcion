@@ -102,6 +102,8 @@ jobs:
         id: ssm
         env:
           SHA: ${{ needs.build-and-push.outputs.sha }}
+          # Rama a desplegar: la que pasó el CI, o la elegida al lanzarlo a mano.
+          BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
         run: |
           set -euo pipefail
           CMD_ID=$(aws ssm send-command \
@@ -113,7 +115,7 @@ jobs:
               \"set -eu\",
               \"cd /opt/zoonosis\",
               \"git fetch --all --quiet\",
-              \"git reset --hard origin/main --quiet\",
+              \"git reset --hard origin/${BRANCH} --quiet\",
               \"sed -i 's|^BACKEND_IMAGE=.*|BACKEND_IMAGE=${ECR_REGISTRY}/zoonosis-backend:${SHA}|' .env\",
               \"sed -i 's|^FRONTEND_IMAGE=.*|FRONTEND_IMAGE=${ECR_REGISTRY}/zoonosis-frontend:${SHA}|' .env\",
               \"chmod +x deploy/redeploy.sh\",
