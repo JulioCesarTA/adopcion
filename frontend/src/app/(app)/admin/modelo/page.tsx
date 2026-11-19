@@ -144,6 +144,7 @@ export default function MlModelPage() {
   const models = useMlModels();
   const { train, activate, deactivate } = useMlMutations();
 
+  const [onlyReal, setOnlyReal] = useState(true);
   const [syntheticSize, setSyntheticSize] = useState(1500);
   const [nTrees, setNTrees] = useState(150);
   const [folds, setFolds] = useState(5);
@@ -161,7 +162,8 @@ export default function MlModelPage() {
   const onTrain = async () => {
     try {
       const result = await train.mutateAsync({
-        syntheticSize,
+        useSynthetic: !onlyReal,
+        ...(onlyReal ? {} : { syntheticSize }),
         nTrees,
         folds,
         seed,
@@ -292,7 +294,7 @@ export default function MlModelPage() {
                 recomendadas. Variables del modelo:{" "}
                 <strong className="tabular-nums">{s.featureCount}</strong>.
               </p>
-              {s.realSamplesAvailable < s.minRealSamplesRecommended && (
+              {s.realSamplesAvailable < s.minRealSamplesRecommended && s.activeSource !== "REAL" && (
                 <p className="mt-2 flex items-start gap-2 text-amber-800">
                   <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                   Hay pocos casos reales, así que el entrenamiento se completa con casos
@@ -309,12 +311,22 @@ export default function MlModelPage() {
           <Card>
             <CardHeader title="Entrenar un modelo nuevo" />
             <CardBody>
+              <label className="mb-4 flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-slate-300 text-teal-600"
+                  checked={onlyReal}
+                  onChange={(e) => setOnlyReal(e.target.checked)}
+                />
+                Entrenar solo con las solicitudes resueltas registradas en el sistema
+              </label>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <FormField label="Casos sintéticos" hint="100 a 20 000">
                   <Input
                     type="number"
                     min={100}
                     max={20000}
+                    disabled={onlyReal}
                     value={syntheticSize}
                     onChange={(e) => setSyntheticSize(Number(e.target.value))}
                   />
