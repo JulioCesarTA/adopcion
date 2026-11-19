@@ -27,6 +27,21 @@ import {
 
 type Tx = Prisma.TransactionClient;
 const userSelect = { select: { id: true, fullName: true } } as const;
+
+/** Código de Prisma para la violación de un índice único. */
+const PRISMA_UNIQUE_VIOLATION = 'P2002';
+/** CI provisional de quien solicita desde el portal sin haber registrado su carnet. */
+const PORTAL_CI_PREFIX = 'CLI-';
+const PORTAL_CI_ID_LENGTH = 8;
+/** Datos del hogar con que se crea la ficha si el cliente todavía no los completó. */
+const DEFAULT_PORTAL_PROFILE = {
+  housingType: 'CASA_SIN_PATIO',
+  hasYard: false,
+  hasChildren: false,
+  hasOtherAnimals: false,
+  availableHoursPerDay: 2,
+  experience: 'NINGUNA',
+} as const satisfies Omit<Prisma.AdopterProfileUncheckedCreateInput, 'personId'>;
 const noteStamp = new Intl.DateTimeFormat('es-BO', {
   timeZone: LA_PAZ_TZ,
   dateStyle: 'short',
@@ -190,7 +205,10 @@ export class AdoptionsService {
         return request;
       });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === PRISMA_UNIQUE_VIOLATION
+      ) {
         throw new ConflictException('El animal ya tiene una solicitud de adopción activa');
       }
       throw err;
@@ -212,7 +230,7 @@ export class AdoptionsService {
       const [firstName, ...rest] = account.fullName.trim().split(/\s+/);
       person = await this.prisma.person.create({
         data: {
-          ci: `CLI-${user.id.slice(0, 8)}`,
+          ci: `${PORTAL_CI_PREFIX}${user.id.slice(0, PORTAL_CI_ID_LENGTH)}`,
           firstName,
           lastName: rest.join(' ') || '-',
           phone: account.phone ?? '-',
@@ -224,15 +242,7 @@ export class AdoptionsService {
     const profile =
       person.adopterProfile ??
       (await this.prisma.adopterProfile.create({
-        data: {
-          personId: person.id,
-          housingType: 'CASA_SIN_PATIO',
-          hasYard: false,
-          hasChildren: false,
-          hasOtherAnimals: false,
-          availableHoursPerDay: 2,
-          experience: 'NINGUNA',
-        },
+        data: { ...DEFAULT_PORTAL_PROFILE, personId: person.id },
       }));
     return this.create({ adopterId: profile.id, animalId }, user);
   }
