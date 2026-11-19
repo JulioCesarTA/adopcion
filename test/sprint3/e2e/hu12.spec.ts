@@ -3,7 +3,7 @@ import { captura, type Campo, login, registrar, USUARIOS } from './helpers';
 
 /**
  * HU12 — Seguimiento Post-adopción.
- * El personal de Gestión de Adopciones registra un seguimiento de una adopción aprobada.
+ * El administrador registra un seguimiento de una adopción aprobada.
  */
 test('HU12: registrar un seguimiento de una adopción aprobada', async ({ page }) => {
   const anio = new Date().getFullYear();
@@ -16,7 +16,7 @@ test('HU12: registrar un seguimiento de una adopción aprobada', async ({ page }
     { campo: 'Observaciones', valor: obs },
   ];
 
-  await login(page, USUARIOS.adopciones);
+  await login(page, USUARIOS.admin);
   await page.getByRole('link', { name: 'Solicitudes' }).click();
   await page.getByRole('link', { name: /Lola/ }).first().click();
   const main = page.getByRole('main');
@@ -50,7 +50,7 @@ test('HU12: registrar un seguimiento de una adopción aprobada', async ({ page }
     registro_anterior: segundo,
     con_fecha: /\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}/.test(primero),
     con_observaciones: primero.includes(estado) && primero.includes(obs),
-    con_autor: primero.includes('Gestion de Adopciones de Prueba'),
+    con_autor: primero.includes('Administrador de Prueba'),
     ordenados_por_fecha: fecha(primero) >= fecha(segundo),
   };
 

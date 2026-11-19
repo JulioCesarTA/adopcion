@@ -11,6 +11,7 @@ import {
   Matches,
   MaxLength,
   MinLength,
+  IsIn,
 } from 'class-validator';
 import { AnimalSize, Species } from '@prisma/client';
 import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
@@ -53,6 +54,14 @@ export class RegisterClientDto {
   @IsBoolean()
   @Equals(true, { message: 'Debes aceptar los Términos y Condiciones y la Política de Privacidad' })
   acceptTerms: boolean;
+
+  @ApiPropertyOptional({
+    enum: ['CLIENTE', 'ADOPTANTE'],
+    description: 'Tipo de cuenta (por defecto CLIENTE)',
+  })
+  @IsOptional()
+  @IsIn(['CLIENTE', 'ADOPTANTE'], { message: 'Tipo de cuenta inválido' })
+  accountType?: 'CLIENTE' | 'ADOPTANTE';
 }
 
 /** Formulario «Contáctame». */

@@ -26,7 +26,7 @@ export function SiteHeader() {
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white">
             <PawPrint className="h-5 w-5" aria-hidden />
           </span>
-          Zoonosis SCZ
+          Adopet
         </Link>
         <nav
           aria-label="Secciones"

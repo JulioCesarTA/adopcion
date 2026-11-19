@@ -67,7 +67,7 @@ describe('HU8 Gestión de Usuario — pruebas unitarias', () => {
   it('PU-HU8-01 la contraseña temporal exige 8 caracteres con letra y número', async () => {
     // Arrange
     const pipe = createValidationPipe();
-    const cuenta = { fullName: 'Ana Rojas', email: 'ana@zoonosis.test', role: 'GESTION' };
+    const cuenta = { fullName: 'Ana Rojas', email: 'ana@zoonosis.test', role: 'VETERINARIO' };
     const validar = (password: string) =>
       pipe.transform({ ...cuenta, password }, { type: 'body', metatype: CreateUserDto });
     // Act
@@ -77,7 +77,7 @@ describe('HU8 Gestión de Usuario — pruebas unitarias', () => {
     // Assert
     await expect(soloLetras).rejects.toThrow(BadRequestException);
     await expect(corta).rejects.toThrow(BadRequestException);
-    await expect(valida).resolves.toMatchObject({ role: 'GESTION' });
+    await expect(valida).resolves.toMatchObject({ role: 'VETERINARIO' });
   });
 
   it('PU-HU8-02 toPublicUser no expone el hash de la contraseña ni el de la sesión', () => {

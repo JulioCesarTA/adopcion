@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "VETERINARIO" | "GESTION" | "DIRECTIVO" | "CLIENTE";
+export type UserRole = "ADMIN" | "VETERINARIO" | "GESTION" | "DIRECTIVO" | "CLIENTE" | "ADOPTANTE";
 export type Species = "PERRO" | "GATO" | "OTRO";
 export type Sex = "MACHO" | "HEMBRA" | "DESCONOCIDO";
 export type AnimalSize = "PEQUENO" | "MEDIANO" | "GRANDE";
@@ -79,6 +79,7 @@ export interface AnimalListItem {
 }
 
 export interface Animal extends AnimalListItem {
+  ownerId?: string | null;
   color: string | null;
   temperament: string | null;
   specialCareNotes: string | null;

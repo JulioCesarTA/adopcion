@@ -12,7 +12,7 @@ import { paginated } from '../../common/dto/pagination.dto';
 import { currentYearLaPaz } from '../../common/dates';
 import type { AuthUser, Paginated } from '../../common/types';
 import { AnimalStatusService } from './animal-status.service';
-import { EXIT_STATES, OUTSIDE_STATES, STATUS_LABELS } from './animal-status';
+import { EXIT_STATES, STATUS_LABELS } from './animal-status';
 import {
   AdoptableQueryDto,
   CreateAnimalDto,
@@ -42,7 +42,6 @@ export function detectImageType(buf: Buffer): 'jpg' | 'png' | 'webp' | null {
 }
 
 /** Campos editables cuando el animal está en un estado final (CU04: "solo notas"). */
-const NOTE_FIELDS = ['physicalDescription', 'specialCareNotes', 'exitNotes'] as const;
 
 const listSelect = {
   id: true,
@@ -79,6 +78,7 @@ export class AnimalsService {
       ...(q.species ? { species: q.species } : {}),
       ...(q.status ? { status: q.status } : {}),
       ...(q.sex ? { sex: q.sex } : {}),
+      ...(q.size ? { size: q.size } : {}),
       ...(term
         ? {
             OR: [
@@ -105,7 +105,7 @@ export class AnimalsService {
   async adoptable(q: AdoptableQueryDto): Promise<Paginated<unknown>> {
     const where: Prisma.AnimalWhereInput = {
       deletedAt: null,
-      status: 'DISPONIBLE_ADOPCION',
+      status: { in: ['DISPONIBLE_ADOPCION', 'EN_PROCESO_ADOPCION'] },
       ...(q.species ? { species: q.species } : {}),
       ...(q.size ? { size: q.size } : {}),
       ...(q.maxEnergy ? { energyLevel: { lte: q.maxEnergy } } : {}),
@@ -155,18 +155,11 @@ export class AnimalsService {
       where: { status: 'ACTIVO', consultation: { animalId: id } },
     });
     const { periods, ...rest } = animal;
-    const adoptionBlockers =
-      animal.status === 'INGRESADO' || animal.status === 'DISPONIBLE_ADOPCION'
-        ? await this.status.adoptionBlockers(this.prisma, {
-            id,
-            status: 'INGRESADO',
-          })
-        : null;
     return {
       ...rest,
       activePeriod: periods[0] ?? null,
       activeTreatments,
-      adoptionBlockers,
+      adoptionBlockers: null,
     };
   }
 
@@ -187,32 +180,14 @@ export class AnimalsService {
     });
   }
 
-  /** CU04: el estado nunca se edita a mano; en estados finales solo se editan notas. */
+  /** CU04: edita cualquier dato del animal, incluido el estado. */
   async update(id: string, dto: UpdateAnimalDto): Promise<Animal> {
-    const current = await this.getOrThrow(id);
-    const isFinal = OUTSIDE_STATES.includes(current.status);
-    const provided = Object.entries(dto).filter(([, v]) => v !== undefined);
-
-    if (isFinal) {
-      const forbidden = provided
-        .map(([k]) => k)
-        .filter((k) => !(NOTE_FIELDS as readonly string[]).includes(k));
-      if (forbidden.length) {
-        throw new ConflictException(
-          `El animal está "${STATUS_LABELS[current.status]}": solo se pueden editar las notas`,
-        );
-      }
-    }
-
+    await this.getOrThrow(id);
     const data: Prisma.AnimalUpdateInput = Object.fromEntries(
-      provided.filter(([k]) => isFinal || k !== 'exitNotes'),
+      Object.entries(dto).filter(([, v]) => v !== undefined),
     );
     if (dto.entryDate) data.entryDate = new Date(dto.entryDate);
-
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.animal.update({ where: { id }, data });
-      return updated;
-    });
+    return this.prisma.animal.update({ where: { id }, data });
   }
 
   async savePhoto(id: string, file: Express.Multer.File | undefined): Promise<Animal> {
@@ -237,38 +212,16 @@ export class AnimalsService {
     return updated;
   }
 
-  /** CU21: habilitar para adopción (RN-03). */
+  /** CU21: habilitar para adopción. */
   async enableAdoption(id: string): Promise<Animal> {
-    return this.prisma.$transaction(async (tx) => {
-      const animal = await this.status.getForUpdate(tx, id);
-      if (animal.status === 'DISPONIBLE_ADOPCION') {
-        throw new ConflictException('El animal ya está disponible para adopción');
-      }
-      const blockers = await this.status.adoptionBlockers(tx, animal);
-      if (blockers.length) {
-        throw new ConflictException({
-          message: `No se puede habilitar para adopción: ${blockers.join('; ')}`,
-          errors: blockers,
-        });
-      }
-      return this.status.changeStatus(tx, animal, 'DISPONIBLE_ADOPCION');
-    });
+    await this.getOrThrow(id);
+    return this.prisma.animal.update({ where: { id }, data: { status: 'DISPONIBLE_ADOPCION' } });
   }
 
-  /** CU21: retirar de adopción (solo si no tiene solicitud activa). */
+  /** CU21: retirar de adopción. */
   async disableAdoption(id: string): Promise<Animal> {
-    return this.prisma.$transaction(async (tx) => {
-      const animal = await this.status.getForUpdate(tx, id);
-      if (animal.status === 'EN_PROCESO_ADOPCION') {
-        throw new ConflictException(
-          'El animal tiene una solicitud de adopción activa. Cancélala antes de retirarlo.',
-        );
-      }
-      if (animal.status !== 'DISPONIBLE_ADOPCION') {
-        throw new ConflictException('El animal no está disponible para adopción');
-      }
-      return this.status.changeStatus(tx, animal, 'INGRESADO');
-    });
+    await this.getOrThrow(id);
+    return this.prisma.animal.update({ where: { id }, data: { status: 'INGRESADO' } });
   }
 
   /** CU22: registrar salida o baja. */
@@ -420,9 +373,8 @@ export class AnimalsService {
     return animal;
   }
 
-  /** RN-01: siguiente código del año, serializado con un advisory lock. */
+  /** RN-01: siguiente código del año. */
   private async nextCode(tx: Prisma.TransactionClient): Promise<string> {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('animal_code'))`;
     const year = currentYearLaPaz();
     const prefix = `ZOO-${year}-`;
     const last = await tx.animal.findFirst({

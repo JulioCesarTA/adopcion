@@ -20,7 +20,7 @@ export const ANIMAL_STATUS: Labeled<AnimalStatus> = {
   EN_CUARENTENA: { label: "En cuarentena", tone: "red" },
   EN_TRATAMIENTO: { label: "En tratamiento", tone: "violet" },
   DISPONIBLE_ADOPCION: { label: "Disponible para adopción", tone: "green" },
-  EN_PROCESO_ADOPCION: { label: "En proceso de adopción", tone: "blue" },
+  EN_PROCESO_ADOPCION: { label: "Solicitud en progreso", tone: "blue" },
   ADOPTADO: { label: "Adoptado", tone: "teal" },
   FALLECIDO: { label: "Fallecido", tone: "slate" },
   DEVUELTO: { label: "Devuelto / salida", tone: "slate" },

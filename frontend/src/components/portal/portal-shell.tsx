@@ -3,18 +3,26 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bot, Heart, LogOut, Menu, PawPrint, User, X } from "lucide-react";
+import { Bot, CalendarPlus, Heart, LogOut, Menu, PawPrint, User, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
+import { isPortalRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/portal", label: "Adopta", icon: Heart },
-  { href: "/portal/asistente", label: "Asistente", icon: Bot },
-  { href: "/portal/perfil", label: "Mi perfil", icon: User },
+  { href: "/portal", label: "Adopta", icon: Heart, roles: ["CLIENTE", "ADOPTANTE"] },
+  { href: "/portal/mis-animales", label: "Mis animales", icon: PawPrint, roles: ["CLIENTE"] },
+  {
+    href: "/portal/consultas",
+    label: "Registrar consulta",
+    icon: CalendarPlus,
+    roles: ["CLIENTE"],
+  },
+  { href: "/portal/asistente", label: "Asistente", icon: Bot, roles: ["CLIENTE", "ADOPTANTE"] },
+  { href: "/portal/perfil", label: "Mi perfil", icon: User, roles: ["CLIENTE", "ADOPTANTE"] },
 ];
 
-/** Layout del portal de clientes (rol CLIENTE). El personal se redirige a su panel. */
+/** Layout del portal (roles CLIENTE y ADOPTANTE). El personal se redirige a su panel. */
 export function PortalShell({ children }: { children: React.ReactNode }) {
   const { status, user, logout } = useAuth();
   const router = useRouter();
@@ -23,12 +31,13 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace(`/login?next=${encodeURIComponent(pathname)}`);
-    if (status === "authenticated" && user && user.role !== "CLIENTE") router.replace("/dashboard");
+    if (status === "authenticated" && user && !isPortalRole(user.role))
+      router.replace("/dashboard");
   }, [status, user, router, pathname]);
 
   useEffect(() => setOpen(false), [pathname]);
 
-  if (status !== "authenticated" || !user || user.role !== "CLIENTE") {
+  if (status !== "authenticated" || !user || !isPortalRole(user.role)) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 p-6" aria-busy="true" aria-label="Cargando">
         <Skeleton className="h-12 w-full" />
@@ -37,6 +46,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const nav = NAV.filter((n) => n.roles.includes(user.role));
   const isActive = (href: string) =>
     href === "/portal" ? pathname === href : pathname.startsWith(href);
 
@@ -48,10 +58,10 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white">
               <PawPrint className="h-5 w-5" aria-hidden />
             </span>
-            <span className="hidden sm:inline">Zoonosis SCZ</span>
+            <span className="hidden sm:inline">Adopet</span>
           </Link>
           <nav aria-label="Portal" className="ml-4 hidden gap-1 md:flex">
-            {NAV.map(({ href, label, icon: Icon }) => (
+            {nav.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
@@ -90,7 +100,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
         </div>
         {open && (
           <nav aria-label="Portal" className="border-t border-slate-100 px-4 py-2 md:hidden">
-            {NAV.map(({ href, label }) => (
+            {nav.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}

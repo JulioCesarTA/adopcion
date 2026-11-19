@@ -35,40 +35,34 @@ async function camposConError(body: object, metatype: new () => object): Promise
 }
 
 describe('HU2 Registro de Consulta Clínica — pruebas unitarias', () => {
-  it('PU-HU2-01 rechaza temperaturas de 29,9 °C y 45,1 °C', async () => {
+  it('PU-HU2-01 solo la fecha y hora de la consulta es obligatoria', async () => {
     // Arrange
-    const baja = consulta({ temperatureC: 29.9 });
-    const alta = consulta({ temperatureC: 45.1 });
+    const soloFecha = { consultationDate: '2026-11-17T10:00:00.000Z' };
+    const sinFecha = { reason: 'Control' };
     // Act
-    const errBaja = await camposConError(baja, CreateConsultationDto);
-    const errAlta = await camposConError(alta, CreateConsultationDto);
+    const errSoloFecha = await camposConError(soloFecha, CreateConsultationDto);
+    const errSinFecha = await camposConError(sinFecha, CreateConsultationDto);
     // Assert
-    expect(errBaja).toEqual(['temperatureC']);
-    expect(errAlta).toEqual(['temperatureC']);
+    expect(errSoloFecha).toEqual([]);
+    expect(errSinFecha).toEqual(['consultationDate']);
   });
 
-  it('PU-HU2-02 acepta las temperaturas límite de 30 °C y 45 °C', async () => {
+  it('PU-HU2-02 acepta la temperatura con un decimal y el peso con dos decimales', async () => {
     // Arrange
-    const minima = consulta({ temperatureC: 30 });
-    const maxima = consulta({ temperatureC: 45 });
+    const datos = consulta({ temperatureC: 38.5, weightKg: 12.25 });
     // Act
-    const errMinima = await camposConError(minima, CreateConsultationDto);
-    const errMaxima = await camposConError(maxima, CreateConsultationDto);
+    const err = await camposConError(datos, CreateConsultationDto);
     // Assert
-    expect(errMinima).toEqual([]);
-    expect(errMaxima).toEqual([]);
+    expect(err).toEqual([]);
   });
 
-  it('PU-HU2-03 rechaza un peso de 0 kg y acepta 0,1 kg', async () => {
+  it('PU-HU2-03 rechaza un peso, una temperatura o un estado del animal inválidos', async () => {
     // Arrange
-    const cero = consulta({ weightKg: 0 });
-    const minimo = consulta({ weightKg: 0.1 });
+    const datos = consulta({ weightKg: 'doce', temperatureC: 'alta', animalStatus: 'PERDIDO' });
     // Act
-    const errCero = await camposConError(cero, CreateConsultationDto);
-    const errMinimo = await camposConError(minimo, CreateConsultationDto);
+    const err = await camposConError(datos, CreateConsultationDto);
     // Assert
-    expect(errCero).toEqual(['weightKg']);
-    expect(errMinimo).toEqual([]);
+    expect(err.sort()).toEqual(['animalStatus', 'temperatureC', 'weightKg']);
   });
 
   it('PU-HU2-04 rechaza un medicamento sin dosis', async () => {

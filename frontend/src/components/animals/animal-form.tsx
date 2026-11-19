@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FormField } from "@/components/ui/form-field";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { useAnimalMutations } from "@/hooks/use-animals";
+import { useBookingOptions } from "@/hooks/use-bookings";
 import { ApiError, errorMessage } from "@/lib/api";
 import { ANIMAL_STATUS, SEX, SIZE, SPECIES, options } from "@/lib/labels";
 import type { Animal } from "@/lib/types";
@@ -53,92 +54,19 @@ const schema = z.object({
   entryDate: requiredDate("La fecha de ingreso"),
   entryReason: requiredText("El motivo de ingreso", 255),
   exitNotes: optionalText(2000),
+  status: z.string().optional(),
+  ownerId: z.string().optional(),
 });
 
 type FormInput = z.input<typeof schema>;
 type FormValues = z.output<typeof schema>;
 
-const FINAL_STATES = ["ADOPTADO", "FALLECIDO", "DEVUELTO"];
-
-const notesSchema = z.object({
-  physicalDescription: optionalText(2000),
-  specialCareNotes: optionalText(2000),
-  exitNotes: optionalText(2000),
-});
-
-/** CU04: en estados finales (adoptado, fallecido, devuelto) solo se editan las notas. */
-function AnimalNotesForm({ animal }: { animal: Animal }) {
-  const router = useRouter();
-  const { update } = useAnimalMutations(animal.id);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<z.input<typeof notesSchema>, unknown, z.output<typeof notesSchema>>({
-    resolver: zodResolver(notesSchema),
-    defaultValues: {
-      physicalDescription: animal.physicalDescription ?? "",
-      specialCareNotes: animal.specialCareNotes ?? "",
-      exitNotes: animal.exitNotes ?? "",
-    },
-  });
-
-  const onSubmit = handleSubmit(async (v) => {
-    try {
-      await update.mutateAsync({
-        physicalDescription: v.physicalDescription ?? null,
-        specialCareNotes: v.specialCareNotes ?? null,
-        ...(animal.status !== "ADOPTADO" ? { exitNotes: v.exitNotes ?? null } : {}),
-      });
-      toast.success("Notas actualizadas");
-      router.push(`/animales/${animal.id}`);
-    } catch (err) {
-      toast.error(errorMessage(err));
-    }
-  });
-
-  return (
-    <form onSubmit={onSubmit} noValidate className="space-y-6">
-      <p
-        className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
-        role="note"
-      >
-        El animal está «{ANIMAL_STATUS[animal.status].label}»: solo se pueden editar las notas.
-      </p>
-      <Card>
-        <CardHeader title="Notas" />
-        <CardBody className="space-y-4">
-          <FormField label="Descripción física / notas" error={errors.physicalDescription?.message}>
-            <Textarea {...register("physicalDescription")} />
-          </FormField>
-          <FormField label="Notas de cuidados especiales" error={errors.specialCareNotes?.message}>
-            <Textarea {...register("specialCareNotes")} />
-          </FormField>
-          {animal.status !== "ADOPTADO" && (
-            <FormField label="Notas de salida" error={errors.exitNotes?.message}>
-              <Textarea {...register("exitNotes")} />
-            </FormField>
-          )}
-        </CardBody>
-      </Card>
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-          Cancelar
-        </Button>
-        <Button type="submit" loading={isSubmitting}>
-          Guardar notas
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-/** CU03 (registrar) y CU04 (editar). En estados finales solo se editan las notas. */
+/** CU03 (registrar) y CU04 (editar, incluido el estado). */
 export function AnimalForm({ animal }: { animal?: Animal }) {
   const router = useRouter();
   const isEdit = !!animal;
-  const restricted = !!animal && FINAL_STATES.includes(animal.status);
   const { create, update, uploadPhoto } = useAnimalMutations(animal?.id);
+  const clients = useBookingOptions().data?.clients ?? [];
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -172,6 +100,8 @@ export function AnimalForm({ animal }: { animal?: Animal }) {
           entryDate: isoToDateInput(animal.entryDate),
           entryReason: animal.entryReason,
           exitNotes: animal.exitNotes ?? "",
+          status: animal.status,
+          ownerId: animal.ownerId ?? "",
         }
       : {
           sex: "DESCONOCIDO",
@@ -199,9 +129,14 @@ export function AnimalForm({ animal }: { animal?: Animal }) {
     if (photoError) return;
     try {
       let id = animal?.id;
-      const { exitNotes, ...data } = values;
+      const { exitNotes, status, ...data } = values;
       void exitNotes;
-      const payload = { ...data, entryDate: dateInputToIso(values.entryDate) };
+      const payload = {
+        ...data,
+        entryDate: dateInputToIso(values.entryDate),
+        ownerId: values.ownerId || null,
+        ...(isEdit && status ? { status: status as Animal["status"] } : {}),
+      };
       if (isEdit) await update.mutateAsync(payload);
       else id = (await create.mutateAsync(payload)).id;
       if (photo && id) {
@@ -222,20 +157,10 @@ export function AnimalForm({ animal }: { animal?: Animal }) {
     }
   });
 
-  if (restricted) return <AnimalNotesForm animal={animal} />;
   const dis = false;
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-6">
-      {restricted && (
-        <p
-          className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
-          role="note"
-        >
-          El animal está «{ANIMAL_STATUS[animal.status].label}»: solo se pueden editar las notas.
-        </p>
-      )}
-
       <Card>
         <CardHeader title="Datos generales" />
         <CardBody className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -292,6 +217,30 @@ export function AnimalForm({ animal }: { animal?: Animal }) {
           <FormField label="Motivo de ingreso" required error={errors.entryReason?.message}>
             <Input disabled={dis} {...register("entryReason")} />
           </FormField>
+          <FormField
+            label="Dueño (cliente)"
+            hint="Opcional: el cliente verá su historial en el portal"
+          >
+            <Select {...register("ownerId")}>
+              <option value="">Sin dueño</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.fullName} · {c.email}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          {isEdit && (
+            <FormField label="Estado" error={errors.status?.message}>
+              <Select {...register("status")}>
+                {options(ANIMAL_STATUS).map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+          )}
         </CardBody>
       </Card>
 
@@ -347,7 +296,7 @@ export function AnimalForm({ animal }: { animal?: Animal }) {
           <FormField label="Temperamento" error={errors.temperament?.message}>
             <Textarea disabled={dis} {...register("temperament")} />
           </FormField>
-          {(specialCare || restricted) && (
+          {specialCare && (
             <FormField
               label="Notas de cuidados especiales"
               error={errors.specialCareNotes?.message}
@@ -358,45 +307,38 @@ export function AnimalForm({ animal }: { animal?: Animal }) {
           <FormField label="Descripción física / notas" error={errors.physicalDescription?.message}>
             <Textarea {...register("physicalDescription")} />
           </FormField>
-          {restricted && (
-            <FormField label="Notas de salida" error={errors.exitNotes?.message}>
-              <Textarea {...register("exitNotes")} />
-            </FormField>
-          )}
         </CardBody>
       </Card>
 
-      {!restricted && (
-        <Card>
-          <CardHeader title="Foto" description="JPG, PNG o WEBP, máximo 5 MB." />
-          <CardBody className="flex flex-wrap items-center gap-4">
-            <AnimalPhoto
-              url={preview ?? animal?.photoUrl}
-              species={(watch("species") as Animal["species"]) || "OTRO"}
-              alt="Vista previa de la foto"
-              className="h-28 w-28 rounded-lg"
-            />
-            <div className="space-y-1">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                <ImagePlus className="h-4 w-4" aria-hidden />
-                {animal?.photoUrl || photo ? "Cambiar foto" : "Seleccionar foto"}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
-                  onChange={onPhoto}
-                />
-              </label>
-              {photo && <p className="text-xs text-slate-500">{photo.name}</p>}
-              {photoError && (
-                <p className="text-xs text-red-600" role="alert">
-                  {photoError}
-                </p>
-              )}
-            </div>
-          </CardBody>
-        </Card>
-      )}
+      <Card>
+        <CardHeader title="Foto" description="JPG, PNG o WEBP, máximo 5 MB." />
+        <CardBody className="flex flex-wrap items-center gap-4">
+          <AnimalPhoto
+            url={preview ?? animal?.photoUrl}
+            species={(watch("species") as Animal["species"]) || "OTRO"}
+            alt="Vista previa de la foto"
+            className="h-28 w-28 rounded-lg"
+          />
+          <div className="space-y-1">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              <ImagePlus className="h-4 w-4" aria-hidden />
+              {animal?.photoUrl || photo ? "Cambiar foto" : "Seleccionar foto"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                onChange={onPhoto}
+              />
+            </label>
+            {photo && <p className="text-xs text-slate-500">{photo.name}</p>}
+            {photoError && (
+              <p className="text-xs text-red-600" role="alert">
+                {photoError}
+              </p>
+            )}
+          </div>
+        </CardBody>
+      </Card>
 
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={() => router.back()} disabled={isSubmitting}>

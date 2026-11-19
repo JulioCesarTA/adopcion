@@ -3,7 +3,7 @@ import { captura, type Campo, login, registrar, USUARIOS } from './helpers';
 
 /**
  * HU6 — Recomendación de Compatibilidad Adoptante-Animal.
- * El personal de Gestión de Adopciones consulta la compatibilidad de un
+ * El administrador consulta la compatibilidad de un
  * adoptante con los animales disponibles para adopción.
  */
 test('HU6: consultar la compatibilidad de un adoptante con los animales disponibles', async ({
@@ -17,7 +17,7 @@ test('HU6: consultar la compatibilidad de un adoptante con los animales disponib
     { campo: 'Preferencias', valor: 'Gato, tamaño pequeño' },
   ];
 
-  await login(page, USUARIOS.adopciones);
+  await login(page, USUARIOS.admin);
   await page.getByRole('link', { name: 'Adoptantes' }).click();
   await page.getByLabel('Buscar por CI, nombres o apellidos').fill('Carla');
   await page.getByRole('link', { name: /Carla Mendoza Rojas/ }).first().click();

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Cookie } from "lucide-react";
 
-const KEY = "zoonosis.cookieConsent";
+const KEY = "adopet.cookieConsent";
 export type CookieConsent = "all" | "necessary";
 
 export function getCookieConsent(): CookieConsent | null {

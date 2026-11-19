@@ -10,11 +10,11 @@ import { FormField } from "@/components/ui/form-field";
 import { Input, Select } from "@/components/ui/input";
 import { useUserMutations } from "@/hooks/use-users";
 import { ApiError, errorMessage } from "@/lib/api";
-import { ALL_ROLES, ROLE_LABELS } from "@/lib/roles";
-import type { User, UserRole } from "@/lib/types";
+import { ASSIGNABLE_ROLES, ROLE_LABELS } from "@/lib/roles";
+import type { User } from "@/lib/types";
 import { fullNameSchema, passwordSchema } from "@/lib/validation";
 
-const roleSchema = z.enum(["ADMIN", "VETERINARIO", "GESTION", "DIRECTIVO", "CLIENTE"], {
+const roleSchema = z.enum(["ADMIN", "VETERINARIO", "CLIENTE", "ADOPTANTE"], {
   errorMap: () => ({ message: "Selecciona un rol" }),
 });
 
@@ -50,7 +50,7 @@ export function UserFormDialog({
     defaultValues: {
       fullName: user?.fullName ?? "",
       email: user?.email ?? "",
-      role: (user?.role ?? "") as UserRole,
+      role: (user?.role ?? "") as FormValues["role"],
       password: "",
     },
   });
@@ -113,7 +113,7 @@ export function UserFormDialog({
         >
           <Select disabled={isSelf} {...register("role")}>
             <option value="">Selecciona…</option>
-            {ALL_ROLES.map((r) => (
+            {ASSIGNABLE_ROLES.map((r) => (
               <option key={r} value={r}>
                 {ROLE_LABELS[r]}
               </option>

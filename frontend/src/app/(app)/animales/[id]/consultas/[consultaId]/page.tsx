@@ -57,7 +57,7 @@ export default function ConsultationPage({
   if (error || !c)
     return <ErrorState message={errorMessage(error)} onRetry={() => void refetch()} />;
 
-  const isVet = hasRole("VETERINARIO");
+  const isVet = hasRole("VETERINARIO", "ADMIN");
   // RN-02: corrige el veterinario autor o un ADMIN
   const canEdit = hasRole("ADMIN") || (isVet && user?.id === c.veterinarianId);
   const canAdd = isVet && !!c.animal && !NO_RECORDS.includes(c.animal.status);

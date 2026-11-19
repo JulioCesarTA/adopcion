@@ -21,7 +21,7 @@ import { formatDate, formatDateTime } from "@/lib/utils";
 export default function AdopterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { hasRole } = useAuth();
-  const isGestion = hasRole("GESTION");
+  const isGestion = hasRole("GESTION", "ADMIN");
   const { data: a, isLoading, error, refetch } = useAdopter(id);
   const [showRanking, setShowRanking] = useState(false);
   const ranking = useRanking(id, showRanking && isGestion);

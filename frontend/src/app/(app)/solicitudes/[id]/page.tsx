@@ -3,22 +3,13 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import {
-  CheckCheck,
-  FileText,
-  MessageSquarePlus,
-  PlayCircle,
-  Plus,
-  Sparkles,
-  XCircle,
-} from "lucide-react";
+import { CheckCheck, FileText, PlayCircle, Plus, Sparkles, XCircle } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState, InfoGrid, InfoItem, PageSkeleton, YesNo } from "@/components/info";
 import { AnimalPhoto } from "@/components/animals/animal-photo";
 import {
   DecisionDialog,
   FollowupDialog,
-  NoteDialog,
   StatusChangeDialog,
 } from "@/components/adoptions/request-dialogs";
 import { BreakdownDetail, Disclaimer, ScoreBar } from "@/components/score-bar";
@@ -31,12 +22,12 @@ import { useAuth } from "@/lib/auth";
 import { animalName, EXPERIENCE, formatAge, HOUSING, SIZE, SPECIES } from "@/lib/labels";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
-type DialogKind = null | "evaluate" | "cancel" | "decide" | "note" | "followup";
+type DialogKind = null | "evaluate" | "cancel" | "decide" | "followup";
 
 export default function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { hasRole } = useAuth();
-  const isGestion = hasRole("GESTION");
+  const isGestion = hasRole("GESTION", "ADMIN");
   const { data: r, isLoading, error, refetch } = useAdoption(id);
   const pair = usePairRecommendation();
   const [dialog, setDialog] = useState<DialogKind>(null);
@@ -92,9 +83,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
             )}
             {active && (
               <>
-                <Button variant="outline" onClick={() => setDialog("note")}>
-                  <MessageSquarePlus className="h-4 w-4" aria-hidden /> Agregar nota
-                </Button>
                 <Button
                   variant="ghost"
                   className="text-red-600 hover:bg-red-50"
@@ -223,17 +211,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
         </CardBody>
       </Card>
 
-      <Card className="mt-6">
-        <CardHeader title="Notas de evaluación" />
-        <CardBody>
-          {r.evaluationNotes ? (
-            <p className="whitespace-pre-line text-sm text-slate-700">{r.evaluationNotes}</p>
-          ) : (
-            <p className="text-sm text-slate-500">Sin notas.</p>
-          )}
-        </CardBody>
-      </Card>
-
       {r.status === "APROBADA" && (
         <Card className="mt-6">
           <CardHeader
@@ -277,7 +254,6 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
         <StatusChangeDialog requestId={r.id} target="CANCELADA" onClose={() => setDialog(null)} />
       )}
       {dialog === "decide" && <DecisionDialog requestId={r.id} onClose={() => setDialog(null)} />}
-      {dialog === "note" && <NoteDialog requestId={r.id} onClose={() => setDialog(null)} />}
       {dialog === "followup" && <FollowupDialog requestId={r.id} onClose={() => setDialog(null)} />}
     </>
   );

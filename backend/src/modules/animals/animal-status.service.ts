@@ -1,14 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Animal, AnimalStatus, Prisma } from '@prisma/client';
-import { assertTransition, CLINICAL_STATES, clinicalStatusFor } from './animal-status';
+import { CLINICAL_STATES, clinicalStatusFor } from './animal-status';
 
 type Tx = Prisma.TransactionClient;
 
 @Injectable()
 export class AnimalStatusService {
   async getForUpdate(tx: Tx, animalId: string): Promise<Animal> {
-    // Bloquea la fila para serializar cambios de estado concurrentes sobre el mismo animal
-    await tx.$executeRaw`SELECT id FROM animals WHERE id = ${animalId}::uuid FOR UPDATE`;
     const animal = await tx.animal.findFirst({
       where: { id: animalId, deletedAt: null },
     });
@@ -16,14 +14,13 @@ export class AnimalStatusService {
     return animal;
   }
 
-  /** Cambia el estado validando el grafo (409 si no es válido) y lo audita. */
+  /** Cambia el estado del animal (sin restricciones de transición). */
   async changeStatus(
     tx: Tx,
     animal: Pick<Animal, 'id' | 'status'>,
     to: AnimalStatus,
     extra: Prisma.AnimalUpdateInput = {},
   ): Promise<Animal> {
-    assertTransition(animal.status, to);
     const updated = await tx.animal.update({
       where: { id: animal.id },
       data: { ...extra, status: to },
@@ -58,22 +55,5 @@ export class AnimalStatusService {
       activePeriodType: period?.type ?? null,
       hasActiveTreatment: activeTreatments > 0,
     };
-  }
-
-  /** RN-03: devuelve la lista de condiciones que impiden habilitar para adopción. */
-  async adoptionBlockers(tx: Tx, animal: Pick<Animal, 'id' | 'status'>): Promise<string[]> {
-    const reasons: string[] = [];
-    const [facts, consultations] = await Promise.all([
-      this.clinicalFacts(tx, animal.id),
-      tx.veterinaryConsultation.count({ where: { animalId: animal.id } }),
-    ]);
-    if (facts.activePeriodType === 'CUARENTENA') reasons.push('Tiene cuarentena activa');
-    if (facts.activePeriodType === 'OBSERVACION') reasons.push('Tiene observación activa');
-    if (facts.hasActiveTreatment) reasons.push('Tiene tratamiento activo');
-    if (consultations === 0) reasons.push('No tiene ninguna consulta veterinaria registrada');
-    if (reasons.length === 0 && animal.status !== 'INGRESADO') {
-      reasons.push('El animal debe estar en estado "Ingresado"');
-    }
-    return reasons;
   }
 }

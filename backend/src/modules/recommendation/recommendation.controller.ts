@@ -9,7 +9,7 @@ import { CreateRecommendationDto, RecommendationHistoryQueryDto } from './dto/re
 
 @ApiTags('recommendation')
 @ApiBearerAuth()
-@Roles(UserRole.GESTION)
+@Roles(UserRole.GESTION, UserRole.ADMIN)
 @Controller('recommendations')
 export class RecommendationController {
   constructor(private readonly recommendations: RecommendationService) {}

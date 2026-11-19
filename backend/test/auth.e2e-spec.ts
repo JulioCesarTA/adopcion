@@ -73,7 +73,7 @@ describe('Auth y usuarios (e2e)', () => {
       .send({
         fullName: 'Usuario E2E',
         email: tempEmail,
-        role: 'GESTION',
+        role: 'VETERINARIO',
         password: 'Temporal1',
       })
       .expect(201);
@@ -85,7 +85,7 @@ describe('Auth y usuarios (e2e)', () => {
       .send({
         fullName: 'Duplicado',
         email: tempEmail,
-        role: 'GESTION',
+        role: 'VETERINARIO',
         password: 'Temporal1',
       })
       .expect(409);

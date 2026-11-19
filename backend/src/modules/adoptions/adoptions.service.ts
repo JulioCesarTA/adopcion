@@ -154,7 +154,6 @@ export class AdoptionsService {
   }
 
   private async lockRequest(tx: Tx, id: string): Promise<AdoptionRequest> {
-    await tx.$executeRaw`SELECT id FROM adoption_requests WHERE id = ${id}::uuid FOR UPDATE`;
     const req = await tx.adoptionRequest.findUnique({ where: { id } });
     if (!req) throw new NotFoundException('Solicitud no encontrada');
     return req;
@@ -196,6 +195,46 @@ export class AdoptionsService {
       }
       throw err;
     }
+  }
+
+  /** El cliente solicita la adopción desde su portal: se usa (o se crea) su ficha de adoptante. */
+  async requestByClient(animalId: string, user: AuthUser) {
+    const account = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { fullName: true, email: true, phone: true },
+    });
+    if (!account) throw new NotFoundException('Usuario no encontrado');
+    let person = await this.prisma.person.findFirst({
+      where: { email: account.email },
+      include: { adopterProfile: true },
+    });
+    if (!person) {
+      const [firstName, ...rest] = account.fullName.trim().split(/\s+/);
+      person = await this.prisma.person.create({
+        data: {
+          ci: `CLI-${user.id.slice(0, 8)}`,
+          firstName,
+          lastName: rest.join(' ') || '-',
+          phone: account.phone ?? '-',
+          email: account.email,
+        },
+        include: { adopterProfile: true },
+      });
+    }
+    const profile =
+      person.adopterProfile ??
+      (await this.prisma.adopterProfile.create({
+        data: {
+          personId: person.id,
+          housingType: 'CASA_SIN_PATIO',
+          hasYard: false,
+          hasChildren: false,
+          hasOtherAnimals: false,
+          availableHoursPerDay: 2,
+          experience: 'NINGUNA',
+        },
+      }));
+    return this.create({ adopterId: profile.id, animalId }, user);
   }
 
   /** CU12: PENDIENTE → EN_EVALUACION, o cancelar (nota obligatoria). */
@@ -364,7 +403,7 @@ export class AdoptionsService {
       },
     });
     return {
-      institution: 'Asociación de Zoonosis de Santa Cruz de la Sierra',
+      institution: 'Adopet',
       actNumber: `ACTA-${req.animal.code}`,
       request: {
         id: req.id,

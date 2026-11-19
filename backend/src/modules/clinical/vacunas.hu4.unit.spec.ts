@@ -19,7 +19,7 @@ function setup() {
   const prisma = {
     animal: { findFirst: jest.fn() },
     vaccine: { findUnique: jest.fn() },
-    $queryRaw: jest.fn().mockResolvedValue([]),
+    vaccination: { findMany: jest.fn().mockResolvedValue([]) },
     $transaction: jest.fn((fn: (t: typeof tx) => unknown) => fn(tx)),
   };
   const service = new ClinicalService(
@@ -28,6 +28,17 @@ function setup() {
   );
   return { service, prisma, tx };
 }
+
+/** Una dosis aplicada, como la devuelve Prisma con el animal y la vacuna incluidos. */
+const dosis = (animalId: string, aplicada: string, proxima: string | null) => ({
+  id: `${animalId}-${aplicada}`,
+  animalId,
+  vaccineId: VACUNA,
+  applicationDate: new Date(`${aplicada}T00:00:00.000Z`),
+  nextDoseDate: proxima ? new Date(`${proxima}T00:00:00.000Z`) : null,
+  animal: { code: `ZOO-2026-${animalId}`, name: animalId, species: 'PERRO' },
+  vaccine: { name: 'Antirrabica' },
+});
 
 describe('HU4 Gestión de Vacunación — pruebas unitarias', () => {
   afterEach(() => jest.useRealTimers());
@@ -66,24 +77,36 @@ describe('HU4 Gestión de Vacunación — pruebas unitarias', () => {
     // Arrange
     jest.useFakeTimers().setSystemTime(new Date('2026-11-17T15:00:00.000Z'));
     const { service, prisma } = setup();
+    prisma.vaccination.findMany.mockResolvedValue([
+      dosis('a1', '2026-11-01', '2026-11-24'),
+      dosis('a2', '2026-11-01', '2026-11-25'),
+    ]);
     // Act
-    await service.upcomingVaccinations(7);
+    const r = await service.upcomingVaccinations(7);
     // Assert
-    const limite = (prisma.$queryRaw.mock.calls[0] as unknown[])[1] as Date;
-    expect(limite.toISOString()).toBe('2026-11-24T00:00:00.000Z');
+    expect(r.map((v) => v.animal_id)).toEqual(['a1']);
+    expect(r[0].next_dose_date.toISOString()).toBe('2026-11-24T00:00:00.000Z');
   });
 
-  it('PU-HU4-05 la consulta de próximas dosis toma solo la última dosis y excluye a los que salieron', async () => {
+  it('PU-HU4-05 toma solo la última dosis de cada vacuna por animal y excluye a los que salieron', async () => {
     // Arrange
     jest.useFakeTimers().setSystemTime(new Date('2026-11-17T15:00:00.000Z'));
     const { service, prisma } = setup();
+    // La dosis del 10/11 sin próxima fecha reemplaza a la del 01/10, que vencía el 20/11.
+    prisma.vaccination.findMany.mockResolvedValue([
+      dosis('a1', '2026-11-10', null),
+      dosis('a1', '2026-10-01', '2026-11-20'),
+    ]);
     // Act
-    await service.upcomingVaccinations(7);
+    const r = await service.upcomingVaccinations(7);
     // Assert
-    const sql = ((prisma.$queryRaw.mock.calls[0] as unknown[])[0] as string[]).join('?');
-    expect(sql).toContain('DISTINCT ON (v.animal_id, v.vaccine_id)');
-    expect(sql).toContain('v.application_date DESC');
-    expect(sql).toContain("NOT IN ('ADOPTADO', 'FALLECIDO', 'DEVUELTO')");
+    expect(r).toEqual([]);
+    const args = (prisma.vaccination.findMany.mock.calls as unknown[][])[0][0] as {
+      where: { animal: { status: { notIn: string[] } } };
+      orderBy: object[];
+    };
+    expect(args.where.animal.status.notIn).toEqual(['ADOPTADO', 'FALLECIDO', 'DEVUELTO']);
+    expect(args.orderBy[0]).toEqual({ applicationDate: 'desc' });
   });
 
   it('PU-HU4-06 acepta una próxima dosis el mismo día de la aplicación', async () => {

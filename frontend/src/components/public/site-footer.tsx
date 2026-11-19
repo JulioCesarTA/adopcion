@@ -12,12 +12,11 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
           <p className="flex items-center gap-2 font-semibold text-white">
-            <PawPrint className="h-5 w-5 text-teal-400" aria-hidden />{" "}
-            {info?.shortName ?? "Zoonosis SCZ"}
+            <PawPrint className="h-5 w-5 text-teal-400" aria-hidden /> {info?.shortName ?? "Adopet"}
           </p>
           <p className="mt-3 text-sm">
-            {info?.name ?? "Asociación de Zoonosis de Santa Cruz de la Sierra"}. Prevención de
-            zoonosis, atención sanitaria y adopción responsable.
+            {info?.name ?? "Adopet"}. Prevención de zoonosis, atención sanitaria y adopción
+            responsable.
           </p>
           <div className="mt-4">
             <SocialLinks social={info?.social} />
@@ -80,7 +79,7 @@ export function SiteFooter() {
         </div>
       </div>
       <p className="border-t border-white/10 py-4 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} {info?.name ?? "Zoonosis SCZ"}. Todos los derechos reservados.
+        © {new Date().getFullYear()} {info?.name ?? "Adopet"}. Todos los derechos reservados.
       </p>
     </footer>
   );

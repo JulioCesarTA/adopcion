@@ -8,10 +8,9 @@ export default function TermsPage() {
   return (
     <LegalPage title="Términos y Condiciones de uso" updated="14 de noviembre de 2026">
       <p>
-        Estos Términos y Condiciones regulan el uso del sitio web y del portal de clientes de la
-        Asociación de Zoonosis de Santa Cruz de la Sierra (en adelante, «la Institución»). Al crear
-        una cuenta o usar el sitio, aceptas estos términos. Si no estás de acuerdo, no utilices el
-        servicio.
+        Estos Términos y Condiciones regulan el uso del sitio web y del portal de clientes de Adopet
+        (en adelante, «la Institución»). Al crear una cuenta o usar el sitio, aceptas estos
+        términos. Si no estás de acuerdo, no utilices el servicio.
       </p>
 
       <h2>1. Objeto del servicio</h2>

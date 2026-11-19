@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
 import { errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { homeForRole } from "@/lib/roles";
+import { homeForRole, isPortalRole } from "@/lib/roles";
 import type { UserRole } from "@/lib/types";
 
 const schema = z.object({
@@ -29,7 +29,7 @@ function destination(next: string | null, role: UserRole): string {
   const home = homeForRole(role);
   if (!next || !next.startsWith("/") || next.startsWith("//")) return home;
   const isPortal = next === "/portal" || next.startsWith("/portal/");
-  return (role === "CLIENTE") === isPortal ? next : home;
+  return isPortalRole(role) === isPortal ? next : home;
 }
 
 function LoginForm() {
@@ -105,7 +105,7 @@ export default function LoginPage() {
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-md">
             <PawPrint className="h-7 w-7" aria-hidden />
           </div>
-          <h1 className="text-xl font-semibold text-slate-900">Zoonosis SCZ</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Adopet</h1>
           <p className="mt-1 text-sm text-slate-500">
             Gestión de adopciones y trazabilidad sanitaria animal
           </p>

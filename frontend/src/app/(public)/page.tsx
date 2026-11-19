@@ -92,7 +92,9 @@ export default function LandingPage() {
   const { data: animals, isLoading } = usePublicAnimals({ pageSize: 6 });
   const { status, user } = useAuth();
   const adoptHref =
-    status === "authenticated" && user?.role === "CLIENTE" ? "/portal" : "/registro";
+    status === "authenticated" && (user?.role === "CLIENTE" || user?.role === "ADOPTANTE")
+      ? "/portal"
+      : "/registro";
 
   return (
     <>
@@ -101,7 +103,7 @@ export default function LandingPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24">
           <div>
             <p className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
-              {info?.name ?? "Asociación de Zoonosis de Santa Cruz de la Sierra"}
+              {info?.name ?? "Adopet"}
             </p>
             <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
               Cuidamos la salud de los animales y de nuestra ciudad

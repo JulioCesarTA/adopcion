@@ -3,9 +3,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: { default: "Zoonosis SCZ", template: "%s · Zoonosis SCZ" },
-  description:
-    "Sistema de gestión de adopciones y trazabilidad sanitaria animal — Zoonosis Santa Cruz de la Sierra",
+  title: { default: "Adopet", template: "%s · Adopet" },
+  description: "Sistema de gestión de adopciones y trazabilidad sanitaria animal — Adopet",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

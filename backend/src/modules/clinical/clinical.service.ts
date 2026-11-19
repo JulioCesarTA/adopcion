@@ -117,17 +117,22 @@ export class ClinicalService {
   }
 
   async createConsultation(animalId: string, dto: CreateConsultationDto, user: AuthUser) {
-    const animal = await this.animalOrThrow(animalId);
-    this.assertAcceptsRecords(animal);
+    await this.animalOrThrow(animalId);
+    const { animalStatus, ...datos } = dto;
     return this.prisma.$transaction(async (tx) => {
       const c = await tx.veterinaryConsultation.create({
         data: {
-          ...dto,
-          consultationDate: new Date(dto.consultationDate),
+          ...datos,
+          reason: datos.reason ?? '',
+          clinicalEvaluation: datos.clinicalEvaluation ?? '',
+          consultationDate: new Date(datos.consultationDate),
           animalId,
           veterinarianId: user.id,
         },
       });
+      if (animalStatus) {
+        await tx.animal.update({ where: { id: animalId }, data: { status: animalStatus } });
+      }
       return c;
     });
   }
@@ -361,22 +366,37 @@ export class ClinicalService {
    * vence hasta `today + days`. Las dosis reemplazadas por una posterior no cuentan.
    */
   async upcomingVaccinations(days: number): Promise<UpcomingVaccinationRow[]> {
-    const limit = toDateOnly(addDays(todayLaPaz(), days));
-    return this.prisma.$queryRaw<UpcomingVaccinationRow[]>`
-      SELECT * FROM (
-        SELECT DISTINCT ON (v.animal_id, v.vaccine_id)
-               v.id, v.animal_id, a.code AS animal_code, a.name AS animal_name,
-               a.species::text AS species, v.vaccine_id, vc.name AS vaccine_name,
-               v.application_date, v.next_dose_date
-          FROM vaccinations v
-          JOIN animals a ON a.id = v.animal_id
-          JOIN vaccines vc ON vc.id = v.vaccine_id
-         WHERE a.deleted_at IS NULL
-           AND a.status::text NOT IN ('ADOPTADO', 'FALLECIDO', 'DEVUELTO')
-         ORDER BY v.animal_id, v.vaccine_id, v.application_date DESC, v.created_at DESC
-      ) latest
-      WHERE latest.next_dose_date IS NOT NULL AND latest.next_dose_date <= ${limit}::date
-      ORDER BY latest.next_dose_date ASC`;
+    const limit = new Date(toDateOnly(addDays(todayLaPaz(), days)));
+    const rows = await this.prisma.vaccination.findMany({
+      where: {
+        animal: { deletedAt: null, status: { notIn: ['ADOPTADO', 'FALLECIDO', 'DEVUELTO'] } },
+      },
+      orderBy: [{ applicationDate: 'desc' }, { createdAt: 'desc' }],
+      include: {
+        animal: { select: { code: true, name: true, species: true } },
+        vaccine: { select: { name: true } },
+      },
+    });
+    // Solo cuenta la última dosis de cada vacuna por animal
+    const latest = new Map<string, (typeof rows)[number]>();
+    for (const v of rows) {
+      const key = `${v.animalId}:${v.vaccineId}`;
+      if (!latest.has(key)) latest.set(key, v);
+    }
+    return [...latest.values()]
+      .filter((v) => v.nextDoseDate !== null && v.nextDoseDate <= limit)
+      .sort((x, y) => (x.nextDoseDate as Date).getTime() - (y.nextDoseDate as Date).getTime())
+      .map((v) => ({
+        id: v.id,
+        animal_id: v.animalId,
+        animal_code: v.animal.code,
+        animal_name: v.animal.name,
+        species: v.animal.species,
+        vaccine_id: v.vaccineId,
+        vaccine_name: v.vaccine.name,
+        application_date: v.applicationDate,
+        next_dose_date: v.nextDoseDate as Date,
+      }));
   }
 
   // =====================================================================

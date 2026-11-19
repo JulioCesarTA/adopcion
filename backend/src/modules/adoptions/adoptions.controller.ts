@@ -23,6 +23,7 @@ import {
   CreateFollowupDto,
   DecisionDto,
   ListAdoptionsQueryDto,
+  RequestMineDto,
 } from './dto/adoptions.dto';
 
 const { ADMIN, GESTION, DIRECTIVO } = UserRole;
@@ -40,10 +41,17 @@ export class AdoptionsController {
     return this.adoptions.list(q, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post()
   create(@Body() dto: CreateAdoptionDto, @CurrentUser() user: AuthUser) {
     return this.adoptions.create(dto, user);
+  }
+
+  /** El adoptante solicita la adopción desde su portal; la solicitud llega al personal. */
+  @Roles(UserRole.ADOPTANTE)
+  @Post('mine')
+  requestMine(@Body() dto: RequestMineDto, @CurrentUser() user: AuthUser) {
+    return this.adoptions.requestByClient(dto.animalId, user);
   }
 
   @Roles(...READERS)
@@ -52,7 +60,7 @@ export class AdoptionsController {
     return this.adoptions.findOne(id, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Patch(':id/status')
   changeStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -62,7 +70,7 @@ export class AdoptionsController {
     return this.adoptions.changeStatus(id, dto, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post(':id/notes')
   @HttpCode(HttpStatus.OK)
   addNote(
@@ -73,7 +81,7 @@ export class AdoptionsController {
     return this.adoptions.addNote(id, dto.notes, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post(':id/decision')
   @HttpCode(HttpStatus.OK)
   decide(
@@ -90,7 +98,7 @@ export class AdoptionsController {
     return this.adoptions.listFollowups(id);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post(':id/followups')
   createFollowup(
     @Param('id', ParseUUIDPipe) id: string,
@@ -100,7 +108,7 @@ export class AdoptionsController {
     return this.adoptions.createFollowup(id, dto, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Get(':id/act')
   act(@Param('id', ParseUUIDPipe) id: string) {
     return this.adoptions.act(id);

@@ -17,6 +17,7 @@ describe('Sitio público y rol CLIENTE (e2e)', () => {
   let server: App;
   let prisma: PrismaService;
   const email = `cliente-${Date.now()}@example.com`;
+  const adoptanteEmail = `adoptante-${Date.now()}@example.com`;
   const savedKey = process.env.ANTHROPIC_API_KEY;
 
   beforeAll(async () => {
@@ -67,17 +68,28 @@ describe('Sitio público y rol CLIENTE (e2e)', () => {
       .post('/api/v1/public/register')
       .send({ ...base, acceptTerms: true })
       .expect(409);
+
+    // La cuenta de adoptante se elige en el mismo registro.
+    const adoptante = (
+      await request(server)
+        .post('/api/v1/public/register')
+        .send({ ...base, email: adoptanteEmail, acceptTerms: true, accountType: 'ADOPTANTE' })
+        .expect(201)
+    ).body as Body;
+    expect(adoptante.role).toBe('ADOPTANTE');
   });
 
-  it('el CLIENTE accede a su perfil pero no al sistema interno', async () => {
-    const login = await request(server)
-      .post('/api/v1/auth/login')
-      .send({ email, password: 'Cliente123' })
-      .expect(200);
-    const auth = `Bearer ${(login.body as Body).accessToken}`;
-    await request(server).get('/api/v1/auth/me').set('Authorization', auth).expect(200);
-    for (const url of ['/animals', '/dashboard', '/adopters', '/kpis', '/users']) {
-      await request(server).get(`/api/v1${url}`).set('Authorization', auth).expect(403);
+  it('el CLIENTE y el ADOPTANTE acceden a su perfil pero no al sistema interno', async () => {
+    for (const correo of [email, adoptanteEmail]) {
+      const login = await request(server)
+        .post('/api/v1/auth/login')
+        .send({ email: correo, password: 'Cliente123' })
+        .expect(200);
+      const auth = `Bearer ${(login.body as Body).accessToken}`;
+      await request(server).get('/api/v1/auth/me').set('Authorization', auth).expect(200);
+      for (const url of ['/animals', '/dashboard', '/adopters', '/kpis', '/users']) {
+        await request(server).get(`/api/v1${url}`).set('Authorization', auth).expect(403);
+      }
     }
   });
 

@@ -37,12 +37,10 @@ export const diagnosisSchema = z.object({
 
 export const consultationSchema = z.object({
   consultationDate: requiredDate("La fecha y hora"),
-  reason: requiredText("El motivo", 255),
-  weightKg: optionalNumber(z.number().gt(0, "El peso debe ser mayor a 0").max(9999)),
-  temperatureC: optionalNumber(
-    z.number().min(30, "Debe estar entre 30 y 45 °C").max(45, "Debe estar entre 30 y 45 °C"),
-  ),
-  clinicalEvaluation: requiredText("La evaluación clínica", 5000),
+  reason: optionalText(255),
+  weightKg: optionalNumber(z.number()),
+  temperatureC: optionalNumber(z.number()),
+  clinicalEvaluation: optionalText(5000),
   observations: optionalText(5000),
 });
 

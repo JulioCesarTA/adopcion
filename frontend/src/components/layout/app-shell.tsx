@@ -10,7 +10,7 @@ import { Forbidden } from "./forbidden";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
-const COLLAPSE_KEY = "zoonosis.sidebarCollapsed";
+const COLLAPSE_KEY = "adopet.sidebarCollapsed";
 
 /** Layout autenticado: sidebar + topbar + contenido, con control de acceso por rol. */
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -33,7 +33,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
     // El sistema de gestión es solo para el personal: un cliente va a su portal
-    if (status === "authenticated" && user?.role === "CLIENTE") router.replace("/portal");
+    if (status === "authenticated" && (user?.role === "CLIENTE" || user?.role === "ADOPTANTE"))
+      router.replace("/portal");
   }, [status, user, router, pathname]);
 
   const toggleCollapsed = useCallback(() => {
@@ -48,7 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
-  if (status !== "authenticated" || !user || user.role === "CLIENTE") {
+  if (status !== "authenticated" || !user || user.role === "CLIENTE" || user.role === "ADOPTANTE") {
     return (
       <div className="flex min-h-screen" aria-busy="true" aria-label="Cargando">
         <div className="hidden w-[260px] border-r border-slate-200 bg-white p-4 lg:block">

@@ -20,6 +20,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { PublicModule } from './modules/public/public.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -50,6 +51,7 @@ import { SerializeInterceptor } from './common/interceptors/serialize.intercepto
     PublicModule,
     ChatModule,
     ContactModule,
+    BookingsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

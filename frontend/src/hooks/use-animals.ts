@@ -61,15 +61,7 @@ export function useTimeline(id: string, filters: Query) {
 
 export type AnimalInput = Omit<
   Animal,
-  | "id"
-  | "code"
-  | "status"
-  | "photoUrl"
-  | "exitDate"
-  | "exitReason"
-  | "createdAt"
-  | "updatedAt"
-  | "exitNotes"
+  "id" | "code" | "photoUrl" | "exitDate" | "exitReason" | "createdAt" | "updatedAt" | "exitNotes"
 > & { exitNotes?: string | null };
 
 export function useAnimalMutations(id?: string) {

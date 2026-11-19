@@ -61,6 +61,7 @@ async function main() {
   const vet = await mk('veterinario.prueba@zoonosis.test', 'Veterinario de Prueba', 'VETERINARIO');
   const gestion = await mk('adopciones.prueba@zoonosis.test', 'Gestion de Adopciones de Prueba', 'GESTION');
   await mk('directivo.prueba@zoonosis.test', 'Directivo de Prueba', 'DIRECTIVO');
+  await mk('adoptante.prueba@zoonosis.test', 'Adoptante de Prueba', 'ADOPTANTE');
   await mk('cliente.prueba@zoonosis.test', 'Cliente de Prueba', 'CLIENTE', {
     phone: '70000099',
     termsAcceptedAt: horasAtras(48),

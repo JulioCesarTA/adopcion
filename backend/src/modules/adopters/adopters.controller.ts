@@ -21,7 +21,7 @@ export class AdoptersController {
     return this.adopters.list(q, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post()
   create(@Body() dto: CreateAdopterDto) {
     return this.adopters.create(dto);
@@ -33,7 +33,7 @@ export class AdoptersController {
     return this.adopters.findOne(id, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAdopterDto) {
     return this.adopters.update(id, dto);

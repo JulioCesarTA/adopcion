@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -17,6 +18,14 @@ import { PASSWORD_MESSAGE, PASSWORD_REGEX } from '../../../common/password-polic
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 const lower = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
+
+/** Roles que se pueden asignar. GESTION y DIRECTIVO quedan sin uso: sus funciones las asume el ADMIN. */
+export const ASSIGNABLE_ROLES: UserRole[] = [
+  UserRole.ADMIN,
+  UserRole.VETERINARIO,
+  UserRole.CLIENTE,
+  UserRole.ADOPTANTE,
+];
 
 export class CreateUserDto {
   @ApiProperty({ example: 'María Pérez' })
@@ -32,8 +41,8 @@ export class CreateUserDto {
   @MaxLength(255)
   email: string;
 
-  @ApiProperty({ enum: UserRole })
-  @IsEnum(UserRole, { message: 'Rol inválido' })
+  @ApiProperty({ enum: ASSIGNABLE_ROLES })
+  @IsIn(ASSIGNABLE_ROLES, { message: 'Rol inválido' })
   role: UserRole;
 
   @ApiProperty({ description: 'Contraseña temporal', example: 'Temporal123' })
@@ -58,9 +67,9 @@ export class UpdateUserDto {
   @MaxLength(255)
   email?: string;
 
-  @ApiPropertyOptional({ enum: UserRole })
+  @ApiPropertyOptional({ enum: ASSIGNABLE_ROLES })
   @IsOptional()
-  @IsEnum(UserRole, { message: 'Rol inválido' })
+  @IsIn(ASSIGNABLE_ROLES, { message: 'Rol inválido' })
   role?: UserRole;
 }
 

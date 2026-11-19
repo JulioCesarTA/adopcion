@@ -2,7 +2,8 @@ import { expect, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-export const OUT = resolve(__dirname, '../../../docs/pruebas-sprint2');
+// PRUEBAS_OUT permite guardar una ejecución nueva sin tocar la evidencia versionada del sprint.
+export const OUT = process.env.PRUEBAS_OUT ?? resolve(__dirname, '../../../docs/pruebas-sprint2');
 export const CAPTURAS = resolve(OUT, 'capturas');
 export const FIXTURES = resolve(__dirname, '../fixtures');
 
@@ -11,6 +12,7 @@ export const USUARIOS = {
   veterinario: 'veterinario.prueba@zoonosis.test',
   adopciones: 'adopciones.prueba@zoonosis.test',
   directivo: 'directivo.prueba@zoonosis.test',
+  adoptante: 'adoptante.prueba@zoonosis.test',
 } as const;
 
 export function password(): string {
@@ -51,7 +53,18 @@ export interface Campo {
 
 /** Guarda lo que la prueba cargó y lo que observó, para armar resultados.json sin escribir nada a mano. */
 export function registrar(hu: string, datos: Record<string, unknown>) {
-  const dir = resolve(__dirname, '../evidencia/caja-negra');
+  const dir = process.env.PRUEBAS_OUT
+    ? resolve(process.env.PRUEBAS_OUT, 'caja-negra')
+    : resolve(__dirname, '../evidencia/caja-negra');
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, `${hu}.json`), JSON.stringify(datos, null, 2) + '\n', 'utf8');
+}
+
+/** Inicia sesión una cuenta del portal (cliente o adoptante), que entra a /portal. */
+export async function loginPortal(page: Page, email: string, pass = password()) {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Contraseña').fill(pass);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await page.waitForURL('**/portal');
 }

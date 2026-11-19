@@ -58,6 +58,7 @@ async function main() {
     'GESTION',
   );
   await mk('directivo.prueba@zoonosis.test', 'Directivo de Prueba', 'DIRECTIVO');
+  await mk('adoptante.prueba@zoonosis.test', 'Adoptante de Prueba', 'ADOPTANTE');
 
   // ---------- Configuración del motor de reglas (pesos y umbrales del sistema) ----------
   await prisma.algorithmSetting.create({

@@ -6,8 +6,8 @@ import type { AuthenticatedRequest } from '../types';
 
 /** Roles del personal interno (sección 3). */
 export const STAFF_ROLES: UserRole[] = ['ADMIN', 'VETERINARIO', 'GESTION', 'DIRECTIVO'];
-/** Todos los roles, incluido CLIENTE (portal público). */
-export const ALL_ROLES: UserRole[] = [...STAFF_ROLES, 'CLIENTE'];
+/** Todos los roles, incluidos CLIENTE y ADOPTANTE (portal). */
+export const ALL_ROLES: UserRole[] = [...STAFF_ROLES, 'CLIENTE', 'ADOPTANTE'];
 
 /**
  * Comprueba que el rol del usuario esté entre los permitidos por @Roles().

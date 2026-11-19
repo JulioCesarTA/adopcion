@@ -219,36 +219,38 @@ export class MlService {
     };
 
     // --- Persistir versionado, y activar si se pidió ---
-    const saved = await this.prisma.$transaction(async (tx) => {
-      // Advisory lock: evita que dos entrenamientos simultáneos tomen la misma versión.
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('ml_models_version'))`;
-      const last = await tx.mlModel.findFirst({ orderBy: { version: 'desc' } });
-      const version = (last?.version ?? 0) + 1;
+    const saved = await this.prisma.$transaction(
+      async (tx) => {
+        const last = await tx.mlModel.findFirst({ orderBy: { version: 'desc' } });
+        const version = (last?.version ?? 0) + 1;
 
-      const activate = dto.activate ?? true;
-      if (activate) {
-        await tx.mlModel.updateMany({ where: { isActive: true }, data: { isActive: false } });
-      }
+        const activate = dto.activate ?? true;
+        if (activate) {
+          await tx.mlModel.updateMany({ where: { isActive: true }, data: { isActive: false } });
+        }
 
-      const row = await tx.mlModel.create({
-        data: {
-          version,
-          algorithm: 'random-forest',
-          source,
-          isActive: activate,
-          model: forest.toJSON() as unknown as Prisma.InputJsonValue,
-          metrics: { ...report, version } as unknown as Prisma.InputJsonValue,
-          datasetSize: samples.length,
-          realSamples: real.length,
-          syntheticSamples: synthetic.length,
-          seed,
-          notes: dto.notes ?? null,
-          createdById: user.id,
-        },
-      });
+        const row = await tx.mlModel.create({
+          data: {
+            version,
+            algorithm: 'random-forest',
+            source,
+            isActive: activate,
+            model: forest.toJSON() as unknown as Prisma.InputJsonValue,
+            metrics: { ...report, version } as unknown as Prisma.InputJsonValue,
+            datasetSize: samples.length,
+            realSamples: real.length,
+            syntheticSamples: synthetic.length,
+            seed,
+            notes: dto.notes ?? null,
+            createdById: user.id,
+          },
+        });
 
-      return row;
-    });
+        return row;
+      },
+      // El modelo serializado pesa varios MB: 5 s (el límite por defecto) no alcanzan para guardarlo.
+      { timeout: 30_000, maxWait: 10_000 },
+    );
 
     this.invalidate();
     this.logger.log(

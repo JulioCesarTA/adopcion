@@ -5,7 +5,7 @@ import { captura, type Campo, fecha, FIXTURES, login, registrar, USUARIOS } from
 
 /**
  * HU1 — Gestión de Animal.
- * El personal de Gestión Animal registra un animal nuevo con una foto JPG de menos de 5 MB.
+ * El administrador registra un animal nuevo con una foto JPG de menos de 5 MB.
  */
 test('HU1: registrar un animal nuevo con fotografía', async ({ page }) => {
   const foto = resolve(FIXTURES, 'perro-prueba.jpg');
@@ -28,7 +28,7 @@ test('HU1: registrar un animal nuevo con fotografía', async ({ page }) => {
     { campo: 'Foto', valor: `perro-prueba.jpg (JPG, ${kb} KB)` },
   ];
 
-  await login(page, USUARIOS.gestion);
+  await login(page, USUARIOS.admin);
   await page.getByRole('link', { name: 'Animales' }).click();
   await page.getByRole('link', { name: 'Registrar animal' }).click();
   await expect(page.getByRole('main').getByRole('heading', { name: 'Registrar animal' })).toBeVisible();

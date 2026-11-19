@@ -50,7 +50,7 @@ export function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobil
             <PawPrint className="h-5 w-5" aria-hidden />
           </div>
           <span className={cn("font-semibold text-slate-900", collapsed && "lg:hidden")}>
-            Zoonosis SCZ
+            Adopet
           </span>
           <button
             type="button"

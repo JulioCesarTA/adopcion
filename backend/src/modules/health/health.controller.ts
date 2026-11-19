@@ -14,7 +14,7 @@ export class HealthController {
   @ApiOperation({ summary: 'Estado del API y de la base de datos' })
   async check() {
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
+      await this.prisma.user.count();
     } catch {
       throw new ServiceUnavailableException('Base de datos no disponible');
     }

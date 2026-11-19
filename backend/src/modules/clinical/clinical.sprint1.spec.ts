@@ -60,11 +60,11 @@ describe('CB-HU2-A ClinicalService.createConsultation (registrar consulta clíni
     expect(tx.veterinaryConsultation.create).not.toHaveBeenCalled();
   });
 
-  it('CB-HU2-A-C2: el animal ya salió de la institución (Adoptado) → ConflictException', async () => {
+  it('CB-HU2-A-C2: el animal adoptado → registra la consulta', async () => {
     const { service, prisma, tx } = setup();
     prisma.animal.findFirst.mockResolvedValue({ id: ANIMAL, status: 'ADOPTADO' });
-    await expect(service.createConsultation(ANIMAL, dto, vet)).rejects.toThrow(ConflictException);
-    expect(tx.veterinaryConsultation.create).not.toHaveBeenCalled();
+    await service.createConsultation(ANIMAL, dto, vet);
+    expect(tx.veterinaryConsultation.create).toHaveBeenCalledTimes(1);
   });
 
   it('CB-HU2-A-C3: animal en la institución → registra la consulta con el veterinario y la fecha', async () => {

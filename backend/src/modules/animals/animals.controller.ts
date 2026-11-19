@@ -47,7 +47,7 @@ export class AnimalsController {
     return this.animals.adoptable(q);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post()
   create(@Body() dto: CreateAnimalDto, @CurrentUser() user: AuthUser) {
     return this.animals.create(dto, user);
@@ -59,13 +59,13 @@ export class AnimalsController {
     return this.animals.findOne(id);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAnimalDto) {
     return this.animals.update(id, dto);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post(':id/photo')
   @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
@@ -86,21 +86,21 @@ export class AnimalsController {
     return this.animals.savePhoto(id, file);
   }
 
-  @Roles(VETERINARIO)
+  @Roles(VETERINARIO, ADMIN)
   @Post(':id/enable-adoption')
   @HttpCode(HttpStatus.OK)
   enableAdoption(@Param('id', ParseUUIDPipe) id: string) {
     return this.animals.enableAdoption(id);
   }
 
-  @Roles(VETERINARIO)
+  @Roles(VETERINARIO, ADMIN)
   @Post(':id/disable-adoption')
   @HttpCode(HttpStatus.OK)
   disableAdoption(@Param('id', ParseUUIDPipe) id: string) {
     return this.animals.disableAdoption(id);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post(':id/exit')
   @HttpCode(HttpStatus.OK)
   exit(
@@ -111,7 +111,7 @@ export class AnimalsController {
     return this.animals.exit(id, dto, user);
   }
 
-  @Roles(GESTION)
+  @Roles(GESTION, ADMIN)
   @Post(':id/readmit')
   @HttpCode(HttpStatus.OK)
   readmit(@Param('id', ParseUUIDPipe) id: string) {

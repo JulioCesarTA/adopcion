@@ -114,3 +114,9 @@ export class ListAdoptionsQueryDto extends PaginationQueryDto {
   @IsEnum(RequestStatus)
   status?: RequestStatus;
 }
+
+export class RequestMineDto {
+  @ApiProperty()
+  @IsUUID('4', { message: 'Selecciona un animal' })
+  animalId: string;
+}

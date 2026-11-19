@@ -63,6 +63,7 @@ export function useRegister() {
       phone?: string;
       password: string;
       acceptTerms: boolean;
+      accountType?: "CLIENTE" | "ADOPTANTE";
     }) => api<User>("/public/register", { method: "POST", body: input, skipRefresh: true }),
   });
 }

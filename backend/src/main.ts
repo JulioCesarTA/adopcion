@@ -10,7 +10,7 @@ async function bootstrap() {
   setupApp(app);
 
   const doc = new DocumentBuilder()
-    .setTitle('Zoonosis SCZ — API')
+    .setTitle('Adopet — API')
     .setDescription('Gestión de adopciones y trazabilidad sanitaria animal')
     .setVersion('1.0')
     .addBearerAuth()

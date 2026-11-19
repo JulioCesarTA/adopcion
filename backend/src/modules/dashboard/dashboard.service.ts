@@ -116,19 +116,17 @@ export class DashboardService {
     const months = lastMonths(6);
     const since = startOfMonthLaPazMinus(5);
     const [entries, adoptions] = await Promise.all([
-      this.prisma.$queryRaw<{ month: string; count: bigint }[]>`
-        SELECT to_char(entry_date AT TIME ZONE 'America/La_Paz', 'YYYY-MM') AS month, count(*) AS count
-          FROM animals
-         WHERE deleted_at IS NULL AND entry_date >= ${since}
-         GROUP BY 1`,
-      this.prisma.$queryRaw<{ month: string; count: bigint }[]>`
-        SELECT to_char(decision_date AT TIME ZONE 'America/La_Paz', 'YYYY-MM') AS month, count(*) AS count
-          FROM adoption_requests
-         WHERE status = 'APROBADA' AND decision_date >= ${since}
-         GROUP BY 1`,
+      this.prisma.animal.findMany({
+        where: { deletedAt: null, entryDate: { gte: since } },
+        select: { entryDate: true },
+      }),
+      this.prisma.adoptionRequest.findMany({
+        where: { status: 'APROBADA', decisionDate: { gte: since } },
+        select: { decisionDate: true },
+      }),
     ]);
-    const e = new Map(entries.map((r) => [r.month, Number(r.count)]));
-    const a = new Map(adoptions.map((r) => [r.month, Number(r.count)]));
+    const e = countByMonth(entries.map((r) => r.entryDate));
+    const a = countByMonth(adoptions.map((r) => r.decisionDate));
     return months.map((m) => ({
       month: m,
       label: monthLabel(m),
@@ -149,4 +147,22 @@ export class DashboardService {
       },
     });
   }
+}
+
+const monthFmt = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/La_Paz',
+  year: 'numeric',
+  month: '2-digit',
+});
+
+/** Cuenta fechas por mes (YYYY-MM) en hora de La Paz. */
+function countByMonth(dates: (Date | null)[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const d of dates) {
+    if (!d) continue;
+    const parts = monthFmt.formatToParts(d);
+    const key = `${parts.find((p) => p.type === 'year')?.value}-${parts.find((p) => p.type === 'month')?.value}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
 }

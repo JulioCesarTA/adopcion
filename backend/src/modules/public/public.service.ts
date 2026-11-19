@@ -29,6 +29,7 @@ export const PUBLIC_ANIMAL_SELECT = {
   requiredDailyHours: true,
   photoUrl: true,
   entryDate: true,
+  status: true,
 } satisfies Prisma.AnimalSelect;
 
 @Injectable()
@@ -46,7 +47,7 @@ export class PublicService {
   async animals(q: PublicAnimalsQueryDto) {
     const where: Prisma.AnimalWhereInput = {
       deletedAt: null,
-      status: 'DISPONIBLE_ADOPCION',
+      status: { in: ['DISPONIBLE_ADOPCION', 'EN_PROCESO_ADOPCION'] },
       ...(q.species ? { species: q.species } : {}),
       ...(q.size ? { size: q.size } : {}),
     };
@@ -86,7 +87,7 @@ export class PublicService {
           fullName: dto.fullName,
           email: dto.email,
           phone: dto.phone,
-          role: 'CLIENTE',
+          role: dto.accountType ?? 'CLIENTE',
           passwordHash,
           termsAcceptedAt: new Date(),
         },

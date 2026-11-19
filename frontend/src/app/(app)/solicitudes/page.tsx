@@ -79,7 +79,7 @@ export default function RequestsPage() {
       <PageHeader
         title="Solicitudes de adopción"
         actions={
-          <RoleGate roles={["GESTION"]}>
+          <RoleGate roles={["GESTION", "ADMIN"]}>
             <Link
               href="/solicitudes/nueva"
               className="inline-flex h-10 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700"

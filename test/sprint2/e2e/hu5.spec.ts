@@ -1,61 +1,66 @@
 import { expect, test } from '@playwright/test';
-import { captura, type Campo, login, registrar, USUARIOS } from './helpers';
+import { captura, type Campo, login, loginPortal, registrar, USUARIOS } from './helpers';
 
 /**
  * HU5 — Creación de Solicitud de Adopción.
- * El personal de Gestión de Adopciones crea una solicitud que vincula a un
- * adoptante registrado con un animal disponible para adopción.
+ * El adoptante solicita desde su portal la adopción de un animal disponible con un solo clic;
+ * el animal queda marcado como «Solicitud en progreso» y la solicitud le llega al administrador.
  */
-test('HU5: crear una solicitud de adopción', async ({ page }) => {
+test('HU5: solicitar la adopción de un animal desde el portal', async ({ page, browser }) => {
   const anio = new Date().getFullYear();
-  const nota = 'Solicitud presentada en ventanilla. La adoptante visitó al animal el día anterior.';
   const datos: Campo[] = [
-    { campo: 'Adoptante', valor: 'Ana Lucia Torres Suarez (CI 9000003 CB, ficticia)' },
+    { campo: 'Usuario', valor: `${USUARIOS.adoptante} (rol Adoptante)` },
     { campo: 'Animal', valor: `Kira (ZOO-${anio}-0003), perro mediano, Disponible para adopción` },
-    { campo: 'Notas iniciales', valor: nota },
   ];
 
-  await login(page, USUARIOS.adopciones);
-  await page.getByRole('link', { name: 'Solicitudes' }).click();
-  await page.getByRole('link', { name: 'Nueva solicitud' }).click();
-  await expect(page.getByRole('heading', { name: 'Nueva solicitud de adopción' })).toBeVisible();
+  await loginPortal(page, USUARIOS.adoptante);
+  await expect(page.getByRole('heading', { name: 'Animales en adopción' })).toBeVisible();
+  // Cada animal del catálogo es una tarjeta; se identifica por su código.
+  const tarjeta = page.locator('div.flex-col.overflow-hidden').filter({ hasText: `ZOO-${anio}-0003` });
+  const boton = tarjeta.getByRole('button', { name: 'Solicitar adopción' });
+  await boton.scrollIntoViewIfNeeded();
 
-  await page.getByLabel('Buscar adoptante por CI o nombre').fill('Ana Lucia');
-  await page
-    .getByRole('listbox', { name: 'Adoptantes' })
-    .getByRole('button', { name: /Ana Lucia Torres Suarez/ })
-    .click();
-  await page
-    .getByRole('listbox', { name: 'Animales disponibles' })
-    .getByRole('button', { name: /Kira/ })
-    .click();
-
-  await expect(page.getByText('3. Revisión')).toBeVisible();
-  await expect(page.getByRole('meter')).toBeVisible();
-  await page.getByLabel('Notas iniciales').fill(nota);
-  await page.getByRole('button', { name: 'Crear solicitud' }).scrollIntoViewIfNeeded();
-
-  // Captura inicial: formulario completo, justo antes de crear la solicitud.
+  // Captura inicial: catálogo del portal con el botón «Solicitar adopción».
   await captura(page, 'HU5-inicial.png');
 
-  await page.getByRole('button', { name: 'Crear solicitud' }).click();
-  await page.waitForURL(/\/solicitudes\/[0-9a-f-]{36}$/);
-  await expect(page.getByText('Solicitud creada. El animal pasó a «En proceso de adopción».')).toBeVisible();
-
-  const encabezado = page.getByRole('main').getByRole('heading', { level: 1 });
-  await expect(encabezado).toContainText('Kira');
-  const main = page.getByRole('main');
-  const observado = {
-    titulo: (await encabezado.innerText()).trim(),
-    solicitud_pendiente: await main.getByText('Pendiente', { exact: true }).first().isVisible(),
-    animal_en_proceso: await main.getByText('En proceso de adopción', { exact: true }).first().isVisible(),
-    nota_registrada: (await main.innerText()).includes(nota),
+  await boton.click();
+  await expect(page.getByText('Solicitud enviada para Kira. El personal la revisará.')).toBeVisible();
+  const kira = tarjeta;
+  await expect(kira.getByText('Solicitud en progreso')).toBeVisible();
+  const portal = {
+    mensaje_confirmacion: true,
+    animal_marcado_en_progreso: await kira.getByText('Solicitud en progreso').isVisible(),
+    boton_oculto: (await kira.getByRole('button', { name: 'Solicitar adopción' }).count()) === 0,
   };
-
   await captura(page, 'HU5-final.png');
-  registrar('HU5', { datos_entrada: datos, observado });
 
-  expect(observado.solicitud_pendiente).toBe(true);
-  expect(observado.animal_en_proceso).toBe(true);
-  expect(observado.nota_registrada).toBe(true);
+  // La solicitud le llega al administrador con los datos del adoptante.
+  const contexto = await browser.newContext({
+    baseURL: 'http://localhost:3000',
+    viewport: { width: 1280, height: 800 },
+    locale: 'es-BO',
+    timezoneId: 'America/La_Paz',
+  });
+  const admin = await contexto.newPage();
+  await login(admin, USUARIOS.admin);
+  await admin.getByRole('link', { name: 'Solicitudes' }).click();
+  // La solicitud nueva es la única de Kira en «Pendiente».
+  const fila = admin.getByRole('row').filter({ hasText: 'Kira' }).filter({ hasText: 'Pendiente' });
+  await expect(fila).toHaveCount(1);
+  await fila.getByRole('link').first().click();
+  await admin.waitForURL(/\/solicitudes\/[0-9a-f-]{36}$/);
+  const main = admin.getByRole('main');
+  // Espera a que la ficha cargue antes de leerla.
+  await expect(main.getByRole('heading', { level: 1 })).toContainText('Kira');
+  const ficha = await main.innerText();
+  const observado = {
+    ...portal,
+    solicitud_recibida_por_el_personal: ficha.includes('Adoptante de Prueba'),
+    solicitud_pendiente: await main.getByText('Pendiente', { exact: true }).first().isVisible(),
+  };
+  await captura(admin, 'HU5-solicitud-recibida.png');
+  await contexto.close();
+
+  registrar('HU5', { datos_entrada: datos, observado });
+  for (const [k, v] of Object.entries(observado)) expect(v, k).toBe(true);
 });

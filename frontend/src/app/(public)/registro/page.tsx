@@ -10,7 +10,7 @@ import { AlertCircle, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
+import { Input, Select } from "@/components/ui/input";
 import { useRegister } from "@/hooks/use-public";
 import { ApiError, errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -19,6 +19,7 @@ import { fullNameSchema, passwordSchema } from "@/lib/validation";
 
 const schema = z
   .object({
+    accountType: z.enum(["CLIENTE", "ADOPTANTE"]),
     fullName: fullNameSchema,
     email: z.string().trim().min(1, "Escribe tu correo").email("Correo inválido"),
     phone: z
@@ -52,7 +53,14 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { fullName: "", email: "", phone: "", password: "", confirm: "" },
+    defaultValues: {
+      accountType: "CLIENTE",
+      fullName: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirm: "",
+    },
   });
 
   useEffect(() => {
@@ -68,6 +76,7 @@ export default function RegisterPage() {
         phone: v.phone || undefined,
         password: v.password,
         acceptTerms: v.acceptTerms,
+        accountType: v.accountType,
       });
       await login(v.email, v.password);
       toast.success("¡Bienvenido! Tu cuenta fue creada.");
@@ -113,6 +122,12 @@ export default function RegisterPage() {
             </span>
           </div>
         )}
+        <FormField label="Tipo de cuenta" required>
+          <Select {...register("accountType")}>
+            <option value="CLIENTE">Cliente: tengo un animal y quiero ver su historial</option>
+            <option value="ADOPTANTE">Adoptante: quiero adoptar un animal</option>
+          </Select>
+        </FormField>
         <FormField label="Nombre completo" required error={errors.fullName?.message}>
           <Input autoComplete="name" {...register("fullName")} />
         </FormField>

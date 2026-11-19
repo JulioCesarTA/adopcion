@@ -7,6 +7,7 @@ import {
   Mail,
   PawPrint,
   ShieldAlert,
+  Stethoscope,
   Syringe,
   UserCog,
   Users,
@@ -20,15 +21,20 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   GESTION: "Gestión Animal y Adopciones",
   DIRECTIVO: "Personal Directivo",
   CLIENTE: "Cliente",
+  ADOPTANTE: "Adoptante",
 };
 
 /** Roles del personal interno (el sistema de gestión). */
 export const STAFF_ROLES: UserRole[] = ["ADMIN", "VETERINARIO", "GESTION", "DIRECTIVO"];
-/** Roles que el ADMIN puede asignar (incluye CLIENTE para cuentas del portal). */
-export const ALL_ROLES: UserRole[] = [...STAFF_ROLES, "CLIENTE"];
+/** Todos los valores del enum (GESTION y DIRECTIVO ya no se asignan, pero pueden existir en la BD). */
+export const ALL_ROLES: UserRole[] = [...STAFF_ROLES, "CLIENTE", "ADOPTANTE"];
+/** Roles que el ADMIN puede asignar hoy. Las funciones de GESTION y DIRECTIVO las asume el ADMIN. */
+export const ASSIGNABLE_ROLES: UserRole[] = ["ADMIN", "VETERINARIO", "CLIENTE", "ADOPTANTE"];
 
 /** Ruta de inicio según el rol. */
-export const homeForRole = (role: UserRole) => (role === "CLIENTE" ? "/portal" : "/dashboard");
+/** Roles que usan el portal (no el sistema de gestión). */
+export const isPortalRole = (role: UserRole) => role === "CLIENTE" || role === "ADOPTANTE";
+export const homeForRole = (role: UserRole) => (isPortalRole(role) ? "/portal" : "/dashboard");
 
 export interface NavItem {
   label: string;
@@ -46,10 +52,11 @@ const D: UserRole = "DIRECTIVO";
 export const NAV_ITEMS: NavItem[] = [
   { label: "Panel", href: "/dashboard", icon: LayoutDashboard, roles: [A, V, G, D] },
   { label: "Animales", href: "/animales", icon: PawPrint, roles: [A, V, G, D] },
+  { label: "Registrar consulta", href: "/consultas", icon: Stethoscope, roles: [A, V] },
   { label: "Cuarentena", href: "/cuarentena", icon: ShieldAlert, roles: [A, V, G] },
   { label: "Vacunas", href: "/vacunas", icon: Syringe, roles: [A, V] },
   { label: "Adoptables", href: "/adoptables", icon: Heart, roles: [A, V, G, D] },
-  { label: "Adoptantes", href: "/adoptantes", icon: Users, roles: [G] },
+  { label: "Adoptantes", href: "/adoptantes", icon: Users, roles: [A, G] },
   { label: "Solicitudes", href: "/solicitudes", icon: ClipboardList, roles: [A, G, D] },
   { label: "KPIs", href: "/kpis", icon: BarChart3, roles: [A, V, G, D] },
   { label: "Mensajes web", href: "/mensajes", icon: Mail, roles: [A, G] },
@@ -59,18 +66,18 @@ export const NAV_ITEMS: NavItem[] = [
 
 /** Subrutas con permisos más restrictivos que su ítem del menú (sección 3). */
 const ROUTE_RULES: { pattern: RegExp; roles: UserRole[]; title: string }[] = [
-  { pattern: /^\/animales\/nuevo$/, roles: [G], title: "Registrar animal" },
-  { pattern: /^\/animales\/[^/]+\/editar$/, roles: [G], title: "Editar animal" },
-  { pattern: /^\/animales\/[^/]+\/consultas\/nueva$/, roles: [V], title: "Nueva consulta" },
+  { pattern: /^\/animales\/nuevo$/, roles: [A, G], title: "Registrar animal" },
+  { pattern: /^\/animales\/[^/]+\/editar$/, roles: [A, G], title: "Editar animal" },
+  { pattern: /^\/animales\/[^/]+\/consultas\/nueva$/, roles: [A, V], title: "Nueva consulta" },
   {
     pattern: /^\/animales\/[^/]+\/consultas\/[^/]+$/,
     roles: [A, V, G, D],
     title: "Consulta veterinaria",
   },
-  { pattern: /^\/adoptantes\/nuevo$/, roles: [G], title: "Nuevo adoptante" },
-  { pattern: /^\/adoptantes\/[^/]+\/editar$/, roles: [G], title: "Editar adoptante" },
-  { pattern: /^\/solicitudes\/nueva$/, roles: [G], title: "Nueva solicitud" },
-  { pattern: /^\/solicitudes\/[^/]+\/acta$/, roles: [G], title: "Acta de adopción" },
+  { pattern: /^\/adoptantes\/nuevo$/, roles: [A, G], title: "Nuevo adoptante" },
+  { pattern: /^\/adoptantes\/[^/]+\/editar$/, roles: [A, G], title: "Editar adoptante" },
+  { pattern: /^\/solicitudes\/nueva$/, roles: [A, G], title: "Nueva solicitud" },
+  { pattern: /^\/solicitudes\/[^/]+\/acta$/, roles: [A, G], title: "Acta de adopción" },
 ];
 
 const EXTRA_TITLES: Record<string, string> = { "/perfil": "Mi perfil" };
@@ -94,7 +101,7 @@ export function titleForPath(pathname: string): string {
     EXTRA_TITLES[pathname] ??
     ROUTE_RULES.find((r) => r.pattern.test(pathname))?.title ??
     matchItem(pathname)?.label ??
-    "Zoonosis SCZ"
+    "Adopet"
   );
 }
 

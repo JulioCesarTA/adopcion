@@ -72,11 +72,12 @@ export function useVaccines(active?: boolean) {
 
 export interface ConsultationInput {
   consultationDate: string;
-  reason: string;
+  reason?: string;
   weightKg?: number;
   temperatureC?: number;
-  clinicalEvaluation: string;
+  clinicalEvaluation?: string;
   observations?: string;
+  animalStatus?: string;
 }
 
 export interface MedicationInput {

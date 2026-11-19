@@ -87,8 +87,8 @@ export class AppConfigService {
       secure: this.config.get<string>('SMTP_SECURE') === 'true',
       user: this.str('SMTP_USER'),
       pass: this.str('SMTP_PASS'),
-      from: this.str('MAIL_FROM', 'Zoonosis SCZ <no-reply@zoonosis.test>'),
-      contactTo: this.str('CONTACT_TO', 'contacto@zoonosis.test'),
+      from: this.str('MAIL_FROM', 'Adopet <no-reply@adopet.test>'),
+      contactTo: this.str('CONTACT_TO', 'contacto@adopet.test'),
     };
   }
 
@@ -105,11 +105,11 @@ export class AppConfigService {
 
   get institution() {
     return {
-      name: this.str('INSTITUTION_NAME', 'Asociación de Zoonosis de Santa Cruz de la Sierra'),
-      shortName: this.str('INSTITUTION_SHORT_NAME', 'Zoonosis SCZ'),
+      name: this.str('INSTITUTION_NAME', 'Adopet'),
+      shortName: this.str('INSTITUTION_SHORT_NAME', 'Adopet'),
       address: this.str('INSTITUTION_ADDRESS', 'Santa Cruz de la Sierra, Bolivia'),
       phone: this.str('INSTITUTION_PHONE', '+591 3 000 0000'),
-      email: this.str('INSTITUTION_EMAIL', 'contacto@zoonosis.test'),
+      email: this.str('INSTITUTION_EMAIL', 'contacto@adopet.test'),
       hours: this.str(
         'INSTITUTION_HOURS',
         'Lunes a viernes de 8:00 a 16:00; sábados de 8:00 a 12:00',

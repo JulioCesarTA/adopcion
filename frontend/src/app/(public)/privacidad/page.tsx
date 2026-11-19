@@ -7,9 +7,8 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Política de Privacidad y Cookies" updated="14 de noviembre de 2026">
       <p>
-        La Asociación de Zoonosis de Santa Cruz de la Sierra (en adelante, «la Institución») respeta
-        tu privacidad. Esta política explica qué datos recopilamos, para qué los usamos y qué
-        derechos tienes.
+        Adopet (en adelante, «la Institución») respeta tu privacidad. Esta política explica qué
+        datos recopilamos, para qué los usamos y qué derechos tienes.
       </p>
 
       <h2>1. Datos que recopilamos</h2>

@@ -17,7 +17,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { PeriodType, TreatmentStatus } from '@prisma/client';
+import { AnimalStatus, PeriodType, TreatmentStatus } from '@prisma/client';
 
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() || undefined : value;
@@ -30,35 +30,31 @@ export class CreateConsultationDto {
   @IsDateString({}, { message: 'Fecha y hora inválidas' })
   consultationDate: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @Transform(trim)
   @IsString()
-  @IsNotEmpty(required('El motivo'))
   @MaxLength(255)
-  reason: string;
+  reason?: string;
 
   @ApiPropertyOptional({ description: 'Peso en kg (> 0)' })
   @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Peso inválido' })
-  @Min(0.01, { message: 'El peso debe ser mayor a 0' })
-  @Max(9999)
   weightKg?: number;
 
-  @ApiPropertyOptional({ description: 'Temperatura en °C (30–45)' })
+  @ApiPropertyOptional({ description: 'Temperatura en °C' })
   @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 1 }, { message: 'Temperatura inválida' })
-  @Min(30, { message: 'La temperatura debe estar entre 30 y 45 °C' })
-  @Max(45, { message: 'La temperatura debe estar entre 30 y 45 °C' })
   temperatureC?: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @Transform(trim)
   @IsString()
-  @IsNotEmpty(required('La evaluación clínica'))
   @MaxLength(5000)
-  clinicalEvaluation: string;
+  clinicalEvaluation?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -66,9 +62,16 @@ export class CreateConsultationDto {
   @IsString()
   @MaxLength(5000)
   observations?: string;
+
+  @ApiPropertyOptional({ enum: AnimalStatus, description: 'Si viene, cambia el estado del animal' })
+  @IsOptional()
+  @IsEnum(AnimalStatus, { message: 'Estado inválido' })
+  animalStatus?: AnimalStatus;
 }
 
-export class UpdateConsultationDto extends PartialType(CreateConsultationDto) {}
+export class UpdateConsultationDto extends PartialType(
+  OmitType(CreateConsultationDto, ['animalStatus'] as const),
+) {}
 
 // ---------- Diagnósticos y tratamientos (CU07) ----------
 

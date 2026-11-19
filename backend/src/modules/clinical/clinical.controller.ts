@@ -49,7 +49,7 @@ export class ClinicalController {
     return this.clinical.listConsultations(id);
   }
 
-  @Roles(VETERINARIO)
+  @Roles(VETERINARIO, ADMIN)
   @Post('animals/:id/consultations')
   createConsultation(
     @Param('id', ParseUUIDPipe) id: string,
@@ -75,13 +75,13 @@ export class ClinicalController {
     return this.clinical.updateConsultation(id, dto, user);
   }
 
-  @Roles(VETERINARIO)
+  @Roles(VETERINARIO, ADMIN)
   @Post('consultations/:id/diagnoses')
   addDiagnosis(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateDiagnosisDto) {
     return this.clinical.addDiagnosis(id, dto);
   }
 
-  @Roles(VETERINARIO)
+  @Roles(VETERINARIO, ADMIN)
   @Post('consultations/:id/treatments')
   addTreatment(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateTreatmentDto) {
     return this.clinical.addTreatment(id, dto);
@@ -97,7 +97,7 @@ export class ClinicalController {
     return this.clinical.updateTreatment(id, dto, user);
   }
 
-  @Roles(VETERINARIO)
+  @Roles(VETERINARIO, ADMIN)
   @Post('treatments/:id/medications')
   addMedication(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateMedicationDto) {
     return this.clinical.addMedication(id, dto);
@@ -151,7 +151,7 @@ export class ClinicalController {
     return this.clinical.listPeriods(id);
   }
 
-  @Roles(VETERINARIO, GESTION)
+  @Roles(VETERINARIO, GESTION, ADMIN)
   @Post('animals/:id/periods')
   startPeriod(
     @Param('id', ParseUUIDPipe) id: string,

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 const MAX_TURNS = 20;
 const MAX_CHARS = 2000;
 const GREETING =
-  "¡Hola! Soy el asistente virtual de Zoonosis SCZ. Puedo ayudarte con preguntas sobre adopción, vacunas, horarios y tenencia responsable. ¿En qué te ayudo?";
+  "¡Hola! Soy el asistente virtual de Adopet. Puedo ayudarte con preguntas sobre adopción, vacunas, horarios y tenencia responsable. ¿En qué te ayudo?";
 const SUGGESTIONS = [
   "¿Cómo puedo adoptar?",
   "¿Cuál es el horario de atención?",

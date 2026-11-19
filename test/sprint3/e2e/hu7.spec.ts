@@ -3,17 +3,17 @@ import { captura, type Campo, login, registrar, USUARIOS } from './helpers';
 
 /**
  * HU7 — Panel de KPI en Tiempo Real.
- * El personal directivo revisa el panel de indicadores y abre la pantalla de
+ * El administrador revisa el panel de indicadores y abre la pantalla de
  * indicadores de gestión.
  */
 test('HU7: revisar el panel y los indicadores de gestión', async ({ page }) => {
   const datos: Campo[] = [
-    { campo: 'Usuario', valor: USUARIOS.directivo },
+    { campo: 'Usuario', valor: USUARIOS.admin },
     { campo: 'Contraseña', valor: 'contraseña válida' },
     { campo: 'Periodo de análisis', valor: 'Últimos 3 meses' },
   ];
 
-  await login(page, USUARIOS.directivo);
+  await login(page, USUARIOS.admin);
   const main = page.getByRole('main');
   const TARJETAS = [
     'En la institución',

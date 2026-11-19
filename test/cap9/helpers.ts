@@ -2,8 +2,13 @@ import { expect, type Browser, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-export const CAPTURAS = resolve(__dirname, '../../docs/pruebas-cap9/capturas');
-export const EVIDENCIA = resolve(__dirname, 'evidencia');
+// PRUEBAS_OUT permite guardar una ejecución nueva sin tocar la evidencia versionada del capítulo.
+export const CAPTURAS = process.env.PRUEBAS_OUT
+  ? resolve(process.env.PRUEBAS_OUT, 'capturas')
+  : resolve(__dirname, '../../docs/pruebas-cap9/capturas');
+export const EVIDENCIA = process.env.PRUEBAS_OUT
+  ? resolve(process.env.PRUEBAS_OUT, 'sistema')
+  : resolve(__dirname, 'evidencia');
 
 /** Usuarios del seed del Sprint 3 (test/sprint3/seed-sprint3.ts). */
 export const USUARIOS = {
@@ -11,6 +16,7 @@ export const USUARIOS = {
   veterinario: 'veterinario.prueba@zoonosis.test',
   gestion: 'adopciones.prueba@zoonosis.test',
   directivo: 'directivo.prueba@zoonosis.test',
+  cliente: 'cliente.prueba@zoonosis.test',
 } as const;
 
 export function password(): string {
@@ -38,6 +44,15 @@ export async function login(page: Page, email: string, pass = password()) {
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
   await page.waitForURL('**/dashboard');
   await expect(page.getByRole('link', { name: 'Animales' })).toBeVisible();
+}
+
+/** Inicia sesión una cuenta del portal (cliente o adoptante), que entra a /portal. */
+export async function loginPortal(page: Page, email: string, pass = password()) {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Contraseña').fill(pass);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await page.waitForURL('**/portal');
 }
 
 /** Captura de la ventana del navegador (1280 × 800). */

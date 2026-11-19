@@ -13,6 +13,7 @@ import {
   Max,
   MaxLength,
   Min,
+  IsUUID,
 } from 'class-validator';
 import { AnimalSize, AnimalStatus, Sex, Species } from '@prisma/client';
 import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
@@ -124,6 +125,11 @@ export class CreateAnimalDto {
   @IsNotEmpty({ message: 'El motivo de ingreso es obligatorio' })
   @MaxLength(255)
   entryReason: string;
+
+  @ApiPropertyOptional({ description: 'Dueño del animal (usuario con rol CLIENTE)' })
+  @IsOptional()
+  @IsUUID('4', { message: 'Dueño inválido' })
+  ownerId?: string | null;
 }
 
 export class UpdateAnimalDto extends PartialType(CreateAnimalDto) {
@@ -135,6 +141,11 @@ export class UpdateAnimalDto extends PartialType(CreateAnimalDto) {
   @IsString()
   @MaxLength(2000)
   exitNotes?: string;
+
+  @ApiPropertyOptional({ enum: AnimalStatus, description: 'Estado del animal (se edita a mano)' })
+  @IsOptional()
+  @IsEnum(AnimalStatus, { message: 'Estado inválido' })
+  status?: AnimalStatus;
 }
 
 export class ListAnimalsQueryDto extends PaginationQueryDto {
@@ -157,6 +168,11 @@ export class ListAnimalsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(Sex)
   sex?: Sex;
+
+  @ApiPropertyOptional({ enum: AnimalSize })
+  @IsOptional()
+  @IsEnum(AnimalSize)
+  size?: AnimalSize;
 }
 
 export class AdoptableQueryDto extends PaginationQueryDto {

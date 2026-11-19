@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
+import { toast } from "sonner";
 import { AnimalCard } from "@/components/animals/animal-card";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/info";
@@ -12,18 +14,17 @@ import { Card } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePublicAnimals, type PublicAnimal } from "@/hooks/use-public";
-import { errorMessage } from "@/lib/api";
+import { api, errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { animalName, SIZE, SPECIES, options } from "@/lib/labels";
 
-/** Portal del cliente: catálogo de adoptables + contacto para expresar interés. */
+/** Portal del cliente: catálogo de adoptables; el cliente solicita la adopción con un clic. */
 export default function PortalHome() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [species, setSpecies] = useState("");
   const [size, setSize] = useState("");
   const [page, setPage] = useState(1);
-  const [interest, setInterest] = useState<PublicAnimal | null>(null);
-  const contactRef = useRef<HTMLDivElement>(null);
   const { data, isLoading, error, refetch } = usePublicAnimals({
     species,
     size,
@@ -32,16 +33,26 @@ export default function PortalHome() {
   });
   const totalPages = data ? Math.max(1, Math.ceil(data.meta.total / data.meta.pageSize)) : 1;
 
-  const showInterest = (a: PublicAnimal) => {
-    setInterest(a);
-    setTimeout(() => contactRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+  const solicitar = useMutation({
+    mutationFn: (animalId: string) =>
+      api("/adoptions/mine", { method: "POST", body: { animalId } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["public-animals"] }),
+  });
+
+  const pedir = async (a: PublicAnimal) => {
+    try {
+      await solicitar.mutateAsync(a.id);
+      toast.success(`Solicitud enviada para ${animalName(a)}. El personal la revisará.`);
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
   };
 
   return (
     <>
       <PageHeader
         title="Animales en adopción"
-        description="Elige al compañero que buscas y cuéntanos tu interés: el personal te contactará para la entrevista."
+        description="Elige al compañero que buscas y solicita su adopción: el personal revisará tu solicitud."
       />
       <Card className="mb-6 grid gap-3 p-4 sm:grid-cols-2 lg:w-fit lg:grid-cols-[auto_auto]">
         <Select
@@ -97,9 +108,15 @@ export default function PortalHome() {
                 animal={a}
                 href={null}
                 actions={
-                  <Button size="sm" onClick={() => showInterest(a)}>
-                    <Heart className="h-4 w-4" aria-hidden /> Me interesa
-                  </Button>
+                  a.status === "EN_PROCESO_ADOPCION" || user?.role !== "ADOPTANTE" ? null : (
+                    <Button
+                      size="sm"
+                      loading={solicitar.isPending && solicitar.variables === a.id}
+                      onClick={() => void pedir(a)}
+                    >
+                      <Heart className="h-4 w-4" aria-hidden /> Solicitar adopción
+                    </Button>
+                  )
                 }
               />
             ))}
@@ -130,26 +147,14 @@ export default function PortalHome() {
         </>
       )}
 
-      <div ref={contactRef} className="mt-12 scroll-mt-24">
-        <h2 className="text-xl font-semibold text-slate-900">
-          {interest ? `Quiero adoptar a ${animalName(interest)}` : "¿Tienes alguna consulta?"}
-        </h2>
-        <p className="mb-4 mt-1 text-sm text-slate-500">
-          Te responderemos por correo. La decisión de cada adopción la toma el personal tras una
-          entrevista.
-        </p>
+      <div className="mt-12">
+        <h2 className="text-xl font-semibold text-slate-900">¿Tienes alguna consulta?</h2>
+        <p className="mb-4 mt-1 text-sm text-slate-500">Te responderemos por correo.</p>
         <ContactForm
-          key={interest?.id ?? "general"}
           initial={{
             name: user?.fullName ?? "",
             email: user?.email ?? "",
             phone: user?.phone ?? "",
-            ...(interest
-              ? {
-                  subject: `Interés en adoptar a ${animalName(interest)} (${interest.code})`,
-                  message: `Hola, me interesa adoptar a ${animalName(interest)} (${interest.code}). Quisiera coordinar una entrevista.`,
-                }
-              : {}),
           }}
         />
       </div>

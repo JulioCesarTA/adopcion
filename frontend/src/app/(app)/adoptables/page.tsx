@@ -1,22 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Heart } from "lucide-react";
 import { AnimalCard } from "@/components/animals/animal-card";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/info";
 import { PageHeader } from "@/components/layout/page-header";
-import { RecommendationDialog } from "@/components/adoptions/recommendation-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdoptable } from "@/hooks/use-animals";
 import { errorMessage } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { SIZE, SPECIES, options } from "@/lib/labels";
-import type { AnimalListItem } from "@/lib/types";
 
 const AGE_RANGES = {
   "": { label: "Todas las edades" },
@@ -28,14 +24,11 @@ const AGE_RANGES = {
 
 /** CU24: catálogo de animales adoptables en tarjetas con foto. */
 export default function AdoptablePage() {
-  const { hasRole } = useAuth();
-  const isGestion = hasRole("GESTION");
   const [species, setSpecies] = useState("");
   const [size, setSize] = useState("");
   const [age, setAge] = useState<keyof typeof AGE_RANGES>("");
   const [maxEnergy, setMaxEnergy] = useState("");
   const [page, setPage] = useState(1);
-  const [recoFor, setRecoFor] = useState<AnimalListItem | null>(null);
   const range = AGE_RANGES[age] as { min?: number; max?: number };
 
   const { data, isLoading, error, refetch } = useAdoptable({
@@ -125,25 +118,7 @@ export default function AdoptablePage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {data.data.map((a) => (
-              <AnimalCard
-                key={a.id}
-                animal={a}
-                actions={
-                  isGestion && (
-                    <>
-                      <Button variant="outline" size="sm" onClick={() => setRecoFor(a)}>
-                        Ver recomendación
-                      </Button>
-                      <Link
-                        href={`/solicitudes/nueva?animalId=${a.id}`}
-                        className="inline-flex h-8 items-center rounded-lg bg-teal-600 px-3 text-sm font-medium text-white hover:bg-teal-700"
-                      >
-                        Solicitar adopción
-                      </Link>
-                    </>
-                  )
-                }
-              />
+              <AnimalCard key={a.id} animal={a} />
             ))}
           </div>
           {totalPages > 1 && (
@@ -171,7 +146,6 @@ export default function AdoptablePage() {
           )}
         </>
       )}
-      {recoFor && <RecommendationDialog animal={recoFor} onClose={() => setRecoFor(null)} />}
     </>
   );
 }

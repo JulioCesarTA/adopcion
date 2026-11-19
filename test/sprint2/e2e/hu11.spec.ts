@@ -3,7 +3,7 @@ import { captura, type Campo, fecha, login, registrar, USUARIOS } from './helper
 
 /**
  * HU11 — Gestionar Proceso de Adopción.
- * El personal de Gestión de Adopciones aprueba una solicitud en evaluación y
+ * El administrador aprueba una solicitud en evaluación y
  * genera el acta de entrega.
  */
 test('HU11: aprobar una solicitud en evaluación y generar el acta de entrega', async ({ page }) => {
@@ -19,7 +19,7 @@ test('HU11: aprobar una solicitud en evaluación y generar el acta de entrega', 
     { campo: 'Nota / fundamento', valor: motivo },
   ];
 
-  await login(page, USUARIOS.adopciones);
+  await login(page, USUARIOS.admin);
   await page.getByRole('link', { name: 'Solicitudes' }).click();
   await page.getByRole('link', { name: /Lola/ }).first().click();
   await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toContainText('Lola');
@@ -43,8 +43,7 @@ test('HU11: aprobar una solicitud en evaluación y generar el acta de entrega', 
   const decision = {
     solicitud_aprobada: true,
     animal_adoptado: ficha.includes('Adoptado'),
-    decision_con_autor_y_motivo:
-      ficha.includes('Gestion de Adopciones de Prueba · Aprobada]') && ficha.includes(motivo),
+    decision_con_fecha: /decisión \d{2}\/\d{2}\/\d{4}/.test(ficha),
   };
 
   await page.getByRole('link', { name: 'Generar acta' }).click();

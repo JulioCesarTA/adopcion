@@ -3,7 +3,7 @@
  * Una prueba por camino independiente (técnica del camino básico).
  * Prisma y el almacenamiento están simulados con jest.fn().
  */
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import type { PrismaService } from '../../prisma/prisma.service';
 import type { StorageService } from '../storage/storage.service';
 import type { AnimalStatusService } from './animal-status.service';
@@ -58,7 +58,7 @@ describe('CB-HU1-A AnimalsService.create (registrar animal)', () => {
     const animal = await service.create(dto, user);
     expect(animal.code).toBe(`ZOO-${year}-0008`);
     expect(animal.status).toBe('INGRESADO');
-    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+    expect(tx.animal.findFirst).toHaveBeenCalledTimes(1);
   });
 
   it('CB-HU1-A-C2: no hay códigos este año → asigna el 0001', async () => {
@@ -96,11 +96,11 @@ describe('CB-HU1-B AnimalsService.update (editar animal)', () => {
     expect(data.entryDate).toBeInstanceOf(Date);
   });
 
-  it('CB-HU1-B-C4: animal adoptado y se intenta cambiar el nombre → ConflictException', async () => {
+  it('CB-HU1-B-C4: animal adoptado y se cambia el nombre → actualiza', async () => {
     const { service, prisma, tx } = setup();
     prisma.animal.findFirst.mockResolvedValue({ id: ID, status: 'ADOPTADO' });
-    await expect(service.update(ID, { name: 'Otro' })).rejects.toThrow(ConflictException);
-    expect(tx.animal.update).not.toHaveBeenCalled();
+    await service.update(ID, { name: 'Otro' });
+    expect(tx.animal.update).toHaveBeenCalledWith({ where: { id: ID }, data: { name: 'Otro' } });
   });
 
   it('CB-HU1-B-C5: animal adoptado y solo se editan las notas → actualiza', async () => {

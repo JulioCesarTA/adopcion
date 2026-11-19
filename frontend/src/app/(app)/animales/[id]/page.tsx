@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Heart,
   HeartOff,
-  LogOut,
   Pencil,
   RotateCcw,
   ShieldAlert,
@@ -19,7 +18,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ErrorState, InfoGrid, InfoItem, PageSkeleton, YesNo } from "@/components/info";
 import { StatusBadge } from "@/components/status-badge";
 import { AnimalPhoto } from "@/components/animals/animal-photo";
-import { ExitDialog, ReadmitDialog } from "@/components/animals/animal-dialogs";
+import { ReadmitDialog } from "@/components/animals/animal-dialogs";
 import { PeriodsPanel } from "@/components/clinical/periods-panel";
 import { StartPeriodDialog } from "@/components/clinical/period-dialogs";
 import { Timeline } from "@/components/clinical/timeline";
@@ -92,13 +91,11 @@ export default function AnimalDetailPage({ params }: { params: Promise<{ id: str
 function Header({ animal }: { animal: AnimalDetail }) {
   const { hasRole } = useAuth();
   const { enableAdoption, disableAdoption } = useAnimalMutations(animal.id);
-  const [dialog, setDialog] = useState<null | "enable" | "disable" | "exit" | "readmit" | "period">(
-    null,
-  );
+  const [dialog, setDialog] = useState<null | "enable" | "disable" | "readmit" | "period">(null);
   const name = animalName(animal);
   const s = animal.status;
   const isVet = hasRole("VETERINARIO");
-  const isGestion = hasRole("GESTION");
+  const isGestion = hasRole("GESTION", "ADMIN");
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     try {
@@ -128,7 +125,7 @@ function Header({ animal }: { animal: AnimalDetail }) {
           {formatAge(animal.ageMonths)}
         </p>
         <div className="mt-4 flex flex-wrap gap-2 no-print">
-          {isVet && !NO_RECORDS.includes(s) && (
+          {(isVet || hasRole("ADMIN")) && !NO_RECORDS.includes(s) && (
             <Link
               href={`/animales/${animal.id}/consultas/nueva`}
               className={`${linkBtn} bg-teal-600 text-white hover:bg-teal-700`}
@@ -141,12 +138,12 @@ function Header({ animal }: { animal: AnimalDetail }) {
               <ShieldAlert className="h-4 w-4" aria-hidden /> Iniciar cuarentena
             </Button>
           )}
-          {isVet && s === "INGRESADO" && (
+          {(isVet || hasRole("ADMIN")) && s === "INGRESADO" && (
             <Button variant="outline" onClick={() => setDialog("enable")}>
               <Heart className="h-4 w-4" aria-hidden /> Habilitar para adopción
             </Button>
           )}
-          {isVet && s === "DISPONIBLE_ADOPCION" && (
+          {(isVet || hasRole("ADMIN")) && s === "DISPONIBLE_ADOPCION" && (
             <Button variant="outline" onClick={() => setDialog("disable")}>
               <HeartOff className="h-4 w-4" aria-hidden /> Retirar de adopción
             </Button>
@@ -162,21 +159,6 @@ function Header({ animal }: { animal: AnimalDetail }) {
           {isGestion && s === "ADOPTADO" && (
             <Button variant="outline" onClick={() => setDialog("readmit")}>
               <RotateCcw className="h-4 w-4" aria-hidden /> Reingreso
-            </Button>
-          )}
-          {isGestion && !NO_RECORDS.includes(s) && (
-            <Button
-              variant="ghost"
-              className="text-red-600 hover:bg-red-50 hover:text-red-700"
-              onClick={() => setDialog("exit")}
-              disabled={s === "EN_PROCESO_ADOPCION"}
-              title={
-                s === "EN_PROCESO_ADOPCION"
-                  ? "Cancela la solicitud activa antes de registrar la salida"
-                  : undefined
-              }
-            >
-              <LogOut className="h-4 w-4" aria-hidden /> Registrar salida
             </Button>
           )}
         </div>
@@ -218,7 +200,6 @@ function Header({ animal }: { animal: AnimalDetail }) {
         }
         onCancel={() => setDialog(null)}
       />
-      {dialog === "exit" && <ExitDialog animalId={animal.id} onClose={() => setDialog(null)} />}
       {dialog === "readmit" && (
         <ReadmitDialog animalId={animal.id} onClose={() => setDialog(null)} />
       )}
@@ -330,7 +311,7 @@ function AdoptionTab({ animal }: { animal: AnimalDetail }) {
   const canSee = hasRole("ADMIN", "GESTION", "DIRECTIVO");
   return (
     <div className="space-y-4">
-      {hasRole("GESTION") && animal.status === "DISPONIBLE_ADOPCION" && (
+      {hasRole("GESTION", "ADMIN") && animal.status === "DISPONIBLE_ADOPCION" && (
         <div className="flex justify-end">
           <Link
             href={`/solicitudes/nueva?animalId=${animal.id}`}

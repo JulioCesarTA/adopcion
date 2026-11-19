@@ -17,6 +17,7 @@ enum UserRole {
   GESTION
   DIRECTIVO
   CLIENTE
+  ADOPTANTE
 
   @@map("user_role")
 }
@@ -131,17 +132,20 @@ model User {
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  animalsCreated       Animal[]                       @relation("AnimalCreatedBy")
-  vaccinationsApplied  Vaccination[]
-  consultations        VeterinaryConsultation[]
-  periodsStarted       QuarantinePeriod[]             @relation("PeriodStartedBy")
-  periodsClosed        QuarantinePeriod[]             @relation("PeriodClosedBy")
-  quarantineControls   QuarantineControl[]
-  adoptionRequests     AdoptionRequest[]
-  recommendations      CompatibilityRecommendation[]
-  followups            AdoptionFollowup[]
-  algorithmSettings    AlgorithmSetting[]
-  mlModels             MlModel[]
+  animalsCreated      Animal[]                      @relation("AnimalCreatedBy")
+  vaccinationsApplied Vaccination[]
+  consultations       VeterinaryConsultation[]
+  periodsStarted      QuarantinePeriod[]            @relation("PeriodStartedBy")
+  periodsClosed       QuarantinePeriod[]            @relation("PeriodClosedBy")
+  quarantineControls  QuarantineControl[]
+  adoptionRequests    AdoptionRequest[]
+  recommendations     CompatibilityRecommendation[]
+  followups           AdoptionFollowup[]
+  algorithmSettings   AlgorithmSetting[]
+  mlModels            MlModel[]
+  bookingsAsClient    ConsultationBooking[]         @relation("BookingClient")
+  bookingsCreated     ConsultationBooking[]         @relation("BookingCreatedBy")
+  animalsOwned        Animal[]                      @relation("AnimalOwner")
 
   @@map("users")
 }
@@ -163,42 +167,45 @@ model Person {
 }
 
 model Animal {
-  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code               String       @unique @db.VarChar(20)
-  name               String?      @db.VarChar(100)
-  species            Species
-  breed              String?      @db.VarChar(100)
-  sex                Sex          @default(DESCONOCIDO)
-  ageMonths          Int?         @map("age_months")
-  color              String?      @db.VarChar(100)
-  size               AnimalSize
-  energyLevel        Int          @map("energy_level") @db.SmallInt
-  temperament        String?
-  goodWithChildren   Boolean      @default(false) @map("good_with_children")
-  goodWithAnimals    Boolean      @default(false) @map("good_with_animals")
-  needsYard          Boolean      @default(false) @map("needs_yard")
-  specialCare        Boolean      @default(false) @map("special_care")
-  specialCareNotes   String?      @map("special_care_notes")
-  requiredDailyHours Decimal      @default(2) @map("required_daily_hours") @db.Decimal(4, 1)
-  physicalDescription String?     @map("physical_description")
-  photoUrl           String?      @map("photo_url") @db.VarChar(500)
-  entryDate          DateTime     @map("entry_date") @db.Timestamptz(6)
-  entryReason        String       @map("entry_reason") @db.VarChar(255)
-  status             AnimalStatus @default(INGRESADO)
-  exitDate           DateTime?    @map("exit_date") @db.Timestamptz(6)
-  exitReason         String?      @map("exit_reason") @db.VarChar(100)
-  exitNotes          String?      @map("exit_notes")
-  deletedAt          DateTime?    @map("deleted_at") @db.Timestamptz(6)
-  createdById        String       @map("created_by") @db.Uuid
-  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                String       @unique @db.VarChar(20)
+  name                String?      @db.VarChar(100)
+  species             Species
+  breed               String?      @db.VarChar(100)
+  sex                 Sex          @default(DESCONOCIDO)
+  ageMonths           Int?         @map("age_months")
+  color               String?      @db.VarChar(100)
+  size                AnimalSize
+  energyLevel         Int          @map("energy_level") @db.SmallInt
+  temperament         String?
+  goodWithChildren    Boolean      @default(false) @map("good_with_children")
+  goodWithAnimals     Boolean      @default(false) @map("good_with_animals")
+  needsYard           Boolean      @default(false) @map("needs_yard")
+  specialCare         Boolean      @default(false) @map("special_care")
+  specialCareNotes    String?      @map("special_care_notes")
+  requiredDailyHours  Decimal      @default(2) @map("required_daily_hours") @db.Decimal(4, 1)
+  physicalDescription String?      @map("physical_description")
+  photoUrl            String?      @map("photo_url") @db.VarChar(500)
+  entryDate           DateTime     @map("entry_date") @db.Timestamptz(6)
+  entryReason         String       @map("entry_reason") @db.VarChar(255)
+  status              AnimalStatus @default(INGRESADO)
+  exitDate            DateTime?    @map("exit_date") @db.Timestamptz(6)
+  exitReason          String?      @map("exit_reason") @db.VarChar(100)
+  exitNotes           String?      @map("exit_notes")
+  deletedAt           DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  createdById         String       @map("created_by") @db.Uuid
+  ownerId             String?      @map("owner_id") @db.Uuid
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   createdBy        User                          @relation("AnimalCreatedBy", fields: [createdById], references: [id])
+  owner            User?                         @relation("AnimalOwner", fields: [ownerId], references: [id])
   vaccinations     Vaccination[]
   consultations    VeterinaryConsultation[]
   periods          QuarantinePeriod[]
   adoptionRequests AdoptionRequest[]
   recommendations  CompatibilityRecommendation[]
+  bookings         ConsultationBooking[]
 
   @@index([status], map: "idx_animals_status")
   @@index([species], map: "idx_animals_species")
@@ -343,19 +350,19 @@ model QuarantineControl {
 }
 
 model AdopterProfile {
-  id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personId             String           @unique @map("person_id") @db.Uuid
-  housingType          HousingType      @map("housing_type")
-  hasYard              Boolean          @map("has_yard")
-  hasChildren          Boolean          @map("has_children")
-  hasOtherAnimals      Boolean          @map("has_other_animals")
-  availableHoursPerDay Decimal          @map("available_hours_per_day") @db.Decimal(4, 1)
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personId             String          @unique @map("person_id") @db.Uuid
+  housingType          HousingType     @map("housing_type")
+  hasYard              Boolean         @map("has_yard")
+  hasChildren          Boolean         @map("has_children")
+  hasOtherAnimals      Boolean         @map("has_other_animals")
+  availableHoursPerDay Decimal         @map("available_hours_per_day") @db.Decimal(4, 1)
   experience           ExperienceLevel
-  preferredSpecies     Species?         @map("preferred_species")
-  preferredSize        AnimalSize?      @map("preferred_size")
+  preferredSpecies     Species?        @map("preferred_species")
+  preferredSize        AnimalSize?     @map("preferred_size")
   observations         String?
-  createdAt            DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   person           Person                        @relation(fields: [personId], references: [id])
   adoptionRequests AdoptionRequest[]
@@ -494,3 +501,32 @@ model ContactMessage {
   @@map("contact_messages")
 }
 
+enum BookingStatus {
+  PENDIENTE
+  CONFIRMADA
+  ATENDIDA
+  CANCELADA
+
+  @@map("booking_status")
+}
+
+/// Reserva de consulta: un cliente registrado reserva día y hora para un animal registrado.
+model ConsultationBooking {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  animalId    String        @map("animal_id") @db.Uuid
+  clientId    String        @map("client_id") @db.Uuid
+  createdById String        @map("created_by") @db.Uuid
+  scheduledAt DateTime      @map("scheduled_at") @db.Timestamptz(6)
+  reason      String        @db.VarChar(255)
+  notes       String?
+  status      BookingStatus @default(PENDIENTE)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  animal    Animal @relation(fields: [animalId], references: [id])
+  client    User   @relation("BookingClient", fields: [clientId], references: [id])
+  createdBy User   @relation("BookingCreatedBy", fields: [createdById], references: [id])
+
+  @@index([scheduledAt])
+  @@map("consultation_bookings")
+}
