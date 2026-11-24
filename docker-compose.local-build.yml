@@ -1,0 +1,10 @@
+# Override para construir las imágenes en la propia instancia
+# (deploy/build-deploy.sh): usa las imágenes locales y nunca las descarga.
+services:
+  backend:
+    image: zoonosis-backend:local
+    pull_policy: build
+
+  frontend:
+    image: zoonosis-frontend:local
+    pull_policy: build

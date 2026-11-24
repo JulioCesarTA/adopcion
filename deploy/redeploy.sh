@@ -53,6 +53,10 @@ $COMPOSE pull
 echo "==> Recreando contenedores"
 $COMPOSE up -d
 
+# Los contenedores recreados cambian de IP y nginx guarda la anterior:
+# sin recargarlo responde 502.
+docker exec zoonosis-nginx nginx -s reload
+
 echo "==> Esperando que el API responda"
 for i in $(seq 1 24); do
   sleep 5
