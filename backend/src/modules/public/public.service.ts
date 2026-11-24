@@ -133,10 +133,10 @@ export class PublicService {
       // Acuse de recibo al visitante (si falla no afecta al resultado)
       await this.mail.send({
         to: msg.email,
-        subject: `Recibimos tu mensaje — ${inst.shortName}`,
-        text: `Hola ${msg.name}, recibimos tu mensaje «${msg.subject}». Te responderemos a la brevedad.\n\n${inst.name}\n${inst.phone} · ${inst.hours}`,
+        subject: `¡Muchas gracias por contactarte! — ${inst.shortName}`,
+        text: `Hola ${msg.name}, ¡muchas gracias por contactarte con ${inst.shortName}! Recibimos tu mensaje «${msg.subject}» y te responderemos a la brevedad.\n\n${inst.name}\n${inst.phone} · ${inst.hours}`,
         html: MailService.layout(
-          `Hola ${msg.name}, recibimos tu mensaje`,
+          `¡Muchas gracias por contactarte, ${msg.name}! Recibimos tu mensaje y te responderemos a la brevedad.`,
           [
             ['Asunto', msg.subject],
             ['Atención', inst.hours],
