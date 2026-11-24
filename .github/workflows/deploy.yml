@@ -54,7 +54,7 @@ jobs:
             echo "upsert INSTITUTION_SHORT_NAME '\"Adopet\"'"
             echo "upsert INSTITUTION_PHONE '\"+591 67871058\"'"
             echo "upsert INSTITUTION_EMAIL 'torricojulioc@gmail.com'"
-            echo "upsert CONTACT_TO 'torricojulioc@gmail.com'"
+            echo "upsert CONTACT_TO ''"
             echo "upsert SOCIAL_FACEBOOK 'https://www.facebook.com/adopet.bo'"
             echo "upsert SOCIAL_INSTAGRAM 'https://www.instagram.com/adopetsantacruz/'"
             echo "upsert SOCIAL_TIKTOK 'https://www.tiktok.com/@adopetsantacruz'"

@@ -88,7 +88,8 @@ export class AppConfigService {
       user: this.str('SMTP_USER'),
       pass: this.str('SMTP_PASS'),
       from: this.str('MAIL_FROM', 'Adopet <no-reply@adopet.test>'),
-      contactTo: this.str('CONTACT_TO', 'contacto@adopet.test'),
+      // Vacío = no se avisa por correo a la institución.
+      contactTo: this.str('CONTACT_TO', ''),
     };
   }
 

@@ -122,35 +122,38 @@ export class PublicService {
       ['Asunto', msg.subject],
       ['Mensaje', msg.message],
     ];
-    const toInstitution = await this.mail.send({
-      to: this.config.smtp.contactTo,
-      replyTo: msg.email,
-      subject: `[Contacto web] ${msg.subject}`,
-      text: rows.map(([k, v]) => `${k}: ${v}`).join('\n'),
-      html: MailService.layout('Nuevo mensaje desde el sitio web', rows, inst.name),
-    });
-    if (toInstitution.sent) {
-      // Acuse de recibo al visitante (si falla no afecta al resultado)
+    // Aviso a la institución solo si CONTACT_TO está configurado; el mensaje
+    // queda igual en el panel de mensajes.
+    const contactTo = this.config.smtp.contactTo;
+    if (contactTo) {
       await this.mail.send({
-        to: msg.email,
-        subject: `¡Muchas gracias por contactarte! — ${inst.shortName}`,
-        text: `Hola ${msg.name}, ¡muchas gracias por contactarte con ${inst.shortName}! Recibimos tu mensaje «${msg.subject}» y te responderemos a la brevedad.\n\n${inst.name}\n${inst.phone} · ${inst.hours}`,
-        html: MailService.layout(
-          `¡Muchas gracias por contactarte, ${msg.name}! Recibimos tu mensaje y te responderemos a la brevedad.`,
-          [
-            ['Asunto', msg.subject],
-            ['Atención', inst.hours],
-            ['Teléfono', inst.phone],
-          ],
-          `${inst.name} — este es un mensaje automático.`,
-        ),
+        to: contactTo,
+        replyTo: msg.email,
+        subject: `[Contacto web] ${msg.subject}`,
+        text: rows.map(([k, v]) => `${k}: ${v}`).join('\n'),
+        html: MailService.layout('Nuevo mensaje desde el sitio web', rows, inst.name),
       });
     }
+    // Agradecimiento al visitante, en el correo que escribió en el formulario.
+    const toVisitor = await this.mail.send({
+      to: msg.email,
+      subject: `¡Muchas gracias por contactarte! — ${inst.shortName}`,
+      text: `Hola ${msg.name}, ¡muchas gracias por contactarte con ${inst.shortName}! Recibimos tu mensaje «${msg.subject}» y te responderemos a la brevedad.\n\n${inst.name}\n${inst.phone} · ${inst.hours}`,
+      html: MailService.layout(
+        `¡Muchas gracias por contactarte, ${msg.name}! Recibimos tu mensaje y te responderemos a la brevedad.`,
+        [
+          ['Asunto', msg.subject],
+          ['Atención', inst.hours],
+          ['Teléfono', inst.phone],
+        ],
+        `${inst.name} — este es un mensaje automático.`,
+      ),
+    });
 
     await this.prisma.contactMessage.update({
       where: { id: msg.id },
-      data: { emailSent: toInstitution.sent, emailError: toInstitution.error ?? null },
+      data: { emailSent: toVisitor.sent, emailError: toVisitor.error ?? null },
     });
-    return { ok: true, emailSent: toInstitution.sent };
+    return { ok: true, emailSent: toVisitor.sent };
   }
 }
