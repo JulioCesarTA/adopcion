@@ -47,7 +47,10 @@ export class MailService {
   async send(msg: MailMessage): Promise<{ sent: boolean; error?: string }> {
     if (!this.enabled) return { sent: false, error: 'SMTP no configurado' };
     try {
-      await this.getTransporter().sendMail({ from: this.config.smtp.from, ...msg });
+      const info = await this.getTransporter().sendMail({ from: this.config.smtp.from, ...msg });
+      // Con Ethereal (SMTP de prueba) el correo no llega a nadie: se ve en esta URL.
+      const preview = nodemailer.getTestMessageUrl(info);
+      if (preview) this.logger.log(`Vista previa del correo (Ethereal): ${preview}`);
       return { sent: true };
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);

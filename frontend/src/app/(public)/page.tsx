@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { AnimalCard } from "@/components/animals/animal-card";
 import { EmptyState } from "@/components/empty-state";
+import { AboutSection } from "@/components/public/about-section";
+import { BusinessModelSection } from "@/components/public/business-model-section";
 import { ContactForm } from "@/components/public/contact-form";
 import { SocialLinks } from "@/components/public/social-links";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -144,7 +146,7 @@ export default function LandingPage() {
       </section>
 
       {/* Nosotros */}
-      <section id="nosotros" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
+      <section id="servicios" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
         <h2 className="text-center text-3xl font-bold tracking-tight text-slate-900">
           ¿Qué hacemos?
         </h2>
@@ -164,6 +166,9 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Quiénes somos: misión, visión, valores, equipo */}
+      <AboutSection />
 
       {/* Adopta */}
       <section id="adopta" className="scroll-mt-20 bg-slate-50 py-16">
@@ -238,6 +243,9 @@ export default function LandingPage() {
           familia.
         </p>
       </section>
+
+      {/* Modelo de negocio */}
+      <BusinessModelSection />
 
       {/* Preguntas frecuentes */}
       <section id="preguntas" className="scroll-mt-20 bg-slate-50 py-16">

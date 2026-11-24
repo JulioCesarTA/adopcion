@@ -87,7 +87,10 @@ export class ChatService {
           // Bloque estable primero (cacheado); lo variable después del breakpoint
           {
             type: 'text',
-            text: stableSystemPrompt(this.config.institution),
+            text: stableSystemPrompt({
+              ...this.config.institution,
+              siteUrl: this.config.frontendUrl,
+            }),
             cache_control: { type: 'ephemeral' },
           },
           { type: 'text', text: adoptablesPrompt(animals) },

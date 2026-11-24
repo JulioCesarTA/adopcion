@@ -7,7 +7,8 @@ import { useAuth } from "@/lib/auth";
 import { homeForRole } from "@/lib/roles";
 
 const LINKS = [
-  { href: "/#nosotros", label: "Nosotros" },
+  { href: "/#quienes-somos", label: "Quiénes somos" },
+  { href: "/#servicios", label: "Servicios" },
   { href: "/#adopta", label: "Adopta" },
   { href: "/#como-adoptar", label: "Cómo adoptar" },
   { href: "/#preguntas", label: "Preguntas" },

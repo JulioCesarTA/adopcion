@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Loader2, RotateCcw, Send, User } from "lucide-react";
-import { useChat, type ChatTurn } from "@/hooks/use-public";
+import { Bot, Loader2, Mail, MessageCircle, Phone, RotateCcw, Send, User } from "lucide-react";
+import { useChat, usePublicInfo, type ChatTurn } from "@/hooks/use-public";
 import { errorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -11,11 +11,66 @@ const MAX_CHARS = 2000;
 const GREETING =
   "¡Hola! Soy el asistente virtual de Adopet. Puedo ayudarte con preguntas sobre adopción, vacunas, horarios y tenencia responsable. ¿En qué te ayudo?";
 const SUGGESTIONS = [
+  "¿Quiénes son ustedes?",
+  "¿Qué servicios ofrecen?",
   "¿Cómo puedo adoptar?",
-  "¿Cuál es el horario de atención?",
   "¿Qué animales hay disponibles?",
+  "¿Cómo creo una cuenta?",
+  "¿Cómo reservo una cita?",
+  "¿Cuál es el horario de atención?",
+  "¿Cómo protegen mis datos?",
   "Me mordió un perro, ¿qué hago?",
 ];
+
+const URL_RE = /(https?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)])/g;
+
+/** Convierte las URL del texto del asistente en enlaces clicables. */
+function linkify(text: string): React.ReactNode[] {
+  return text.split(URL_RE).map((part, i) => {
+    if (!/^https?:\/\//.test(part)) return part;
+    const sameSite = typeof window !== "undefined" && part.startsWith(window.location.origin);
+    return (
+      <a
+        key={i}
+        href={part}
+        {...(sameSite ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+        className="break-all font-medium text-teal-700 underline"
+      >
+        {part}
+      </a>
+    );
+  });
+}
+
+/** Atajos para hablar con una persona del equipo (datos de la institución). */
+function HumanContact() {
+  const { data: info } = usePublicInfo();
+  const wa = info?.social?.whatsapp;
+  const tel = info?.phone?.replace(/[^\d+]/g, "");
+  if (!wa && !tel && !info?.email) return null;
+  const cls =
+    "inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50";
+  return (
+    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+      <span className="text-[11px] text-slate-400">¿Prefieres una persona?</span>
+      {wa && (
+        <a href={wa} target="_blank" rel="noopener noreferrer" className={cls}>
+          <MessageCircle className="h-3 w-3" aria-hidden /> WhatsApp
+        </a>
+      )}
+      {tel && (
+        <a href={`tel:${tel}`} className={cls}>
+          <Phone className="h-3 w-3" aria-hidden /> Llamar
+        </a>
+      )}
+      {info?.email && (
+        <a href={`mailto:${info.email}`} className={cls}>
+          <Mail className="h-3 w-3" aria-hidden /> Correo
+        </a>
+      )}
+    </div>
+  );
+}
 
 /** Recorta el historial a los últimos turnos, empezando siempre por un mensaje del usuario. */
 function trimHistory(turns: ChatTurn[]): ChatTurn[] {
@@ -88,7 +143,7 @@ export function ChatPanel({ className, compact }: { className?: string; compact?
         )}
         {turns.map((t, i) => (
           <Bubble key={i} role={t.role}>
-            {t.content}
+            {t.role === "assistant" ? linkify(t.content) : t.content}
           </Bubble>
         ))}
         {chat.isPending && (
@@ -114,6 +169,7 @@ export function ChatPanel({ className, compact }: { className?: string; compact?
         }}
         className="border-t border-slate-200 p-3"
       >
+        <HumanContact />
         <div className="flex items-end gap-2">
           <label htmlFor="chat-input" className="sr-only">
             Escribe tu pregunta

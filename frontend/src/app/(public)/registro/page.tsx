@@ -157,7 +157,7 @@ export default function RegisterPage() {
               {...register("acceptTerms")}
             />
             <span>
-              He leído y acepto los{" "}
+              Declaro ser mayor de 18 años, he leído y acepto los{" "}
               <Link
                 href="/terminos"
                 target="_blank"

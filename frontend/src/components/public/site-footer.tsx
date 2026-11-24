@@ -51,6 +51,16 @@ export function SiteFooter() {
           <p className="font-semibold text-white">Enlaces</p>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
+              <Link href="/#quienes-somos" className="hover:text-white">
+                Quiénes somos
+              </Link>
+            </li>
+            <li>
+              <Link href="/#como-nos-sostenemos" className="hover:text-white">
+                Cómo nos sostenemos
+              </Link>
+            </li>
+            <li>
               <Link href="/#adopta" className="hover:text-white">
                 Animales en adopción
               </Link>

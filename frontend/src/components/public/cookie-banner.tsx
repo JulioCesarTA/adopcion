@@ -16,6 +16,18 @@ export function getCookieConsent(): CookieConsent | null {
   }
 }
 
+/** Borra la elección y avisa al banner para que vuelva a mostrarse. */
+export function resetCookieConsent() {
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    /* sin almacenamiento: nada que borrar */
+  }
+  window.dispatchEvent(new Event(RESET_EVENT));
+}
+
+const RESET_EVENT = "adopet:cookie-reset";
+
 /**
  * Banner de consentimiento de cookies. El sitio solo usa cookies necesarias
  * (sesión) y almacenamiento local de preferencias; no hay cookies de terceros.
@@ -25,6 +37,9 @@ export function CookieBanner() {
 
   useEffect(() => {
     setVisible(getCookieConsent() === null);
+    const onReset = () => setVisible(true);
+    window.addEventListener(RESET_EVENT, onReset);
+    return () => window.removeEventListener(RESET_EVENT, onReset);
   }, []);
 
   const choose = (v: CookieConsent) => {
