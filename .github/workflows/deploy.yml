@@ -104,8 +104,30 @@ jobs:
           SHA: ${{ needs.build-and-push.outputs.sha }}
           # Rama a desplegar: la que pasó el CI, o la elegida al lanzarlo a mano.
           BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+          # Clave del asistente virtual. Si el secreto no existe, el .env del
+          # servidor conserva la que tenga.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
+          # Variables que se sincronizan en el .env de la instancia. Los datos de
+          # contacto son públicos; la clave llega cifrada desde los secretos.
+          {
+            echo 'upsert() { sed -i "/^$1=/d" .env; printf "%s=%s\n" "$1" "$2" >> .env; }'
+            echo "upsert INSTITUTION_NAME '\"Adopet\"'"
+            echo "upsert INSTITUTION_SHORT_NAME '\"Adopet\"'"
+            echo "upsert INSTITUTION_PHONE '\"+591 67871058\"'"
+            echo "upsert INSTITUTION_EMAIL 'torricojulioc@gmail.com'"
+            echo "upsert CONTACT_TO 'torricojulioc@gmail.com'"
+            echo "upsert SOCIAL_FACEBOOK 'https://www.facebook.com/adopet.bo'"
+            echo "upsert SOCIAL_INSTAGRAM 'https://www.instagram.com/adopetsantacruz/'"
+            echo "upsert SOCIAL_TIKTOK 'https://www.tiktok.com/@adopetsantacruz'"
+            echo "upsert SOCIAL_WHATSAPP 'https://wa.me/59167871058'"
+            if [ -n "$ANTHROPIC_API_KEY" ]; then
+              echo "upsert ANTHROPIC_API_KEY '$ANTHROPIC_API_KEY'"
+            fi
+          } > sync-env.sh
+          SYNC_B64=$(base64 -w0 sync-env.sh)
+          rm -f sync-env.sh
           CMD_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
@@ -118,6 +140,7 @@ jobs:
               \"git reset --hard origin/${BRANCH} --quiet\",
               \"sed -i 's|^BACKEND_IMAGE=.*|BACKEND_IMAGE=${ECR_REGISTRY}/zoonosis-backend:${SHA}|' .env\",
               \"sed -i 's|^FRONTEND_IMAGE=.*|FRONTEND_IMAGE=${ECR_REGISTRY}/zoonosis-frontend:${SHA}|' .env\",
+              \"echo ${SYNC_B64} | base64 -d | bash\",
               \"chmod +x deploy/redeploy.sh\",
               \"./deploy/redeploy.sh\"
             ]" \
